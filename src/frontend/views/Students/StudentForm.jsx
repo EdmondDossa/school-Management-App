@@ -1,0 +1,119 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import Form from '../../components/Form';
+
+const studentFields = [
+  { name: 'firstName', label: 'Prénom', type: 'text' },
+  { name: 'lastName', label: 'Nom', type: 'text' },
+  { name: 'dateOfBirth', label: 'Date de naissance', type: 'date' },
+  { name: 'email', label: 'Email', type: 'email' },
+  { name: 'phoneNumber', label: 'Téléphone', type: 'tel' },
+  { name: 'address', label: 'Adresse', type: 'textarea' },
+  { name: 'classId', label: 'Classe', type: 'select' }
+];
+
+const StudentForm = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [student, setStudent] = useState({
+    firstName:'',
+    lastName:'',
+    dateOfBirth:'',
+    email:'',
+    phoneNumber:'',
+    address:'',
+    classId:''
+  });
+  const [classes, setClasses] = useState([]);
+
+  useEffect(() => {
+    // Charger les classes
+    const fetchClasses = async () => {
+      const result = await window.electronAPI.dbQuery('SELECT * FROM classes', []);
+      if (result.success) {
+        setClasses(result.data);
+      }
+    };
+
+    // Charger l'étudiant si on est en mode édition
+    const fetchStudent = async () => {
+      if (id) {
+        const result = await window.electronAPI.dbQuery(
+          'SELECT * FROM students WHERE id = ?',
+          [id]
+        );
+        if (result.success && result.data.length > 0) {
+          setStudent(result.data[0]);
+        }
+      }
+    };
+
+    fetchClasses();
+    fetchStudent();
+  }, [id]);
+
+  const handleSubmit = async (formData) => {
+    try {
+      let result;
+      if (id) {
+        result = await window.electronAPI.dbQuery(
+          `UPDATE students SET 
+           firstName = ?, lastName = ?, dateOfBirth = ?, 
+           email = ?, phoneNumber = ?, address = ?, classId = ?
+           WHERE id = ?`,
+          [
+            formData.firstName,
+            formData.lastName,
+            formData.dateOfBirth,
+            formData.email,
+            formData.phoneNumber,
+            formData.address,
+            formData.classId,
+            id
+          ]
+        );
+      } else {
+        result = await window.electronAPI.dbQuery(
+          `INSERT INTO students 
+           (firstName, lastName, dateOfBirth, email, phoneNumber, address, classId)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            formData.firstName,
+            formData.lastName,
+            formData.dateOfBirth,
+            formData.email,
+            formData.phoneNumber,
+            formData.address,
+            formData.classId
+          ]
+        );
+      }
+
+      if (result.success) {
+        toast.success(id ? 'Étudiant modifié avec succès' : 'Étudiant ajouté avec succès');
+        navigate('/students');
+      } else {
+        toast.error('Une erreur est survenue');
+      }
+    } catch (error) {
+      toast.error('Une erreur est survenue');
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        {id ? 'Modifier l\'étudiant' : 'Ajouter un étudiant'}
+      </h1>
+      <Form
+        fields={studentFields}
+        onSubmit={handleSubmit}
+        initialValues={student}
+        submitLabel={id ? 'Modifier' : 'Ajouter'}
+      />
+    </div>
+  );
+};
+
+export default StudentForm;
