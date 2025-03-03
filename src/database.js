@@ -1,15 +1,21 @@
+import { app } from 'electron';
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const fs = require("fs");
 
-// Définir le chemin du dossier DB
-const dbDir = path.join(__dirname, "../resources/db");
+// Chemin vers le dossier userData (persistant)
+const userDataPath = app.getPath('userData');
+// Chemin vers le dossier de la base de données
+const dbDir = path.join(userDataPath, "resources/db");
+
+// Créer le dossier db s'il n'existe pas
 if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
 }
 
 // Chemin de la base de données
 const dbPath = path.join(dbDir, "school-management.db");
+//const dbPath = path.join(dbDir, "school-management.db");
 
 // Créer la connexion SQLite
 const db = new sqlite3.Database(dbPath);
