@@ -18,6 +18,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
         transaction: (operations) => ipcRenderer.invoke('db-transaction', { operations }),
     },
 
+    minimize: () => ipcRenderer.invoke('minimize'), // Minimize The Window
+
+    maximize: () => ipcRenderer.invoke('maximize'), // Maximize The Window
+
+    close: (args) => ipcRenderer.invoke('close', args), // Close The Window
     // Navigation
     onNavigate: (callback) => ipcRenderer.on('navigate', callback),
     navigate: (route) => ipcRenderer.send('navigate', route)

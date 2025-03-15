@@ -94,3 +94,7 @@ out/
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 vite.main.config.mjs.*
 vite.preload.config.mjs.*
+
+# Ressources  sqlite database file
+
+resources/db/

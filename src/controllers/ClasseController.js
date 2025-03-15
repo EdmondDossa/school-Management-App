@@ -1,64 +1,37 @@
+import Classe from '../models/Classe.js';
+
 class ClasseController {
-    static tableName = 'classes';
-
-    static async getAll() {
-        const data = await window.electronAPI.db.query(`SELECT * FROM ${ClasseController.tableName}`, []).then((rows) => {
-            return (rows);
-        }).catch(err => console.error('Erreur:', err));
-
-        return data;
+    static async getAllClasses() {
+        const sql = "SELECT * FROM classes";
+        const rows = await window.electronAPI.db.query(sql);
+        return rows.map(row => new Classe(row.Num_Class, row.Nom_Class, row.Promotion, row.Num_Etabli));
     }
 
-    static async getById(id) {
-        const data = await window.electronAPI.db.query(`SELECT * FROM ${ClasseController.tableName} WHERE id = ?`, [id]).then((rows) => {
-            return (rows);
-        }).catch(err => console.error('Erreur:', err));
-
-        return data;
-
+    static async getClasseByNumClass(numClass) {
+        const sql = "SELECT * FROM classes WHERE Num_Class = ?";
+        const rows = await window.electronAPI.db.query(sql, [numClass]);
+        if (rows.length === 0) return null;
+        const row = rows[0];
+        return new Classe(row.Num_Class, row.Nom_Class, row.Promotion, row.Num_Etabli);
     }
 
-    static async create(classData) {
-        const sql = `
-            INSERT INTO ${ClasseController.tableName} 
-            (name, promotion, capacity, teacherId)
-            VALUES (?, ?, ?, ?)
-        `;
-        const data = await window.electronAPI.db.query(sql, [
-            classData.name,
-            classData.promotion,
-            classData.capacity,
-            classData.teacherId
-        ]);
-
-        return data;
+    static async createClasse(classe) {
+        const sql = "INSERT INTO classes (Nom_Class, Promotion, Num_Etabli) VALUES (?, ?, ?)";
+        const result = await window.electronAPI.db.query(sql, [classe.nomClass, classe.promotion, classe.numEtabli]);
+        return result;
     }
 
-    static async update(id, classData) {
-        const sql = `
-            UPDATE ${ClasseController.tableName}
-            SET name = ?, promotion = ?, capacity = ?, teacherId = ?
-            WHERE id = ?
-        `;
-        const data = await window.electronAPI.db.query(sql, [
-            classData.name,
-            classData.promotion,
-            classData.capacity,
-            classData.teacherId,
-            id
-        ]);
-
-        return data;
+    static async updateClasse(classe) {
+        const sql = "UPDATE classes SET Nom_Class = ?, Promotion = ?, Num_Etabli = ? WHERE Num_Class = ?";
+        const result = await window.electronAPI.db.query(sql, [classe.nomClass, classe.promotion, classe.numEtabli, classe.numClass]);
+        return result;
     }
 
-    static async delete(id) {
-        const data = await window.electronAPI.db.query(`DELETE FROM ${ClasseController.tableName} WHERE id = ?`, [id]).then((rows) => {
-            return (rows);
-        }).catch(err => console.error('Erreur:', err));
-
-        return data;
+    static async deleteClasse(numClass) {
+        const sql = "DELETE FROM classes WHERE Num_Class = ?";
+        const result = await window.electronAPI.db.query(sql, [numClass]);
+        return result;
     }
 }
 
-// ✅ EXPORT AVEC ES MODULES
 export default ClasseController;

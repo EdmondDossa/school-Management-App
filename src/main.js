@@ -1,4 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+const log = require('electron-log');
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Database from './database.js';
@@ -7,26 +9,20 @@ if (started) {
   app.quit();
 }
 
-/**
- * Initialise la base de données et crée la fenêtre principale
- */
-async function initialize() {
-  try {
-    await Database.init();
-    createWindow();
-  } catch (err) {
-    console.error('Erreur lors de l\'initialisation de la base de données:', err);
-    app.quit();
-  }
-}
-
+let mainWindow;
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+  mainWindow = new BrowserWindow({
+    width: 900,
+    height: 670,
+    show: true,
+    frame: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      sandbox: false,
+      contextIsolation: true,
+      webSecurity: true
     },
   });
 
@@ -38,8 +34,26 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 };
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.whenReady().then(() => {
+  log.info("Ready")
+  electronApp.setAppUserModelId('com.exampapersetter')
+
+  app.on('browser-window-created', (_, window) => {
+    optimizer.watchWindowShortcuts(window)
+  })
+
+  createWindow()
+
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
 
 /**
  * Wrapper générique pour la gestion des erreurs et des requêtes de base de données
@@ -57,6 +71,82 @@ function createDbHandler(method) {
     }
   };
 }
+Database.initTables();
+// Function To Minimize Window
+ipcMain.handle("minimize", () => {
+  mainWindow.minimize();
+});
+
+// Function To Maximize Window
+ipcMain.handle("maximize", () => {
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow.maximize();
+  }
+});
+
+ipcMain.handle("showDialog", async (event, args) => {
+  let win = null;
+  switch (args.window) {
+    case "mainWindow":
+      win = mainWindow;
+      break;
+    case "CourseWindow":
+      win = CourseWindow;
+      break;
+    default:
+      break;
+  }
+
+  return dialog.showMessageBox(win, args.options);
+});
+
+ipcMain.handle("saveFile", async (event, args) => {
+  let options = {
+    title: "Save files",
+
+    defaultPath: app.getPath("downloads"),
+
+    buttonLabel: "Save Output File",
+
+    properties: ["openDirectory"],
+  };
+
+  let filename = await dialog.showOpenDialog(mainWindow, options);
+  if (!filename.canceled) {
+    var base64Data = args.replace(/^data:application\/pdf;base64,/, "");
+
+    const p = path.join(filename.filePaths[0], "/exampaper")
+    if (!fs.existsSync(p)) {
+      fs.mkdirSync(p);
+    }
+    fs.writeFileSync(
+      path.join(p, "output.pdf"),
+      base64Data,
+      "base64"
+    );
+
+
+    fse.copySync("input", path.join(p, "input"))
+
+  }
+});
+
+// Function To Close Window
+ipcMain.handle("close", (event, args) => {
+  switch (args) {
+    case "mainWindow":
+      app.quit();
+      break;
+    case "CourseWindow":
+      mainWindow.webContents.send("reload");
+      CourseWindow.close();
+      break;
+    default:
+      break;
+  }
+});
 
 // Handlers de base de données
 ipcMain.handle('db-query', createDbHandler(({ sql, params }) => Database.query(sql, params)));
@@ -111,10 +201,19 @@ ipcMain.on('navigate', (event, route) => {
   }
 });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(initialize);
+
+app.on("activate", () => {
+  if (mainWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
+process.on("uncaughtException", (error) => {
+  log.info(`Exception: ${error}`);
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

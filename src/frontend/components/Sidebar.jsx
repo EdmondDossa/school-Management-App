@@ -13,10 +13,7 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-white shadow-md">
-      <div className="p-6">
-        <h1 className="text-xl font-bold text-gray-800">School Manager</h1>
-      </div>
-      <nav className="mt-6">
+      <nav>
         {menuItems.map((item) => (
           <Link
             key={item.path}
