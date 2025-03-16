@@ -1,11 +1,11 @@
 class Cours {
     constructor(numCours, hDebut, hFin, jours, codMat, numEmploi) {
-        this.numCours = numCours;
-        this.hDebut = hDebut;
-        this.hFin = hFin;
-        this.jours = jours;
-        this.codMat = codMat;
-        this.numEmploi = numEmploi;
+        this.Num_Cours = numCours;
+        this.HDebut = hDebut;
+        this.HFin = hFin;
+        this.Jour = jours;
+        this.Cod_Mat = codMat;
+        this.Num_Emploi = numEmploi;
     }
 }
 

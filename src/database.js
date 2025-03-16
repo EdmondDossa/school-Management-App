@@ -159,7 +159,20 @@ class Database {
                     FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli),
                     FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee),
                     FOREIGN KEY (Num_Prof) REFERENCES professeurs(Num_Prof)
+                );`,
+
+                `CREATE TABLE IF NOT EXISTS cours (
+                    Num_Cours INTEGER PRIMARY KEY AUTOINCREMENT,
+                    HDebut TEXT NOT NULL,
+                    HFin TEXT NOT NULL,
+                    Jour TEXT NOT NULL,
+                    Cod_Mat TEXT,
+                    Num_Emploi INTEGER,
+                    FOREIGN KEY (Cod_Mat) REFERENCES matieres(Cod_Mat),
+                    FOREIGN KEY (Num_Emploi) REFERENCES emploi_du_temps(Num_Emploi)
                 );`
+
+
             ]
 
             db.serialize(() => {
