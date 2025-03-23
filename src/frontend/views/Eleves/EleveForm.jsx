@@ -2,21 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Form from '../../components/Form';
+import ClasseController from '../../../controllers/ClasseController';
 
-const studentFields = [
-  { name: 'firstName', label: 'Prénom', type: 'text' },
-  { name: 'lastName', label: 'Nom', type: 'text' },
-  { name: 'dateOfBirth', label: 'Date de naissance', type: 'date' },
-  { name: 'email', label: 'Email', type: 'email' },
-  { name: 'phoneNumber', label: 'Téléphone', type: 'tel' },
-  { name: 'address', label: 'Adresse', type: 'textarea' },
-  { name: 'classId', label: 'Classe', type: 'select' }
-];
 
-const StudentForm = () => {
+const EleveForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [student, setStudent] = useState({
+  
+  const [eleve, setEleve] = useState({
     firstName:'',
     lastName:'',
     dateOfBirth:'',
@@ -27,30 +20,40 @@ const StudentForm = () => {
   });
   const [classes, setClasses] = useState([]);
 
+  const eleveFields = [
+    { name: 'firstName', label: 'Prénom', type: 'text' },
+    { name: 'lastName', label: 'Nom', type: 'text' },
+    { name: 'dateOfBirth', label: 'Date de naissance', type: 'date' },
+    { name: 'email', label: 'Email', type: 'email' },
+    { name: 'phoneNumber', label: 'Téléphone', type: 'tel' },
+    { name: 'address', label: 'Adresse', type: 'textarea' },
+    { name: 'classId', label: 'Classe', type: 'select', options: classes }
+  ];
+
   useEffect(() => {
     // Charger les classes
     const fetchClasses = async () => {
-      const result = await window.electronAPI.dbQuery('SELECT * FROM classes', []);
+      const result = await ClasseController.getAllClasses();
       if (result.success) {
         setClasses(result.data);
       }
     };
 
     // Charger l'étudiant si on est en mode édition
-    const fetchStudent = async () => {
+    const fetchEleve = async () => {
       if (id) {
         const result = await window.electronAPI.dbQuery(
-          'SELECT * FROM students WHERE id = ?',
+          'SELECT * FROM eleves WHERE id = ?',
           [id]
         );
         if (result.success && result.data.length > 0) {
-          setStudent(result.data[0]);
+          setEleve(result.data[0]);
         }
       }
     };
 
     fetchClasses();
-    fetchStudent();
+    fetchEleve();
   }, [id]);
 
   const handleSubmit = async (formData) => {
@@ -58,7 +61,7 @@ const StudentForm = () => {
       let result;
       if (id) {
         result = await window.electronAPI.dbQuery(
-          `UPDATE students SET 
+          `UPDATE eleves SET 
            firstName = ?, lastName = ?, dateOfBirth = ?, 
            email = ?, phoneNumber = ?, address = ?, classId = ?
            WHERE id = ?`,
@@ -75,7 +78,7 @@ const StudentForm = () => {
         );
       } else {
         result = await window.electronAPI.dbQuery(
-          `INSERT INTO students 
+          `INSERT INTO eleves 
            (firstName, lastName, dateOfBirth, email, phoneNumber, address, classId)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
@@ -92,7 +95,7 @@ const StudentForm = () => {
 
       if (result.success) {
         toast.success(id ? 'Étudiant modifié avec succès' : 'Étudiant ajouté avec succès');
-        navigate('/students');
+        navigate('/eleves');
       } else {
         toast.error('Une erreur est survenue');
       }
@@ -107,13 +110,13 @@ const StudentForm = () => {
         {id ? 'Modifier l\'étudiant' : 'Ajouter un étudiant'}
       </h1>
       <Form
-        fields={studentFields}
+        fields={eleveFields}
         onSubmit={handleSubmit}
-        initialValues={student}
+        initialValues={eleve}
         submitLabel={id ? 'Modifier' : 'Ajouter'}
       />
     </div>
   );
 };
 
-export default StudentForm;
+export default EleveForm;

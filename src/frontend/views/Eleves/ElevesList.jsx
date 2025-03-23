@@ -11,38 +11,38 @@ const columns = [
   { key: 'className', label: 'Classe' }
 ];
 
-const StudentsList = () => {
-  const [students, setStudents] = useState([]);
+const ElevesList = () => {
+  const [eleves, setEleves] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchStudents = async () => {
+  const fetchEleves = async () => {
     try {
       const result = await window.electronAPI.dbQuery(
-        'SELECT students.*, classes.name as className FROM students LEFT JOIN classes ON students.classId = classes.id',
+        'SELECT eleves.*, classes.name as className FROM eleves LEFT JOIN classes ON eleves.classId = classes.id',
         []
       );
       if (result.success) {
-        setStudents(result.data);
+        setEleves(result.data);
       } else {
-        toast.error('Erreur lors du chargement des étudiants');
+        toast.error('Erreur lors du chargement des eleves');
       }
     } catch (error) {
-      toast.error('Erreur lors du chargement des étudiants');
+      toast.error('Erreur lors du chargement des eleves');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet étudiant ?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet eleve ?')) {
       try {
         const result = await window.electronAPI.dbQuery(
-          'DELETE FROM students WHERE id = ?',
+          'DELETE FROM eleves WHERE id = ?',
           [id]
         );
         if (result.success) {
           toast.success('Étudiant supprimé avec succès');
-          fetchStudents();
+          fetchEleves();
         } else {
           toast.error('Erreur lors de la suppression');
         }
@@ -53,7 +53,7 @@ const StudentsList = () => {
   };
 
   useEffect(() => {
-    fetchStudents();
+    fetchEleves();
   }, []);
 
   if (loading) {
@@ -63,22 +63,22 @@ const StudentsList = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Liste des étudiants</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Liste des eleves</h1>
         <Link
-          to="/students/add"
+          to="/eleves/add"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          Ajouter un étudiant
+          Ajouter un eleve
         </Link>
       </div>
       <Table
         columns={columns}
-        data={students}
+        data={eleves}
         onDelete={handleDelete}
-        editRoute="/students/edit"
+        editRoute="/eleves/edit"
       />
     </div>
   );
 };
 
-export default StudentsList;
+export default ElevesList;

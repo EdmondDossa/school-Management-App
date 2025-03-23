@@ -9,7 +9,7 @@ export default defineConfig({
     base: './',
     resolve: {
         alias: {
-            '@/frontend': path.resolve(__dirname, 'src/frontend'),
+            '@': path.resolve(__dirname, 'src'),
         },
     },
 });

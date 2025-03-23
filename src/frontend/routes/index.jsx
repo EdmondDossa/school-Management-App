@@ -2,8 +2,12 @@ import React from 'react';
 import { createHashRouter } from 'react-router-dom';
 import RootLayout from '../layouts/RootLayout';
 import Dashboard from '../views/Dashboard';
-import { StudentsList, StudentForm } from '../views/Students';
+import Etablissement from '../views/Etablissement';
+import { ElevesList, EleveForm } from '../views/Eleves';
 import { ClassesList, ClasseForm } from '../views/Classes';
+import { EmploiDuTempsList } from '../views/EmploiDuTemps';
+import Matieres from '../views/Matieres';
+import Professeurs from '../views/Professeurs';
 
 export const router = createHashRouter([
   {
@@ -15,16 +19,20 @@ export const router = createHashRouter([
         element: <Dashboard />,
       },
       {
-        path: 'students',
-        element: <StudentsList />,
+        path: 'etablissements',
+        element: <Etablissement />,
       },
       {
-        path: 'students/add',
-        element: <StudentForm />,
+        path: 'eleves',
+        element: <ElevesList />,
       },
       {
-        path: 'students/edit/:id',
-        element: <StudentForm />,
+        path: 'eleves/add',
+        element: <EleveForm />,
+      },
+      {
+        path: 'eleves/edit/:id',
+        element: <EleveForm />,
       },
       {
         path: 'classes',
@@ -38,6 +46,26 @@ export const router = createHashRouter([
         path: 'classes/edit/:id',
         element: <ClasseForm />,
       },
+      {
+        path: 'matieres',
+        element: <Matieres />,
+      },
+      {
+        path: 'professeurs',
+        element: <Professeurs />,
+      },
+      {
+        path: 'emplois-du-temps',
+        element: <EmploiDuTempsList />,
+      },
+      /* {
+        path: 'notes',
+        element: <NotesList />,
+      },
+      {
+        path: 'bulletin',
+        element: <BulletinList />,
+      }, */
     ],
   },
 ]);

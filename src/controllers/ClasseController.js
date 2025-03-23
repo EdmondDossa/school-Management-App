@@ -4,15 +4,23 @@ class ClasseController {
     static async getAllClasses() {
         const sql = "SELECT * FROM classes";
         const rows = await window.electronAPI.db.query(sql);
-        return rows.map(row => new Classe(row.Num_Class, row.Nom_Class, row.Promotion, row.Num_Etabli));
+        if (rows.success) {
+            return rows.data.map(row => new Classe(row.Num_Class, row.Nom_Class, row.Promotion, row.Num_Etabli));
+        } else {
+            return [];
+        }
     }
 
     static async getClasseByNumClass(numClass) {
         const sql = "SELECT * FROM classes WHERE Num_Class = ?";
         const rows = await window.electronAPI.db.query(sql, [numClass]);
-        if (rows.length === 0) return null;
-        const row = rows[0];
-        return new Classe(row.Num_Class, row.Nom_Class, row.Promotion, row.Num_Etabli);
+        if (rows.success && rows.data.length === 0)
+            return null;
+        else if (rows.success && rows.data.length > 0) {
+            const row = rows.data[0];
+            return new Classe(row.Num_Class, row.Nom_Class, row.Promotion, row.Num_Etabli);
+        }
+
     }
 
     static async createClasse(classe) {
