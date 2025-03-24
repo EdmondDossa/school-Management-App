@@ -16,7 +16,7 @@ const Sidebar = () => {
   ];  
 
   return (
-    <div className="w-64 bg-[#2871FA] shadow-md">
+    <div className="w-64 bg-[#2871FA] shadow-lg shadow-[#00000014]">
       <nav>
         {menuItems.map((item) => (
           <Link

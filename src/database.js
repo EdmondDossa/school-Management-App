@@ -36,36 +36,36 @@ class Database {
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS etablissements (
-                    Num_Etabli INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Nom_Etabli TEXT NOT NULL,
+                    NumEtabli INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NomEtabli TEXT NOT NULL,
                     Adresse TEXT,
                     Telephone TEXT,
                     Email TEXT
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS classes (
-                    Num_Class INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Nom_Class TEXT NOT NULL,
+                    NumClass INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NomClass TEXT NOT NULL,
                     Promotion TEXT NOT NULL,
-                    Num_Etabli INTEGER,
-                    FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli)
+                    NumEtabli INTEGER,
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS matieres (
-                    Cod_Mat TEXT PRIMARY KEY,
-                    Nom_Mat TEXT NOT NULL
+                    CodMat TEXT PRIMARY KEY,
+                    NomMat TEXT NOT NULL
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
-                    Cod_Mat TEXT,
+                    CodMat TEXT,
                     Coef INTEGER NOT NULL,
-                    Num_Etabli INTEGER,
+                    NumEtabli INTEGER,
                     Annee TEXT,
-                    Num_Class INTEGER,
-                    PRIMARY KEY (Cod_Mat, Num_Etabli, Annee, Num_Class),
-                    FOREIGN KEY (Cod_Mat) REFERENCES matieres(Cod_Mat),
-                    FOREIGN KEY (Num_Class) REFERENCES classes(Num_Class),
-                    FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli),
+                    NumClass INTEGER,
+                    PRIMARY KEY (CodMat, NumEtabli, Annee, NumClass),
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
+                    FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
                     FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
                 );`,
 
@@ -77,57 +77,57 @@ class Database {
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS professeurs (
-                    Num_Prof INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Nom_Prof TEXT NOT NULL,
-                    Prenom_Prof TEXT NOT NULL,
+                    NumProf INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NomProf TEXT NOT NULL,
+                    PrenomProf TEXT NOT NULL,
                     Sexe TEXT,
                     Adresse TEXT,
                     Telephone TEXT,
                     Email TEXT,
-                    Date_Naissance TEXT,
-                    Lieu_Naissance TEXT,
+                    DateNaissance TEXT,
+                    LieuNaissance TEXT,
                     Nationalite TEXT
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS enseigner (
-                    Num_Prof INTEGER,
-                    Cod_Mat TEXT,
-                    Num_Class INTEGER,
-                    Num_Etabli INTEGER,
+                    NumProf INTEGER,
+                    CodMat TEXT,
+                    NumClass INTEGER,
+                    NumEtabli INTEGER,
                     Annee TEXT,
-                    PRIMARY KEY (Num_Prof, Cod_Mat, Num_Class, Num_Etabli, Annee),
-                    FOREIGN KEY (Num_Prof) REFERENCES professeurs(Num_Prof),
-                    FOREIGN KEY (Cod_Mat) REFERENCES matieres(Cod_Mat),
-                    FOREIGN KEY (Num_Class) REFERENCES classes(Num_Class),
-                    FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli),
-                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
+                    PRIMARY KEY (NumProf, CodMat, NumClass, NumEtabli, Annee),
+                    FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
+                    FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
+                    FOREIGN KEY (Annee) REFERENCES anneesscolaires(Annee)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS eleves (
                     Matricule TEXT PRIMARY KEY,
-                    Nom_Eleve TEXT NOT NULL,
-                    Prenom_Eleve TEXT NOT NULL,
+                    NomEleve TEXT NOT NULL,
+                    PrenomEleve TEXT NOT NULL,
                     Sexe TEXT,
-                    Date_Naissance TEXT,
-                    Lieu_Naissance TEXT,
+                    DateNaissance TEXT,
+                    LieuNaissance TEXT,
                     Nationalite TEXT,
                     ContactParent TEXT,
-                    Num_Etabli INTEGER,
-                    FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli)
+                    NumEtabli INTEGER,
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS inscriptions (
-                    Num_Ins INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Date_Ins TEXT NOT NULL,
+                    NumIns INTEGER PRIMARY KEY AUTOINCREMENT,
+                    DateIns TEXT NOT NULL,
                     Statut TEXT NOT NULL CHECK(Statut IN ('Nouveau', 'Doublant', 'Redoublant')),
                     Matricule TEXT,
-                    Num_Etabli INTEGER,
-                    Num_Class INTEGER,
-                    Annee_Scolaire TEXT,
+                    NumEtabli INTEGER,
+                    NumClass INTEGER,
+                    AnneeScolaire TEXT,
                     FOREIGN KEY (Matricule) REFERENCES eleves(Matricule),
-                    FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli),
-                    FOREIGN KEY (Num_Class) REFERENCES classes(Num_Class),
-                    FOREIGN KEY (Annee_Scolaire) REFERENCES annees_scolaires(Annee)
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
+                    FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
+                    FOREIGN KEY (AnneeScolaire) REFERENCES annees_scolaires(Annee)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS periodes (
@@ -137,39 +137,39 @@ class Database {
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS composer (
-                    Num_Ins INTEGER,
-                    Cod_Mat TEXT,
-                    Date_Compo TEXT,
+                    NumIns INTEGER,
+                    CodMat TEXT,
+                    DateCompo TEXT,
                     Note REAL,
                     Type TEXT NOT NULL CHECK(Type IN ('Interrogation', 'Devoir')),
                     numPeriode INTEGER,
-                    PRIMARY KEY (Num_Ins, Cod_Mat, Date_Compo),
-                    FOREIGN KEY (Num_Ins) REFERENCES inscriptions(Num_Ins),
-                    FOREIGN KEY (Cod_Mat) REFERENCES matieres(Cod_Mat),
+                    PRIMARY KEY (NumIns, CodMat, DateCompo),
+                    FOREIGN KEY (NumIns) REFERENCES inscriptions(NumIns),
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (numPeriode) REFERENCES periodes(numPeriode)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS emploi_du_temps (
-                    Num_Emploi INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Num_Class INTEGER,
-                    Num_Etabli INTEGER,
+                    NumEmploi INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NumClass INTEGER,
+                    NumEtabli INTEGER,
                     Annee TEXT,
-                    Num_Prof INTEGER,
-                    FOREIGN KEY (Num_Class) REFERENCES classes(Num_Class),
-                    FOREIGN KEY (Num_Etabli) REFERENCES etablissements(Num_Etabli),
+                    NumProf INTEGER,
+                    FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
                     FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee),
-                    FOREIGN KEY (Num_Prof) REFERENCES professeurs(Num_Prof)
+                    FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS cours (
-                    Num_Cours INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NumCours INTEGER PRIMARY KEY AUTOINCREMENT,
                     HDebut TEXT NOT NULL,
                     HFin TEXT NOT NULL,
                     Jour TEXT NOT NULL,
-                    Cod_Mat TEXT,
-                    Num_Emploi INTEGER,
-                    FOREIGN KEY (Cod_Mat) REFERENCES matieres(Cod_Mat),
-                    FOREIGN KEY (Num_Emploi) REFERENCES emploi_du_temps(Num_Emploi)
+                    CodMat TEXT,
+                    NumEmploi INTEGER,
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
+                    FOREIGN KEY (NumEmploi) REFERENCES emploi_du_temps(NumEmploi)
                 );`
 
 
