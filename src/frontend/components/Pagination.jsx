@@ -28,7 +28,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <Button
         onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`h-10 bg-white rounded-none px-3 py-1 border border-black text-md font-bold ${
+        className={`h-10 flex items-center justify-center bg-white rounded-none px-3 py-1 border border-black text-md font-bold ${
           currentPage === 1
             ? "text-gray-400 cursor-not-allowed"
             : "text-black hover:bg-gray-100"
@@ -42,7 +42,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         <Button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`h-10 w-10 rounded-none px-3 py-1 text-sm border border-[#2871FA] ${
+          className={`h-10 flex items-center justify-center w-10 rounded-none px-3 py-1 text-sm border border-[#2871FA] ${
             page === currentPage
               ? "bg-blue-600 text-white font-semibold border "
               : "bg-white text-black font-semibold hover:bg-gray-100"
@@ -56,7 +56,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <Button
         onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`h-10 rounded-none px-3 py-1 bg-white border border-black text-md font-bold ${
+        className={`h-10 flex items-center justify-center rounded-none px-3 py-1 bg-white border border-black text-md font-bold ${
           currentPage === totalPages
             ? "text-gray-400 cursor-not-allowed"
             : "text-black hover:bg-gray-100"

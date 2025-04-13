@@ -1,6 +1,6 @@
 import Professeur from '../models/Professeur.js';
 
-class ProfesseurController {
+class ProfesseurService {
     static async getAllProfesseurs() {
         const sql = "SELECT * FROM professeurs";
         const rows = await window.electronAPI.db.query(sql);
@@ -34,4 +34,4 @@ class ProfesseurController {
     }
 }
 
-export default ProfesseurController;
+export default ProfesseurService;

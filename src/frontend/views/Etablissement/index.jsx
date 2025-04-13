@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import {Input, Button} from "../../components";
+import EtablissementService from "../../../services/EtablissementService";
+import { getResourcesPath, handleUploadFile } from "../../../utils";
+import toast from "react-hot-toast";
 
 const Etablissement = () => {
   const [formData, setFormData] = useState({
-    nom: "",
-    prenom: "",
-    telephone: "",
-    email: "",
-    fichier: null,
+    NumEtabli: null,    
+    NomEtabli: "",
+    Adresse: "",
+    Telephone: "",
+    Email: "",
+    Logo: null,
   });
+
+  const resourcePath = 'resources/images/etablissements/';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,13 +24,81 @@ const Etablissement = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, fichier: e.target.files[0] });
+    setFormData({ ...formData, Logo: e.target.files[0] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Données envoyées :", formData);
+    let saveFile;
+    if(formData.Logo.name) {
+      saveFile = await handleUploadFile(formData.Logo, "images/etablissements");
+      if(saveFile.success){
+        formData.Logo = saveFile.fileName;
+      }else{
+        toast.error("Le fichier n'a pas pu être enrégistré");
+        return;
+      }
+    }      
+    if(formData.NumEtabli === null){
+      formData.NumEtabli = null;
+      EtablissementService.createEtablissement(formData)
+      .then((response) => {
+        if(response.success){
+          formData.NumEtabli = response.data.insertId;
+          toast.success("Etablissement créé avec succès");
+        }else{
+          toast.error("Erreur lors de la création de l'établissement");
+        }
+      })
+      .catch((error) => {
+        toast.error("Erreur lors de la création de l'établissement");
+      });
+    }else{
+      EtablissementService.updateEtablissement(formData)
+        .then((response) => {
+          if(response.success){
+            toast.success("Etablissement modifié avec succès");
+          }else{
+            toast.error("Erreur lors de la modification de l'établissement");
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating etablissement:", error);
+          toast.error("Erreur lors de la modification de l'établissement");
+        });
+    }
   };
+
+  useEffect(() => {
+    EtablissementService.getAllEtablissements()
+      .then((response) => {
+        const data = response.data;
+        if (data.length > 0) {
+          const etablissement = data[0];
+          setFormData({
+            NumEtabli: etablissement.NumEtabli,
+            NomEtabli: etablissement.NomEtabli,
+            Adresse: etablissement.Adresse,
+            Telephone: etablissement.Telephone,
+            Email: etablissement.Email,
+            Logo: etablissement.Logo,
+          });
+        }else{
+          setFormData({
+            NumEtabli: null,
+            NomEtabli: "",
+            Adresse: "",
+            Telephone: "",
+            Email: "",
+            Logo: null,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching etablissements:", error);
+      });
+      
+  }, [])
 
   return (
     <div className="flex justify-center items-center">
@@ -33,9 +107,10 @@ const Etablissement = () => {
           <label className="text-[15px]">Nom  de l’établissement</label>
           <Input
             type="text"
-            name="nom"
+            name="NomEtabli"
             placeholder="Nom"
-            value={formData.nom}
+            required
+            value={formData.NomEtabli}
             onChange={handleChange}
           />
         </div>
@@ -43,9 +118,10 @@ const Etablissement = () => {
           <label className="text-[15px]">Adresse</label>
           <Input
             type="text"
-            name="adresse"
-            placeholder="adresse"
-            value={formData.adresse}
+            name="Adresse"
+            placeholder="Adresse"
+            required
+            value={formData.Adresse}
             onChange={handleChange}
           />
         </div>
@@ -54,17 +130,18 @@ const Etablissement = () => {
           <PhoneInput
             defaultCountry="bj"
             country={"bj"}
-            value={formData.telephone}
-            onChange={(phone) => setFormData({ ...formData, telephone: phone })}
+            value={formData.Telephone}
+            placeholder="Téléphone"
+            onChange={(phone) => setFormData({ ...formData, Telephone: phone })}
           />
         </div>
         <div className="space-y-4">
           <label className="text-[15px]">Email</label>
           <Input
             type="email"
-            name="email"
+            name="Email"
             placeholder="exemple@gmail.com"
-            value={formData.email}
+            value={formData.Email}
             onChange={handleChange}
           />
         </div>
@@ -73,6 +150,7 @@ const Etablissement = () => {
           <Input
             type="file"
             onChange={handleFileChange}
+            previewFile={formData.Logo != null ? `app://${resourcePath + formData.Logo}` : null}
             className="hidden"
             id="fileInput"            
           />
@@ -84,11 +162,18 @@ const Etablissement = () => {
               type="submit" 
               className="w-1/2 bg-blue-600 text-white rounded-md h-[50px]"
             >
-              Enregistrer
+              { formData.NumEtabli === null ? "Créer" : "Modifier" }
             </Button>
             <Button
               type="reset"
-              onClick={() => setFormData({ nom: "", prenom: "", telephone: "", email: "", fichier: null })}
+              onClick={() => setFormData({
+                NumEtabli: null,
+                NomEtabli: "",
+                Adresse: "",
+                Telephone: "",
+                Email: "",
+                Logo: null,
+              })}
               className="w-1/2 h-[50px] py-3 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-100"
             >
               Effacer

@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, protocol, BrowserWindow, ipcMain } from 'electron';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 const log = require('electron-log');
 import path from 'node:path';
+import fs from 'node:fs';
 import started from 'electron-squirrel-startup';
 import Database from './database.js';
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -47,6 +48,12 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+
+  protocol.registerFileProtocol('app', (request, callback) => {
+    const url = request.url.replace('app://', '');
+    const filePath = path.join(app.getAppPath(), url);
+    callback(filePath);
+  });
 
   createWindow()
 
@@ -102,36 +109,42 @@ ipcMain.handle("showDialog", async (event, args) => {
   return dialog.showMessageBox(win, args.options);
 });
 
-ipcMain.handle("saveFile", async (event, args) => {
-  let options = {
-    title: "Save files",
+ipcMain.handle('app-get-path', (event, args) => {
+  return app.getPath(args.path);
+});
+ipcMain.handle('get-app-path', (event, args) => {
+  return app.getAppPath();
+});
 
-    defaultPath: app.getPath("downloads"),
+ipcMain.handle('save-file', async (event, { fileName, fileData, targetSubfolder }) => {
+  try {
+    const resourcesPath = path.join(app.getAppPath(), 'resources', targetSubfolder);
 
-    buttonLabel: "Save Output File",
-
-    properties: ["openDirectory"],
-  };
-
-  let filename = await dialog.showOpenDialog(mainWindow, options);
-  if (!filename.canceled) {
-    var base64Data = args.replace(/^data:application\/pdf;base64,/, "");
-
-    const p = path.join(filename.filePaths[0], "/exampaper")
-    if (!fs.existsSync(p)) {
-      fs.mkdirSync(p);
+    // Créer le dossier si nécessaire
+    if (!fs.existsSync(resourcesPath)) {
+      fs.mkdirSync(resourcesPath, { recursive: true });
     }
-    fs.writeFileSync(
-      path.join(p, "output.pdf"),
-      base64Data,
-      "base64"
-    );
 
+    const filePath = path.join(resourcesPath, fileName);
 
-    fse.copySync("input", path.join(p, "input"))
+    // Convertir Uint8Array en Buffer pour Node.js
+    const buffer = Buffer.from(fileData);
 
+    fs.writeFileSync(filePath, buffer);
+
+    return {
+      success: true,
+      path: filePath,
+      folder: targetSubfolder
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
   }
 });
+
 
 // Function To Close Window
 ipcMain.handle("close", (event, args) => {

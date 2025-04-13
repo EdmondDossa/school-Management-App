@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Form from '../../components/Form';
-import ClasseController from '../../../controllers/ClasseController.js';
+import ClasseService from '../../../services/ClasseService.js';
 
 
 const ClasseForm = () => {
@@ -35,7 +35,7 @@ const ClasseForm = () => {
   // Charger la classe si on est en mode édition
   const fetchClasse = async () => {
     if (id) {
-      const result = await ClasseController.getById(id);
+      const result = await ClasseService.getById(id);
       if (result.success && result.data.length > 0) {
         setClasse(result.data[0]);
       }
@@ -50,9 +50,9 @@ const ClasseForm = () => {
     try {
       let result;
       if (id) {
-        result = await ClasseController.update(id, formData);
+        result = await ClasseService.update(id, formData);
       } else {
-        result = await ClasseController.create(formData);
+        result = await ClasseService.create(formData);
       }
 
       if (result.success) {

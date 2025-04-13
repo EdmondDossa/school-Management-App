@@ -1,6 +1,6 @@
 import Composer from '../models/Composer.js';
 
-class ComposerController {
+class ComposerService {
     static async getAllComposers() {
         const sql = "SELECT * FROM composer";
         const rows = await window.electronAPI.db.query(sql);
@@ -35,4 +35,4 @@ class ComposerController {
 
 }
 
-export default ComposerController;
+export default ComposerService;

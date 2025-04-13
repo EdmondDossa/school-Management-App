@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Table from '../../components/Table';
-import ClasseController from '../../../controllers/ClasseController.js';
+import ClasseService from '../../../services/ClasseService.js';
 const columns = [
   { key: 'name', label: 'Nom de classe' },
   { key: 'promotion', label: 'Promotions' },
@@ -16,7 +16,7 @@ const ClassesList = () => {
 
   const fetchClasses = async () => {
     try {
-      const result = await ClasseController.getAll();
+      const result = await ClasseService.getAll();
       if (result.success) {
         setClasses(result.data);
       } else {

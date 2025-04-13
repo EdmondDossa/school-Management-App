@@ -1,6 +1,6 @@
 import Coefficient from '../models/Coefficient.js';
 
-class CoefficientController {
+class CoefficientService {
     static async getAllCoefficients() {
         const sql = "SELECT * FROM coefficientsMatieres";
         const rows = await window.electronAPI.db.query(sql);
@@ -34,4 +34,4 @@ class CoefficientController {
     }
 }
 
-export default CoefficientController;
+export default CoefficientService;

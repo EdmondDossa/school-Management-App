@@ -1,6 +1,6 @@
 import Periode from '../models/Periode.js';
 
-class PeriodeController {
+class PeriodeService {
     static async getAllPeriodes() {
         const sql = "SELECT * FROM periodes";
         const rows = await window.electronAPI.db.query(sql);
@@ -34,4 +34,4 @@ class PeriodeController {
     }
 }
 
-export default PeriodeController;
+export default PeriodeService;

@@ -1,6 +1,6 @@
 import EmploiDuTemps from '../models/EmploiDuTemps.js';
 
-class EmploiDuTempsController {
+class EmploiDuTempsService {
     static async getAllEmploisDuTemps() {
         const sql = "SELECT * FROM emploi_du_temps";
         const rows = await window.electronAPI.db.query(sql);
@@ -34,4 +34,4 @@ class EmploiDuTempsController {
     }
 }
 
-export default EmploiDuTempsController;
+export default EmploiDuTempsService;

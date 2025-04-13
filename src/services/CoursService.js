@@ -1,6 +1,6 @@
 import Cours from '../models/Cours.js';
 
-class CoursController {
+class CoursService {
     static async getAllCours() {
         const sql = "SELECT * FROM emploi_du_temps";
         const rows = await window.electronAPI.db.query(sql);
@@ -34,4 +34,4 @@ class CoursController {
     }
 }
 
-export default CoursController;
+export default CoursService;

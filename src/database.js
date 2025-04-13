@@ -40,6 +40,7 @@ class Database {
                     NomEtabli TEXT NOT NULL,
                     Adresse TEXT,
                     Telephone TEXT,
+                    Logo TEXT,
                     Email TEXT
                 );`,
 
@@ -79,7 +80,7 @@ class Database {
                 `CREATE TABLE IF NOT EXISTS professeurs (
                     NumProf INTEGER PRIMARY KEY AUTOINCREMENT,
                     NomProf TEXT NOT NULL,
-                    PrenomProf TEXT NOT NULL,
+                    PrenomsProf TEXT NOT NULL,
                     Sexe TEXT,
                     Adresse TEXT,
                     Telephone TEXT,
@@ -105,8 +106,8 @@ class Database {
 
                 `CREATE TABLE IF NOT EXISTS eleves (
                     Matricule TEXT PRIMARY KEY,
-                    NomEleve TEXT NOT NULL,
-                    PrenomEleve TEXT NOT NULL,
+                    Nom TEXT NOT NULL,
+                    Prenoms TEXT NOT NULL,
                     Sexe TEXT,
                     DateNaissance TEXT,
                     LieuNaissance TEXT,
@@ -131,7 +132,7 @@ class Database {
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS periodes (
-                    numPeriode INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NumPeriode INTEGER PRIMARY KEY AUTOINCREMENT,
                     Libelle TEXT NOT NULL,
                     Periodicite TEXT NOT NULL CHECK(Periodicite IN ('Semestre', 'Trimestre'))
                 );`,
@@ -142,11 +143,11 @@ class Database {
                     DateCompo TEXT,
                     Note REAL,
                     Type TEXT NOT NULL CHECK(Type IN ('Interrogation', 'Devoir')),
-                    numPeriode INTEGER,
+                    NumPeriode INTEGER,
                     PRIMARY KEY (NumIns, CodMat, DateCompo),
                     FOREIGN KEY (NumIns) REFERENCES inscriptions(NumIns),
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
-                    FOREIGN KEY (numPeriode) REFERENCES periodes(numPeriode)
+                    FOREIGN KEY (NumPeriode) REFERENCES periodes(NumPeriode)
                 );`,
 
                 `CREATE TABLE IF NOT EXISTS emploi_du_temps (

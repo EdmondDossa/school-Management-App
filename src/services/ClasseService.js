@@ -1,6 +1,6 @@
 import Classe from '../models/Classe.js';
 
-class ClasseController {
+class ClasseService {
     static async getAllClasses() {
         const sql = "SELECT * FROM classes";
         const rows = await window.electronAPI.db.query(sql);
@@ -42,4 +42,4 @@ class ClasseController {
     }
 }
 
-export default ClasseController;
+export default ClasseService;

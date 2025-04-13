@@ -95,6 +95,9 @@ out/
 vite.main.config.mjs.*
 vite.preload.config.mjs.*
 
-# Ressources  sqlite database file
+# Resources  sqlite database file
 
 resources/db/
+
+# Resources images
+resources/images/

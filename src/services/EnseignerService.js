@@ -1,6 +1,6 @@
 import Enseigner from '../models/Enseigner.js';
 
-class EnseignerController {
+class EnseignerService {
     static async getAllEnseignements() {
         const sql = "SELECT * FROM enseigner";
         const rows = await window.electronAPI.db.query(sql);
@@ -50,4 +50,4 @@ class EnseignerController {
     }
 }
 
-export default EnseignerController;
+export default EnseignerService;

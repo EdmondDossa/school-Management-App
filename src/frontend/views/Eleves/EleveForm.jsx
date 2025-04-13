@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Form from '../../components/Form';
-import ClasseController from '../../../controllers/ClasseController';
+import ClasseService from '../../../services/ClasseService';
 
 
 const EleveForm = () => {
@@ -33,7 +33,7 @@ const EleveForm = () => {
   useEffect(() => {
     // Charger les classes
     const fetchClasses = async () => {
-      const result = await ClasseController.getAllClasses();
+      const result = await ClasseService.getAllClasses();
       if (result.success) {
         setClasses(result.data);
       }

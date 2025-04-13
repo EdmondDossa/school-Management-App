@@ -5,6 +5,7 @@ import DashboardCard from "./DashboardCard.jsx";
 import Form from "./Form.jsx";
 import Sidebar from "./Sidebar.jsx";
 import Table from "./Table.jsx";
+import Modal from "./Modal.jsx"
 
 export {
     Button,
@@ -13,6 +14,7 @@ export {
     DashboardCard,
     Form,
     Sidebar,
-    Table
+    Table,
+    Modal
 };
 

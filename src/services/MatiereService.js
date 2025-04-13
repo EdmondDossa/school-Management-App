@@ -1,6 +1,6 @@
 import Matiere from '../models/Matiere.js';
 
-class MatiereController {
+class MatiereService {
     static async getAllMatieres() {
         const sql = "SELECT * FROM matieres";
         const rows = await window.electronAPI.db.query(sql);
@@ -34,4 +34,4 @@ class MatiereController {
     }
 }
 
-export default MatiereController;
+export default MatiereService;

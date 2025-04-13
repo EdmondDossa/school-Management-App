@@ -1,6 +1,6 @@
 import Inscription from '../models/Inscription.js';
 
-class InscriptionController {
+class InscriptionService {
     static async getAllInscriptions() {
         const sql = "SELECT * FROM inscriptions";
         const rows = await window.electronAPI.db.query(sql);

@@ -1,6 +1,6 @@
 import AnneeScolaire from '../models/AnneeScolaire.js';
 
-class AnneeScolaireController {
+class AnneeScolaireService {
     static async getAllAnneesScolaires() {
         const sql = "SELECT * FROM annees_scolaires";
         const rows = await window.electronAPI.db.query(sql);
@@ -35,4 +35,4 @@ class AnneeScolaireController {
     }
 }
 
-export default AnneeScolaireController;
+export default AnneeScolaireService;

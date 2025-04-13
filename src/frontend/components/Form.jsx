@@ -35,6 +35,8 @@ const Form = ({ fields, onSubmit, initialValues = {}, submitLabel = "Enregistrer
               id={field.name}
               name={field.name}
               value={formData[field.name] || ''}
+              required={field.required}
+              readOnly={field.readOnly}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               rows={4}
@@ -44,6 +46,8 @@ const Form = ({ fields, onSubmit, initialValues = {}, submitLabel = "Enregistrer
               id={field.name}
               name={field.name}
               value={formData[field.name] || ''}
+              required={field.required}
+              disabled={field.disabled}
               onChange={handleChange}
               className="h-10 p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
@@ -60,6 +64,7 @@ const Form = ({ fields, onSubmit, initialValues = {}, submitLabel = "Enregistrer
                 id={field.name}
                 name={field.name}
                 checked={formData[field.name] || false}
+                disabled={field.disabled}
                 onChange={handleChange}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
@@ -77,6 +82,7 @@ const Form = ({ fields, onSubmit, initialValues = {}, submitLabel = "Enregistrer
                     name={field.name}
                     value={option.value}
                     checked={formData[field.name] === option.value}
+                    disabled={field.disabled}
                     onChange={handleChange}
                     className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   />
@@ -92,6 +98,8 @@ const Form = ({ fields, onSubmit, initialValues = {}, submitLabel = "Enregistrer
               id={field.name}
               name={field.name}
               value={formData[field.name] || ''}
+              required={field.required}
+              readOnly={field.readOnly}
               onChange={handleChange}
               className="mt-1 block h-10 p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />

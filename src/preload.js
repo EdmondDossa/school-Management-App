@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+
     // API simplifiée pour les opérations CRUD
     db: {
         query: (sql, params) => ipcRenderer.invoke('db-query', { sql, params }),  // ✅ Ajout de `query`
@@ -25,5 +26,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     close: (args) => ipcRenderer.invoke('close', args), // Close The Window
     // Navigation
     onNavigate: (callback) => ipcRenderer.on('navigate', callback),
-    navigate: (route) => ipcRenderer.send('navigate', route)
+    navigate: (route) => ipcRenderer.send('navigate', route),
+
+    generateFilename: (originalName) => {
+        const path = require('path');
+        const ext = path.extname(originalName);
+        const baseName = path.basename(originalName, ext);
+        return `${baseName}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+    },
+    appGetPath: () => ipcRenderer.invoke('app-get-path'),
+    getAppPath: () => ipcRenderer.invoke('get-app-path'),
+    // File operations
+    saveFile: (data) => ipcRenderer.invoke('save-file', data),
 });
