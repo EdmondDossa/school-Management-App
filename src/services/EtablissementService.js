@@ -17,7 +17,7 @@ class EtablissementService {
             });
             result.data = rows;
         }
-        return result;
+        return result.data ?? [];
     }
 
     static async getEtablissementByNum(numEtabli) {

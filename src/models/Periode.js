@@ -1,8 +1,8 @@
 class Periode {
     constructor(numPeriode, libelle, periodicite) {
-        this.numPeriode = numPeriode;
-        this.libelle = libelle;
-        this.periodicite = periodicite;
+        this.NumPeriode = numPeriode;
+        this.Libelle = libelle;
+        this.Periodicite = periodicite;
     }
 }
 

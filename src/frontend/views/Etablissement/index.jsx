@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import {Input, Button} from "../../components";
+import { Input, Button } from "../../components";
 import EtablissementService from "../../../services/EtablissementService";
 import { getResourcesPath, handleUploadFile } from "../../../utils";
 import toast from "react-hot-toast";
 
 const Etablissement = () => {
-  const [formData, setFormData] = useState({
-    NumEtabli: null,    
+  const [etablissement, setEtablissement] = useState({
+    NumEtabli: null,
     NomEtabli: "",
     Adresse: "",
     Telephone: "",
@@ -16,49 +16,56 @@ const Etablissement = () => {
     Logo: null,
   });
 
-  const resourcePath = 'resources/images/etablissements/';
+  const resourcePath = "resources/images/etablissements/";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setEtablissement({ ...etablissement, [name]: value });
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, Logo: e.target.files[0] });
+    setEtablissement({ ...etablissement, Logo: e.target.files[0] });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     let saveFile;
-    if(formData.Logo.name) {
-      saveFile = await handleUploadFile(formData.Logo, "images/etablissements");
-      if(saveFile.success){
-        formData.Logo = saveFile.fileName;
-      }else{
+    if (etablissement.Logo?.name) {
+      saveFile = await handleUploadFile(
+        etablissement.Logo,
+        "images/etablissements"
+      );
+      if (saveFile.success) {
+        etablissement.Logo = saveFile.fileName;
+      } else {
         toast.error("Le fichier n'a pas pu être enrégistré");
         return;
       }
-    }      
-    if(formData.NumEtabli === null){
-      formData.NumEtabli = null;
-      EtablissementService.createEtablissement(formData)
-      .then((response) => {
-        if(response.success){
-          formData.NumEtabli = response.data.insertId;
-          toast.success("Etablissement créé avec succès");
-        }else{
+    }
+    if (etablissement.NumEtabli === null) {
+      etablissement.NumEtabli = null;
+      EtablissementService.createEtablissement(etablissement)
+        .then(async (response) => {
+          if (response.success) {
+            etablissement.NumEtabli = response.data.lastID;
+            await window.electronAPI.store.set("etablissement", etablissement);
+            setEtablissement({ ...etablissement });
+            toast.success("Etablissement créé avec succès");
+          } else {
+            toast.error("Erreur lors de la création de l'établissement");
+          }
+        })
+        .catch((error) => {
           toast.error("Erreur lors de la création de l'établissement");
-        }
-      })
-      .catch((error) => {
-        toast.error("Erreur lors de la création de l'établissement");
-      });
-    }else{
-      EtablissementService.updateEtablissement(formData)
-        .then((response) => {
-          if(response.success){
+        });
+    } else {
+      EtablissementService.updateEtablissement(etablissement)
+        .then(async (response) => {
+          if (response.success) {
+            await window.electronAPI.store.set("etablissement", etablissement);
+            setEtablissement({ ...etablissement });
             toast.success("Etablissement modifié avec succès");
-          }else{
+          } else {
             toast.error("Erreur lors de la modification de l'établissement");
           }
         })
@@ -69,48 +76,28 @@ const Etablissement = () => {
     }
   };
 
+  const getEtablissement = async () => {
+    const etablissement = await window.electronAPI.store.get("etablissement");
+    setEtablissement({ ...etablissement });
+  };
   useEffect(() => {
-    EtablissementService.getAllEtablissements()
-      .then((response) => {
-        const data = response.data;
-        if (data.length > 0) {
-          const etablissement = data[0];
-          setFormData({
-            NumEtabli: etablissement.NumEtabli,
-            NomEtabli: etablissement.NomEtabli,
-            Adresse: etablissement.Adresse,
-            Telephone: etablissement.Telephone,
-            Email: etablissement.Email,
-            Logo: etablissement.Logo,
-          });
-        }else{
-          setFormData({
-            NumEtabli: null,
-            NomEtabli: "",
-            Adresse: "",
-            Telephone: "",
-            Email: "",
-            Logo: null,
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching etablissements:", error);
-      });
-      
-  }, [])
+    getEtablissement();
+  }, []);
 
   return (
     <div className="flex justify-center items-center">
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+      >
         <div className="space-y-4">
-          <label className="text-[15px]">Nom  de l’établissement</label>
+          <label className="text-[15px]">Nom de l’établissement</label>
           <Input
             type="text"
             name="NomEtabli"
             placeholder="Nom"
             required
-            value={formData.NomEtabli}
+            value={etablissement.NomEtabli}
             onChange={handleChange}
           />
         </div>
@@ -121,7 +108,7 @@ const Etablissement = () => {
             name="Adresse"
             placeholder="Adresse"
             required
-            value={formData.Adresse}
+            value={etablissement.Adresse}
             onChange={handleChange}
           />
         </div>
@@ -130,9 +117,11 @@ const Etablissement = () => {
           <PhoneInput
             defaultCountry="bj"
             country={"bj"}
-            value={formData.Telephone}
+            value={etablissement.Telephone}
             placeholder="Téléphone"
-            onChange={(phone) => setFormData({ ...formData, Telephone: phone })}
+            onChange={(phone) =>
+              setEtablissement({ ...etablissement, Telephone: phone })
+            }
           />
         </div>
         <div className="space-y-4">
@@ -141,39 +130,45 @@ const Etablissement = () => {
             type="email"
             name="Email"
             placeholder="exemple@gmail.com"
-            value={formData.Email}
+            value={etablissement.Email}
             onChange={handleChange}
           />
         </div>
-        <div className="space-y-4"> 
+        <div className="space-y-4">
           <label className="text-[15px]">Insérer une image</label>
           <Input
             type="file"
             onChange={handleFileChange}
-            previewFile={formData.Logo != null ? `app://${resourcePath + formData.Logo}` : null}
+            previewFile={
+              etablissement.Logo != null
+                ? `app://${resourcePath + etablissement.Logo}`
+                : null
+            }
             className="hidden"
-            id="fileInput"            
+            id="fileInput"
           />
         </div>
-        <div className="space-y-4"> 
+        <div className="space-y-4">
           <label className="text-[15px] invisible">Actions</label>
           <div className="flex space-x-4 justify-end items-center">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-1/2 bg-blue-600 text-white rounded-md h-[50px]"
             >
-              { formData.NumEtabli === null ? "Créer" : "Modifier" }
+              {etablissement.NumEtabli === null ? "Créer" : "Modifier"}
             </Button>
             <Button
               type="reset"
-              onClick={() => setFormData({
-                NumEtabli: null,
-                NomEtabli: "",
-                Adresse: "",
-                Telephone: "",
-                Email: "",
-                Logo: null,
-              })}
+              onClick={() =>
+                setEtablissement({
+                  NumEtabli: null,
+                  NomEtabli: "",
+                  Adresse: "",
+                  Telephone: "",
+                  Email: "",
+                  Logo: null,
+                })
+              }
               className="w-1/2 h-[50px] py-3 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-100"
             >
               Effacer

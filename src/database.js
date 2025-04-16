@@ -1,5 +1,5 @@
-import { app } from 'electron';
-import { is } from '@electron-toolkit/utils'
+import { app } from "electron";
+import { is } from "@electron-toolkit/utils";
 
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
@@ -12,30 +12,32 @@ const dbDir = path.join(appDataPath, "resources/db");
 
 // Creer le dossier db s'il n'existe pas
 if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  fs.mkdirSync(dbDir, { recursive: true });
 }
 
 // Chemin de la base de donnees
 const dbPath = is.dev
-    ? path.join(path.join(dbDir, "/school-management.db"))
-    : path.join(__dirname, "../../resources/db/school-management.db").replace("app.asar", "app.asar.unpacked");
+  ? path.join(path.join(dbDir, "/school-management.db"))
+  : path
+      .join(__dirname, "../../resources/db/school-management.db")
+      .replace("app.asar", "app.asar.unpacked");
 //const dbPath = path.join(dbDir, "school-management.db");
 
 // Creer la connexion SQLite
 const db = new sqlite3.Database(dbPath);
 
 class Database {
-    static async initTables() {
-        return new Promise((resolve, reject) => {
-            const createTableQueries = [
-                `CREATE TABLE IF NOT EXISTS annees_scolaires (
+  static async initTables() {
+    return new Promise((resolve, reject) => {
+      const createTableQueries = [
+        `CREATE TABLE IF NOT EXISTS annees_scolaires (
                     Annee TEXT PRIMARY KEY,
                     DateDebut TEXT NOT NULL,
                     DateFin TEXT NOT NULL,
-                    Periodicite TEXT NOT NULL
+                    Periodicite TEXT NOT NULL CHECK(Periodicite IN ('Semestre', 'Trimestre'))
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS etablissements (
+        `CREATE TABLE IF NOT EXISTS etablissements (
                     NumEtabli INTEGER PRIMARY KEY AUTOINCREMENT,
                     NomEtabli TEXT NOT NULL,
                     Adresse TEXT,
@@ -44,7 +46,7 @@ class Database {
                     Email TEXT
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS classes (
+        `CREATE TABLE IF NOT EXISTS classes (
                     NumClass INTEGER PRIMARY KEY AUTOINCREMENT,
                     NomClass TEXT NOT NULL,
                     Promotion TEXT NOT NULL,
@@ -52,12 +54,12 @@ class Database {
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS matieres (
+        `CREATE TABLE IF NOT EXISTS matieres (
                     CodMat TEXT PRIMARY KEY,
                     NomMat TEXT NOT NULL
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
+        `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
                     CodMat TEXT,
                     Coef INTEGER NOT NULL,
                     NumEtabli INTEGER,
@@ -70,14 +72,14 @@ class Database {
                     FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS utilisateurs (
+        `CREATE TABLE IF NOT EXISTS utilisateurs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT UNIQUE NOT NULL,
                     password TEXT NOT NULL,
                     role TEXT NOT NULL
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS professeurs (
+        `CREATE TABLE IF NOT EXISTS professeurs (
                     NumProf INTEGER PRIMARY KEY AUTOINCREMENT,
                     NomProf TEXT NOT NULL,
                     PrenomsProf TEXT NOT NULL,
@@ -90,7 +92,7 @@ class Database {
                     Nationalite TEXT
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS enseigner (
+        `CREATE TABLE IF NOT EXISTS enseigner (
                     NumProf INTEGER,
                     CodMat TEXT,
                     NumClass INTEGER,
@@ -104,7 +106,7 @@ class Database {
                     FOREIGN KEY (Annee) REFERENCES anneesscolaires(Annee)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS eleves (
+        `CREATE TABLE IF NOT EXISTS eleves (
                     Matricule TEXT PRIMARY KEY,
                     Nom TEXT NOT NULL,
                     Prenoms TEXT NOT NULL,
@@ -117,7 +119,7 @@ class Database {
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS inscriptions (
+        `CREATE TABLE IF NOT EXISTS inscriptions (
                     NumIns INTEGER PRIMARY KEY AUTOINCREMENT,
                     DateIns TEXT NOT NULL,
                     Statut TEXT NOT NULL CHECK(Statut IN ('Nouveau', 'Doublant', 'Redoublant')),
@@ -131,13 +133,13 @@ class Database {
                     FOREIGN KEY (AnneeScolaire) REFERENCES annees_scolaires(Annee)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS periodes (
+        `CREATE TABLE IF NOT EXISTS periodes (
                     NumPeriode INTEGER PRIMARY KEY AUTOINCREMENT,
                     Libelle TEXT NOT NULL,
                     Periodicite TEXT NOT NULL CHECK(Periodicite IN ('Semestre', 'Trimestre'))
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS composer (
+        `CREATE TABLE IF NOT EXISTS composer (
                     NumIns INTEGER,
                     CodMat TEXT,
                     DateCompo TEXT,
@@ -150,7 +152,7 @@ class Database {
                     FOREIGN KEY (NumPeriode) REFERENCES periodes(NumPeriode)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS emploi_du_temps (
+        `CREATE TABLE IF NOT EXISTS emploi_du_temps (
                     NumEmploi INTEGER PRIMARY KEY AUTOINCREMENT,
                     NumClass INTEGER,
                     NumEtabli INTEGER,
@@ -162,7 +164,7 @@ class Database {
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf)
                 );`,
 
-                `CREATE TABLE IF NOT EXISTS cours (
+        `CREATE TABLE IF NOT EXISTS cours (
                     NumCours INTEGER PRIMARY KEY AUTOINCREMENT,
                     HDebut TEXT NOT NULL,
                     HFin TEXT NOT NULL,
@@ -171,45 +173,57 @@ class Database {
                     NumEmploi INTEGER,
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumEmploi) REFERENCES emploi_du_temps(NumEmploi)
-                );`
+                );`,
+        `
+                    INSERT INTO periodes (Libelle, Periodicite)
+                    SELECT * FROM (
+                        SELECT 'Premier Trimestre' AS Libelle, 'Trimestre' AS Periodicite
+                        UNION
+                        SELECT 'Deuxieme Trimestre', 'Trimestre'
+                        UNION
+                        SELECT 'Troisieme Trimestre', 'Trimestre'
+                        UNION
+                        SELECT 'Premier Semestre', 'Semestre'
+                        UNION
+                        SELECT 'Deuxieme Semestre', 'Semestre'
+                    )
+                    WHERE NOT EXISTS (SELECT 1 FROM periodes);
+                `,
+      ];
 
+      db.serialize(() => {
+        createTableQueries.forEach((query) => db.run(query));
+        console.log("Tables initialisees avec succès");
+        resolve();
+      });
+    });
+  }
 
-            ]
-
-            db.serialize(() => {
-                createTableQueries.forEach(query => db.run(query));
-                console.log("Tables initialisees avec succès");
-                resolve();
-            });
-        }
-        );
-    }
-
-    static query(sql, params = []) {
-        return new Promise((resolve, reject) => {
-            const isSelect = sql.trim().toUpperCase().startsWith("SELECT");
-            if (isSelect) {
-                db.all(sql, params, (error, rows) => {
-                    if (error) reject(error);
-                    else resolve(rows);
-                });
-            } else {
-                db.run(sql, params, function (error) {
-                    if (error) reject(error);
-                    else resolve({ lastID: this.lastID, changes: this.changes });
-                });
-            }
+  static query(sql, params = []) {
+    return new Promise((resolve, reject) => {
+      const isSelect = sql.trim().toUpperCase().startsWith("SELECT");
+      if (isSelect) {
+        db.all(sql, params, (error, rows) => {
+          if (error) reject(error);
+          else resolve(rows);
         });
-    }
-
-    static close() {
-        return new Promise((resolve, reject) => {
-            db.close(error => {
-                if (error) reject(error);
-                else resolve();
-            });
+      } else {
+        db.run(sql, params, function (error) {
+          if (error) reject(error);
+          else resolve({ lastID: this.lastID, changes: this.changes });
         });
-    }
+      }
+    });
+  }
+
+  static close() {
+    return new Promise((resolve, reject) => {
+      db.close((error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+  }
 }
 
 export default Database;

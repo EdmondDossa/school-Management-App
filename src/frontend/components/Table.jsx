@@ -1,16 +1,24 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { DeleteIcon, EditIcon } from '../assets/icons';
+import React from "react";
+import { Link } from "react-router-dom";
+import { DeleteIcon, EditIcon } from "../assets/icons";
 
-const Table = ({ name, columns, data, onDelete, editRoute , loading }) => {
+const Table = ({
+  name,
+  columns,
+  data,
+  elementKey,
+  onDelete,
+  onEdit,
+  loading,
+}) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border">
         <thead>
           <tr className="bg-[#2871FA] border border-[#2871FA]">
             {columns.map((column) => (
-              <th 
-                key={column.key} 
+              <th
+                key={column.key}
                 className="px-6 py-3 text-left text-xs font-semibold text-[#FFFFFF] uppercase tracking-wider border-gray-500"
               >
                 {column.label}
@@ -22,38 +30,58 @@ const Table = ({ name, columns, data, onDelete, editRoute , loading }) => {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {!loading && data.map((item,n) => (
-            <tr key={item.id} className="hover:bg-gray-50 border-gray-500">
-              {columns.map((column) => (
-                <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-500">
-                  {item[column.key]}
-                </td>
-              ))}
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-500">
-                <div className="flex space-x-2">
-                  <Link to={`${editRoute}/${item.id}`} className="text-blue-600 hover:text-blue-900">
-                    <img src={EditIcon} className='h-6 w-6'/>
-                  </Link>
-                  <button 
-                    onClick={() => onDelete(item.id)} 
-                    className="text-red-600 hover:text-red-900"
+          {!loading &&
+            data.map((item, n) => (
+              <tr
+                key={item[elementKey]}
+                className="hover:bg-gray-50 border-gray-500"
+              >
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border border-gray-500"
                   >
-                    <img src={DeleteIcon} className='h-6 w-6'/>
-                  </button>
-                </div>
+                    {item[column.key]}
+                  </td>
+                ))}
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-500">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => onEdit(item[elementKey])}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      <img src={EditIcon} className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(item[elementKey])}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <img src={DeleteIcon} className="h-6 w-6" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          {!loading && !data.length && (
+            <tr>
+              <td
+                className="text-center font-bold text-[20px] h-[300px] bg-[#FFFFFF] text-[#000000]"
+                colSpan={columns.length + 1}
+              >
+                PAS DE {name} TROUVES
               </td>
             </tr>
-          ))}
-          {!loading && !data.length && <tr>
-            <td className='text-center font-bold text-[20px] h-[300px] bg-[#FFFFFF] text-[#000000]' colSpan={columns.length+1}>
-              PAS DE {name} TROUVES
-            </td>
-          </tr>}
-          {loading && <tr>
-            <td className='text-center font-bold text-[20px] h-[300px] bg-[#FFFFFF] text-[#000000]' colSpan={columns.length+1}>
-              Chargement...
-            </td>
-          </tr>}
+          )}
+          {loading && (
+            <tr>
+              <td
+                className="text-center font-bold text-[20px] h-[300px] bg-[#FFFFFF] text-[#000000]"
+                colSpan={columns.length + 1}
+              >
+                Chargement...
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

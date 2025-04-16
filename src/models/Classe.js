@@ -1,7 +1,10 @@
 class Classe {
-    class_id;
-    class_name;
-    promotion;
+  constructor(numClass, nomClass, promotion, numEtabli) {
+    this.NumClass = numClass;
+    this.NomClass = nomClass;
+    this.Promotion = promotion;
+    this.NumEtabli = numEtabli;
+  }
 }
 
-export default { Classe };
+export default Classe;

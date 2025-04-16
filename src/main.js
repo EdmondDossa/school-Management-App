@@ -1,10 +1,13 @@
-import { app, protocol, BrowserWindow, ipcMain } from 'electron';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-const log = require('electron-log');
-import path from 'node:path';
-import fs from 'node:fs';
-import started from 'electron-squirrel-startup';
-import Database from './database.js';
+import { app, protocol, BrowserWindow, ipcMain } from "electron";
+import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import Store from "electron-store";
+const store = new Store();
+
+const log = require("electron-log");
+import path from "node:path";
+import fs from "node:fs";
+import started from "electron-squirrel-startup";
+import Database from "./database.js";
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
@@ -20,10 +23,10 @@ const createWindow = () => {
     frame: false,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
       sandbox: false,
       contextIsolation: true,
-      webSecurity: true
+      webSecurity: true,
     },
   });
 
@@ -31,7 +34,9 @@ const createWindow = () => {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+    );
   }
 
   // Open the DevTools.
@@ -42,25 +47,25 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  log.info("Ready")
-  electronApp.setAppUserModelId('com.exampapersetter')
+  log.info("Ready");
+  electronApp.setAppUserModelId("com.exampapersetter");
 
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
+  app.on("browser-window-created", (_, window) => {
+    optimizer.watchWindowShortcuts(window);
+  });
 
-  protocol.registerFileProtocol('app', (request, callback) => {
-    const url = request.url.replace('app://', '');
+  protocol.registerFileProtocol("app", (request, callback) => {
+    const url = request.url.replace("app://", "");
     const filePath = path.join(app.getAppPath(), url);
     callback(filePath);
   });
 
-  createWindow()
+  createWindow();
 
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
-})
+  app.on("activate", function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
 
 /**
  * Wrapper générique pour la gestion des erreurs et des requêtes de base de données
@@ -109,42 +114,48 @@ ipcMain.handle("showDialog", async (event, args) => {
   return dialog.showMessageBox(win, args.options);
 });
 
-ipcMain.handle('app-get-path', (event, args) => {
+ipcMain.handle("app-get-path", (event, args) => {
   return app.getPath(args.path);
 });
-ipcMain.handle('get-app-path', (event, args) => {
+ipcMain.handle("get-app-path", (event, args) => {
   return app.getAppPath();
 });
 
-ipcMain.handle('save-file', async (event, { fileName, fileData, targetSubfolder }) => {
-  try {
-    const resourcesPath = path.join(app.getAppPath(), 'resources', targetSubfolder);
+ipcMain.handle(
+  "save-file",
+  async (event, { fileName, fileData, targetSubfolder }) => {
+    try {
+      const resourcesPath = path.join(
+        app.getAppPath(),
+        "resources",
+        targetSubfolder
+      );
 
-    // Créer le dossier si nécessaire
-    if (!fs.existsSync(resourcesPath)) {
-      fs.mkdirSync(resourcesPath, { recursive: true });
+      // Créer le dossier si nécessaire
+      if (!fs.existsSync(resourcesPath)) {
+        fs.mkdirSync(resourcesPath, { recursive: true });
+      }
+
+      const filePath = path.join(resourcesPath, fileName);
+
+      // Convertir Uint8Array en Buffer pour Node.js
+      const buffer = Buffer.from(fileData);
+
+      fs.writeFileSync(filePath, buffer);
+
+      return {
+        success: true,
+        path: filePath,
+        folder: targetSubfolder,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
     }
-
-    const filePath = path.join(resourcesPath, fileName);
-
-    // Convertir Uint8Array en Buffer pour Node.js
-    const buffer = Buffer.from(fileData);
-
-    fs.writeFileSync(filePath, buffer);
-
-    return {
-      success: true,
-      path: filePath,
-      folder: targetSubfolder
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message
-    };
   }
-});
-
+);
 
 // Function To Close Window
 ipcMain.handle("close", (event, args) => {
@@ -162,33 +173,53 @@ ipcMain.handle("close", (event, args) => {
 });
 
 // Handlers de base de données
-ipcMain.handle('db-query', createDbHandler(({ sql, params }) => Database.query(sql, params)));
-ipcMain.handle('db-get-all', createDbHandler(({ table, options }) => Database.getAll(table, options)));
-ipcMain.handle('db-get-by-id', createDbHandler(({ table, id }) => Database.getById(table, id)));
-ipcMain.handle('db-insert', createDbHandler(({ table, data }) => Database.insert(table, data)));
-ipcMain.handle('db-update', createDbHandler(({ table, data, conditions }) => Database.update(table, data, conditions)));
-ipcMain.handle('db-delete', createDbHandler(({ table, conditions }) => Database.delete(table, conditions)));
+ipcMain.handle(
+  "db-query",
+  createDbHandler(({ sql, params }) => Database.query(sql, params))
+);
+ipcMain.handle(
+  "db-get-all",
+  createDbHandler(({ table, options }) => Database.getAll(table, options))
+);
+ipcMain.handle(
+  "db-get-by-id",
+  createDbHandler(({ table, id }) => Database.getById(table, id))
+);
+ipcMain.handle(
+  "db-insert",
+  createDbHandler(({ table, data }) => Database.insert(table, data))
+);
+ipcMain.handle(
+  "db-update",
+  createDbHandler(({ table, data, conditions }) =>
+    Database.update(table, data, conditions)
+  )
+);
+ipcMain.handle(
+  "db-delete",
+  createDbHandler(({ table, conditions }) => Database.delete(table, conditions))
+);
 
 /**
-* Handler pour exécuter plusieurs opérations dans une transaction
-*/
-ipcMain.handle('db-transaction', async (event, { operations }) => {
+ * Handler pour exécuter plusieurs opérations dans une transaction
+ */
+ipcMain.handle("db-transaction", async (event, { operations }) => {
   try {
     await Database.transactionAsync(async () => {
       for (const op of operations) {
         const { type, args } = op;
 
         switch (type) {
-          case 'insert':
+          case "insert":
             await Database.insert(args.table, args.data);
             break;
-          case 'update':
+          case "update":
             await Database.update(args.table, args.data, args.conditions);
             break;
-          case 'delete':
+          case "delete":
             await Database.delete(args.table, args.conditions);
             break;
-          case 'query':
+          case "query":
             await Database.query(args.sql, args.params);
             break;
           default:
@@ -199,21 +230,34 @@ ipcMain.handle('db-transaction', async (event, { operations }) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Erreur de transaction:', error);
+    console.error("Erreur de transaction:", error);
     return { success: false, error: error.message };
   }
+});
+
+// store
+
+ipcMain.handle("electron-store-get", (event, key) => {
+  return store.get(key);
+});
+
+ipcMain.handle("electron-store-set", (event, key, val) => {
+  return store.set(key, val);
+});
+
+ipcMain.handle("electron-store-delete", (event, key) => {
+  return store.delete(key);
 });
 
 /**
  * Handler pour la navigation entre les pages
  */
-ipcMain.on('navigate', (event, route) => {
+ipcMain.on("navigate", (event, route) => {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (window) {
-    window.webContents.send('navigate', route);
+    window.webContents.send("navigate", route);
   }
 });
-
 
 app.on("activate", () => {
   if (mainWindow.getAllWindows().length === 0) {
@@ -231,8 +275,8 @@ process.on("uncaughtException", (error) => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });

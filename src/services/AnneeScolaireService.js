@@ -3,16 +3,21 @@ import AnneeScolaire from '../models/AnneeScolaire.js';
 class AnneeScolaireService {
     static async getAllAnneesScolaires() {
         const sql = "SELECT * FROM annees_scolaires";
-        const rows = await window.electronAPI.db.query(sql);
-        return rows.map(row => new AnneeScolaire(row.Annee, row.DateDebut, row.DateFin, row.Periodicite));
+        const result = await window.electronAPI.db.query(sql);
+        if (result.success) {
+            return result.data.map(an => new AnneeScolaire(an.Annee, an.DateDebut, an.DateFin, an.Periodicite));
+        }
+        return [];
     }
 
     static async getAnneeScolaireByAnnee(annee) {
         const sql = "SELECT * FROM annees_scolaires WHERE Annee = ?";
-        const rows = await window.electronAPI.db.query(sql, [annee]);
-        if (rows.length === 0) return null;
-        const row = rows[0];
-        return new AnneeScolaire(row.Annee, row.DateDebut, row.DateFin, row.Periodicite);
+        const result = await window.electronAPI.db.query(sql, [annee]);
+        if (result.success) {
+            if (result.data.length === 0) return null;
+            const row = result.data[0];
+            return new AnneeScolaire(row.Annee, row.DateDebut, row.DateFin, row.Periodicite);
+        }
     }
 
     static async createAnneeScolaire(anneeScolaire) {
