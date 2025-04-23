@@ -64,7 +64,7 @@ const Dashboard = () => {
       <DashboardCard
         title="Étudiants"
         description="Gérez les informations des étudiants"
-        link="/students"
+        link="/eleves"
       />
       <DashboardCard
         title="Classes"
@@ -74,7 +74,7 @@ const Dashboard = () => {
       <DashboardCard
         title="Emplois du temps"
         description="Consultez et modifiez les emplois du temps"
-        link="/schedule"
+        link="/emplois-du-temps"
       />
     </div>
   );

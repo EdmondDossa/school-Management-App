@@ -1,17 +1,17 @@
-import React from 'react';
-import { createHashRouter } from 'react-router-dom';
-import RootLayout from '../layouts/RootLayout';
-import Dashboard from '../views/Dashboard';
-import Etablissement from '../views/Etablissement';
-import { ElevesList, EleveForm } from '../views/Eleves';
-import { ClassesList, ClasseForm } from '../views/Classes';
-import { EmploiDuTempsList } from '../views/EmploiDuTemps';
-import Matieres from '../views/Matieres';
-import Professeurs from '../views/Professeurs';
+import React from "react";
+import { createHashRouter } from "react-router-dom";
+import RootLayout from "../layouts/RootLayout";
+import Dashboard from "../views/Dashboard";
+import Etablissement from "../views/Etablissement";
+import ElevesList from "../views/Eleves";
+import ClassesList from "../views/Classes";
+import { EmploiDuTempsList } from "../views/EmploiDuTemps";
+import Matieres from "../views/Matieres";
+import Professeurs from "../views/Professeurs";
 
 export const router = createHashRouter([
   {
-    path: '/',
+    path: "/",
     element: <RootLayout />,
     children: [
       {
@@ -19,43 +19,27 @@ export const router = createHashRouter([
         element: <Dashboard />,
       },
       {
-        path: 'etablissements',
+        path: "etablissements",
         element: <Etablissement />,
       },
       {
-        path: 'eleves',
+        path: "eleves",
         element: <ElevesList />,
       },
       {
-        path: 'eleves/add',
-        element: <EleveForm />,
-      },
-      {
-        path: 'eleves/edit/:id',
-        element: <EleveForm />,
-      },
-      {
-        path: 'classes',
+        path: "classes",
         element: <ClassesList />,
       },
       {
-        path: 'classes/add',
-        element: <ClasseForm />,
-      },
-      {
-        path: 'classes/edit/:id',
-        element: <ClasseForm />,
-      },
-      {
-        path: 'matieres',
+        path: "matieres",
         element: <Matieres />,
       },
       {
-        path: 'professeurs',
+        path: "professeurs",
         element: <Professeurs />,
       },
       {
-        path: 'emplois-du-temps',
+        path: "emplois-du-temps",
         element: <EmploiDuTempsList />,
       },
       /* {

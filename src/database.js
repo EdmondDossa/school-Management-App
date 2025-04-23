@@ -55,8 +55,10 @@ class Database {
                 );`,
 
         `CREATE TABLE IF NOT EXISTS matieres (
-                    CodMat TEXT PRIMARY KEY,
-                    NomMat TEXT NOT NULL
+                    CodMat INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NomMat TEXT NOT NULL,
+                    NumEtabli INTEGER,
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
@@ -192,9 +194,28 @@ class Database {
       ];
 
       db.serialize(() => {
-        createTableQueries.forEach((query) => db.run(query));
-        console.log("Tables initialisees avec succès");
-        resolve();
+        db.run("BEGIN TRANSACTION");
+
+        createTableQueries.forEach((query, index) => {
+          db.run(query, (error) => {
+            if (error) {
+              db.run("ROLLBACK");
+              console.error(`Error executing query ${index + 1}:`, error);
+              reject(error);
+              return;
+            }
+          });
+        });
+
+        db.run("COMMIT", (error) => {
+          if (error) {
+            console.error("Commit error:", error);
+            reject(error);
+          } else {
+            console.log("Tables initialized successfully");
+            resolve();
+          }
+        });
       });
     });
   }
