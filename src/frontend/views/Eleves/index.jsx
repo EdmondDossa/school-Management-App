@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Table, Button, Input, Modal, Form } from "../../components/index";
+import { Table, Input, Modal, Form } from "../../components/index";
+import { Button } from "../../components/Bouton.jsx";
 import EleveService from "../../../services/EleveService";
 import { DuplicateIcon, ExportCSVIcon, SearchIcon } from "../../assets/icons";
 import Pagination from "../../components/Pagination";
@@ -118,7 +119,7 @@ const ElevesList = () => {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-3">
           <div className="flex space-x-2">
             <Input
               type="search"

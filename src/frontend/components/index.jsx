@@ -1,20 +1,9 @@
-import Input from "./Input.jsx"
-import Button from "./Bouton.jsx"
+import Input from "./Input.jsx";
 import AppBar from "./AppBar.jsx";
 import DashboardCard from "./DashboardCard.jsx";
 import Form from "./Form.jsx";
-import Sidebar from "./Sidebar.jsx";
+import SideBar from "./SideBar.jsx";
 import Table from "./Table.jsx";
-import Modal from "./Modal.jsx"
-
-export {
-    Button,
-    Input,
-    AppBar,
-    DashboardCard,
-    Form,
-    Sidebar,
-    Table,
-    Modal
-};
-
+import Modal from "./Modal.jsx";
+import Label from "./Label.jsx";
+export { Input, AppBar, DashboardCard, Form, SideBar, Table, Modal, Label };

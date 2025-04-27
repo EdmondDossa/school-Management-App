@@ -1,5 +1,5 @@
 import React from "react";
-import Button from "./Bouton";
+import { Button } from "./Bouton";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   // Calcule la plage de pages à afficher (max 5)
@@ -54,7 +54,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
       {/* Suivant */}
       <Button
-        onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+        onClick={() =>
+          currentPage < totalPages && onPageChange(currentPage + 1)
+        }
         disabled={currentPage === totalPages}
         className={`h-10 flex items-center justify-center rounded-none px-3 py-1 bg-white border border-black text-md font-bold ${
           currentPage === totalPages

@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import Table from "../../components/Table";
 import MatiereService from "../../../services/MatiereService.js";
-import { Modal, Form, Button } from "../../components";
+import { Modal, Form } from "../../components";
+import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 const columns = [{ key: "NomMat", label: "Nom de matiere" }];
 

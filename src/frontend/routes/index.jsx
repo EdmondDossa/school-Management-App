@@ -8,6 +8,7 @@ import ClassesList from "../views/Classes";
 import { EmploiDuTempsList } from "../views/EmploiDuTemps";
 import Matieres from "../views/Matieres";
 import Professeurs from "../views/Professeurs";
+import AnneeScolaire from "../views/Annee-Scolaire";
 
 export const router = createHashRouter([
   {
@@ -21,6 +22,10 @@ export const router = createHashRouter([
       {
         path: "etablissements",
         element: <Etablissement />,
+      },
+      {
+        path: "annees-scolaires",
+        element: <AnneeScolaire />,
       },
       {
         path: "eleves",

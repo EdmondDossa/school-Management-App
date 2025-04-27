@@ -1,43 +1,73 @@
-import AnneeScolaire from '../models/AnneeScolaire.js';
+import AnneeScolaire from "../models/AnneeScolaire.js";
 
 class AnneeScolaireService {
-    static async getAllAnneesScolaires() {
-        const sql = "SELECT * FROM annees_scolaires";
-        const result = await window.electronAPI.db.query(sql);
-        if (result.success) {
-            return result.data.map(an => new AnneeScolaire(an.Annee, an.DateDebut, an.DateFin, an.Periodicite));
-        }
-        return [];
+  static async getAllAnneesScolaires(Num_Etabli) {
+    const sql = "SELECT * FROM annees_scolaires WHERE NumEtabli = ?";
+    const result = await window.electronAPI.db.query(sql, [Num_Etabli]);
+    if (result.success) {
+      return result.data.map(
+        (an) =>
+          new AnneeScolaire(
+            an.id,
+            an.Annee,
+            an.DateDebut,
+            an.DateFin,
+            an.Periodicite,
+            an.NumEtabli
+          )
+      );
     }
+    return [];
+  }
 
-    static async getAnneeScolaireByAnnee(annee) {
-        const sql = "SELECT * FROM annees_scolaires WHERE Annee = ?";
-        const result = await window.electronAPI.db.query(sql, [annee]);
-        if (result.success) {
-            if (result.data.length === 0) return null;
-            const row = result.data[0];
-            return new AnneeScolaire(row.Annee, row.DateDebut, row.DateFin, row.Periodicite);
-        }
+  static async getAnneeScolaireById(id) {
+    const sql = "SELECT * FROM annees_scolaires WHERE id = ?";
+    const result = await window.electronAPI.db.query(sql, [id]);
+    if (result.success) {
+      if (result.data.length === 0) return null;
+      const row = result.data[0];
+      return new AnneeScolaire(
+        id,
+        row.Annee,
+        row.DateDebut,
+        row.DateFin,
+        row.Periodicite,
+        row.NumEtabli
+      );
     }
+  }
 
-    static async createAnneeScolaire(anneeScolaire) {
-        const sql = "INSERT INTO annees_scolaires (Annee, DateDebut, DateFin, Periodicite) VALUES (?, ?, ?, ?)";
-        const result = await window.electronAPI.db.query(sql, [anneeScolaire.annee, anneeScolaire.dateDebut, anneeScolaire.dateFin, anneeScolaire.periodicite]);
-        return result;
-    }
+  static async createAnneeScolaire(anneeScolaire) {
+    const sql =
+      "INSERT INTO annees_scolaires (Annee, DateDebut, DateFin, Periodicite, NumEtabli) VALUES (?, ?, ?, ?, ?)";
+    const result = await window.electronAPI.db.query(sql, [
+      anneeScolaire.Annee,
+      anneeScolaire.DateDebut,
+      anneeScolaire.DateFin,
+      anneeScolaire.Periodicite,
+      anneeScolaire.NumEtabli,
+    ]);
+    return result;
+  }
 
-    static async updateAnneeScolaire(anneeScolaire) {
-        const sql = "UPDATE annees_scolaires SET DateDebut = ?, DateFin = ?, Periodicite = ? WHERE Annee = ?";
-        const result = await window.electronAPI.db.query(sql, [anneeScolaire.dateDebut, anneeScolaire.dateFin, anneeScolaire.periodicite, anneeScolaire.annee]);
-        return result;
-    }
+  static async updateAnneeScolaire(anneeScolaire) {
+    const sql =
+      "UPDATE annees_scolaires SET Annee = ?, DateDebut = ?, DateFin = ?, Periodicite = ? WHERE id = ?";
+    const result = await window.electronAPI.db.query(sql, [
+      anneeScolaire.Annee,
+      anneeScolaire.DateDebut,
+      anneeScolaire.DateFin,
+      anneeScolaire.Periodicite,
+      anneeScolaire.id,
+    ]);
+    return result;
+  }
 
-    static async deleteAnneeScolaire(annee) {
-        const sql = "DELETE FROM annees_scolaires WHERE Annee = ?";
-        const result = await window.electronAPI.db.query(sql, [annee]);
-        return result
-
-    }
+  static async deleteAnneeScolaire(anneeScolaire) {
+    const sql = "DELETE FROM annees_scolaires WHERE id = ?";
+    const result = await window.electronAPI.db.query(sql, [anneeScolaire.id]);
+    return result;
+  }
 }
 
 export default AnneeScolaireService;
