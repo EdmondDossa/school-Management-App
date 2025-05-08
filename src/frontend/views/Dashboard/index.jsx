@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DashboardCard from "../../components/DashboardCard";
 import {
   AnneeScolaireService,
+  ClasseService,
   EtablissementService,
   PeriodeService,
 } from "../../../services";
@@ -22,6 +23,8 @@ import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const [etablissement, setEtablissement] = useState(null);
+  const [nombreEleves, setNombreEleves] = useState(0);
+  const [nombreClasses, setNombreClasses] = useState(0);
 
   const loadDefaultAppData = async () => {
     const etablissements = await EtablissementService.getAllEtablissements();
@@ -34,6 +37,11 @@ const Dashboard = () => {
     if (etablissements.length > 0) {
       const etablissement = etablissements[0];
       setEtablissement(etablissement);
+      const classes = await ClasseService.getAllClasses(
+        etablissement.NumEtabli
+      );
+
+      setNombreClasses(classes.length);
       await window.electronAPI.store.set("etablissement", { ...etablissement });
     } else {
       await window.electronAPI.store.set("etablissement", {
@@ -115,7 +123,7 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{nombreClasses}</div>
           </CardContent>
         </Card>
         <Card>
