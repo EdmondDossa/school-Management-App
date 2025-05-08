@@ -1,13 +1,27 @@
 class Professeur {
-    constructor(numProf, nomProf, mail, contactProf, nationaliteProf, titre, numEtablissement) {
-        this.numProf = numProf;
-        this.nomProf = nomProf;
-        this.mail = mail;
-        this.contactProf = contactProf;
-        this.nationaliteProf = nationaliteProf;
-        this.titre = titre;
-        this.numEtablissement = numEtablissement;
-    }
+  constructor(
+    NumProf,
+    NomProf,
+    PrenomProf,
+    Sexe,
+    Adresse,
+    Telephone,
+    Email,
+    DateNaissance,
+    LieuNaissance,
+    Nationalite
+  ) {
+    this.NumProf = NumProf;
+    this.NomProf = NomProf;
+    this.PrenomProf = PrenomProf;
+    this.Sexe = Sexe;
+    this.Adresse = Adresse;
+    this.Telephone = Telephone;
+    this.Email = Email;
+    this.DateNaissance = DateNaissance;
+    this.LieuNaissance = LieuNaissance;
+    this.Nationalit = Nationalite;
+  }
 }
 
 export default Professeur;

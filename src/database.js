@@ -65,7 +65,7 @@ class Database {
                 );`,
 
         `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
-                    CodMat TEXT,
+                    CodMat INTEGER,
                     Coef INTEGER NOT NULL,
                     NumEtabli INTEGER,
                     Annee TEXT,
@@ -94,16 +94,17 @@ class Database {
                     Email TEXT,
                     DateNaissance TEXT,
                     LieuNaissance TEXT,
-                    Nationalite TEXT
+                    Nationalite TEXT,
+                    NumEtabli INTEGER,
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS enseigner (
                     NumProf INTEGER,
-                    CodMat TEXT,
+                    CodMat INTEGER,
                     NumClass INTEGER,
-                    NumEtabli INTEGER,
                     Annee TEXT,
-                    PRIMARY KEY (NumProf, CodMat, NumClass, NumEtabli, Annee),
+                    PRIMARY KEY (NumProf, CodMat, NumClass, Annee),
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
@@ -146,7 +147,7 @@ class Database {
 
         `CREATE TABLE IF NOT EXISTS composer (
                     NumIns INTEGER,
-                    CodMat TEXT,
+                    CodMat INTEGER,
                     DateCompo TEXT,
                     Note REAL,
                     Type TEXT NOT NULL CHECK(Type IN ('Interrogation', 'Devoir')),
@@ -174,7 +175,7 @@ class Database {
                     HDebut TEXT NOT NULL,
                     HFin TEXT NOT NULL,
                     Jour TEXT NOT NULL,
-                    CodMat TEXT,
+                    CodMat INTEGER,
                     NumEmploi INTEGER,
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumEmploi) REFERENCES emploi_du_temps(NumEmploi)

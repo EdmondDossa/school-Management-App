@@ -26,9 +26,9 @@ const SideBar = () => {
       icon: <CalendarDays />,
     },
     { path: "/eleves", label: "Elèves", icon: <User /> },
-    { path: "/classes", label: "Classes", icon: <Users /> },
-    { path: "/matieres", label: "Matières", icon: <BookOpen /> },
     { path: "/professeurs", label: "Professeurs", icon: <Speech /> },
+    { path: "/matieres", label: "Matières", icon: <BookOpen /> },
+    { path: "/classes", label: "Classes", icon: <Users /> },
     {
       path: "/emplois-du-temps",
       label: "Emplois du temps",

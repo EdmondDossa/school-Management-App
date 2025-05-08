@@ -1,11 +1,26 @@
 import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import Table from "../../components/Table";
 import MatiereService from "../../../services/MatiereService.js";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
+import { BookOpen, Delete, DeleteIcon, Edit } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/Card.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/CTable.jsx";
 const columns = [{ key: "NomMat", label: "Nom de matiere" }];
 
 const classFields = [
@@ -106,29 +121,65 @@ const MatieresList = () => {
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Liste des Matieres
-          </h1>
-          <Button
-            onClick={() => setOpenModal(true)}
-            className="bg-[#2871FA] text-white rounded-md"
-          >
-            <span className="flex items-center space-x-2 font-semibold">
-              <img src={DuplicateIcon} className="h-4 w-4 mr-1" />
-              Ajouter une matiere
-            </span>
-          </Button>
-        </div>
-        <Table
-          name="MATIERES"
-          columns={columns}
-          data={Matieres}
-          elementKey="CodMat"
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
+      <div>
+        <main className="container mx-auto py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <BookOpen className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Gestion des Matieres</h1>
+            </div>
+            <Button onClick={() => setOpenModal(true)}>
+              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+              Ajouter une matière
+            </Button>
+          </div>
+
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Liste des Matières</CardTitle>
+                <CardDescription>Gérez les matières</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom de la Matière</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Matieres?.map((matiere) => (
+                      <TableRow key={matiere.CodMat}>
+                        <TableCell>{matiere.NomMat}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(matiere.CodMat)}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Modifier
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleEdit(matiere.CodMat)}
+                            >
+                              <Delete className="h-4 w-4 mr-2" />
+                              Supprimer
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
       <Modal
         isOpen={openModal}
