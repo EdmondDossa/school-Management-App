@@ -39,8 +39,8 @@ class EleveService {
     }
 
     static async searchEleve(searchTherm){
-        const sql = "SELECT * FROM eleves WHERE Matricule =? OR Nom LIKE ? OR Prenoms LIKE ? OR Nationalite LIKE ?";
-        const result = await window.electronAPI.db.query(sql, new Array(4).fill(searchTherm) );
+        const sql = "SELECT * FROM eleves WHERE Matricule LIKE ? OR Nom LIKE ? OR Prenoms LIKE ? OR Nationalite LIKE ?";
+        const result = await window.electronAPI.db.query(sql, new Array(4).fill(`%${searchTherm}%`) );
         return result;
     }
 }

@@ -93,7 +93,13 @@ const ElevesList = () => {
     }
   };
 
-  const handleSearchEleve = (e) => setSearchEleve(e.target.value);
+  const handleSearchBoxChange = (e) => setSearchEleve(e.target.value);
+
+  const closeModal = () =>{
+    setOpenModal(false);
+    setSearchParams({});
+  }
+  
 
   const handleSubmit = async (formData) => {
         try {
@@ -110,12 +116,8 @@ const ElevesList = () => {
               eleve.Matricule ? "Étudiant modifié avec succès" : "Étudiant ajouté avec succès"
             );
             await fetchEleves();
-            setOpenModal(false);
+            closeModal();
           } else {
-            console.log(eleve);
-            
-            console.log(result);
-            
             toast.error("Une erreur est survenue");
           }
         } catch (error) {
@@ -137,7 +139,6 @@ const ElevesList = () => {
   useEffect(()=>{
     if(matriculeToEdit) setupEdit(matriculeToEdit)
   },[matriculeToEdit]);
-
 
   useEffect(() => {
     setCurrentEtablissement();
@@ -162,7 +163,7 @@ const ElevesList = () => {
               type="search"
               value={searchEleve}
               placeholder="Rechercher un eleve..."
-              onChange={handleSearchEleve}
+              onChange={handleSearchBoxChange}
             />
             <Button className="bg-[#2871FA1A]">
               <img src={SearchIcon} className="h-6 w-6" />
@@ -205,7 +206,7 @@ const ElevesList = () => {
       </div>
       <Modal
         isOpen={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={closeModal}
         title="Ajouter un élève"
       >
         <Form
