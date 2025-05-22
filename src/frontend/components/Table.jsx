@@ -1,6 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { DeleteIcon, EditIcon } from "../assets/icons";
+import { useNavigate } from "react-router-dom";
 
 const Table = ({
   name,
@@ -8,9 +8,12 @@ const Table = ({
   data,
   elementKey,
   onDelete,
-  onEdit,
+  editRoute,
   loading,
 }) => {
+
+    const navigate = useNavigate();
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border">
@@ -47,7 +50,7 @@ const Table = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-500">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => onEdit(item[elementKey])}
+                      onClick={() => navigate(`${editRoute}?id=${item[elementKey]}`)}
                       className="text-blue-600 hover:text-blue-900"
                     >
                       <img src={EditIcon} className="h-6 w-6" />

@@ -3,37 +3,37 @@ import Enseigner from '../models/Enseigner.js';
 class EnseignerService {
     static async getAllEnseignements() {
         const sql = "SELECT * FROM enseigner";
-        const rows = await window.electronAPI.db.query(sql);
+        const { data:rows } = await window.electronAPI.db.query(sql);
         return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
     }
 
     static async getEnseignementByProfesseur(numProf) {
         const sql = "SELECT * FROM enseigner WHERE Num_Prof = ?";
-        const rows = await window.electronAPI.db.query(sql, [numProf]);
+        const { data:rows } = await window.electronAPI.db.query(sql, [numProf]);
         return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
     }
 
     static async getEnseignementByMatiere(codMat) {
         const sql = "SELECT * FROM enseigner WHERE Cod_Mat = ?";
-        const rows = await window.electronAPI.db.query(sql, [codMat]);
+        const { data:rows } = await window.electronAPI.db.query(sql, [codMat]);
         return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
     }
 
     static async getEnseignementByClasse(numClass) {
         const sql = "SELECT * FROM enseigner WHERE Num_Class = ?";
-        const rows = await window.electronAPI.db.query(sql, [numClass]);
+        const { data:rows } = await window.electronAPI.db.query(sql, [numClass]);
         return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
     }
 
     static async getEnseignementByEtablissement(numEtabli) {
         const sql = "SELECT * FROM enseigner WHERE Num_Etabli = ?";
-        const rows = await window.electronAPI.db.query(sql, [numEtabli]);
+        const { data:rows } = await window.electronAPI.db.query(sql, [numEtabli]);
         return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
     }
 
     static async getEnseignementByAnnee(annee) {
         const sql = "SELECT * FROM enseigner WHERE Annee = ?";
-        const rows = await window.electronAPI.db.query(sql, [annee]);
+        const { data:rows } = await window.electronAPI.db.query(sql, [annee]);
         return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
     }
 

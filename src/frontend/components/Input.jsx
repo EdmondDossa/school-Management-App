@@ -8,6 +8,7 @@ const Input = ({
   onChange,
   className,
   previewFile = null,
+  required = false
 }) => {
   const [preview, setPreview] = useState(null);
 
@@ -54,6 +55,7 @@ const Input = ({
             onChange={handleFileChange}
             className="hidden"
             id="fileInput"
+            required={required}
             accept="image/*" // Limite aux fichiers images
           />
           <label
@@ -82,6 +84,7 @@ const Input = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      required={required}
       className={`w-full p-3 rounded-md bg-[#2871FA1A] text-[#00000099] placeholder-[#00000099] h-[50px] border-[2px] border-gray-500 focus:outline-none focus:ring-0 ${className}`}
     />
   );

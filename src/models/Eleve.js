@@ -5,9 +5,9 @@ class Eleve {
         this.Prenoms = prenoms;
         this.Sexe = sexe;
         this.DateNaissance = dateNaissance;
-        this.LieuDeNaissance = lieuDeNaissance;
+        this.LieuNaissance = lieuDeNaissance;
         this.Nationalite = nationalite;
-        this.NontactEtudiant = contactEtudiant;
+        this.ContactParent = contactEtudiant;
         this.NumEtabli = Etablissement
     }
 }
