@@ -1,51 +1,99 @@
 import Enseigner from '../models/Enseigner.js';
+import Matiere from '../models/Matiere.js';
+import Professeur from '../models/Professeur.js';
 
 class EnseignerService {
-    static async getAllEnseignements() {
-        const sql = "SELECT * FROM enseigner";
-        const { data:rows } = await window.electronAPI.db.query(sql);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
+    
+    static async getMatieresNonEncoreAssigneeAClasse(Annee,NumClass) {
+        //on recupere toutes les matieres qui ne sont pas encore  enseignee 
+        // dans  la classe en question pour l'annee scolaire en cours et on 
+        //recupere avec les professseurs qui font ces matieres
+        
+        const sql = `
+                SELECT a.NumProf,a.NomProf,b.CodMat,b.NomMat
+                FROM professeurs a RIGHT JOIN matieres b 
+                ON a.CodMat = b.CodMat 
+                WHERE b.CodMat NOT IN(
+                    SELECT CodMat FROM professeurs a JOIN enseigner e
+                    ON a.NumProf = e.NumProf WHERE e.Annee = ? AND e.NumClass = ?
+                ) 
+
+
+        `;
+        
+        const { data:rows } = await window.electronAPI.db.query(sql,[Annee,NumClass]);
+
+        let matieresEnregistree = [];
+        let matieresNonAssignees = [];
+
+        //on recupere les matieres sans doublons parce qu'il y aura des matieres disponibles
+        //dupliquees dans les cas ou plusieurs prof peuvent enseigner une mm matiere
+        for (const row of rows){
+            if(!matieresEnregistree.includes(row.CodMat)){
+                matieresEnregistree.push(row.CodMat);
+                matieresNonAssignees.push(
+                    new Matiere(
+                        row.CodMat,
+                        row.NomMat
+                    )
+                );
+            }
+        }
+
+        const professeursCorrespondants =  rows.map(
+            (row) =>
+              new Professeur(
+                row.NumProf,
+                row.NomProf,
+                row.PrenomsProf,
+                row.Sexe,
+                row.Adresse,
+                row.Telephone,
+                row.Email,
+                row.DateNaissance,
+                row.LieuNaissance,
+                row.Nationalite,
+                row.CodMat
+              )
+          );
+
+
+        return { 
+            professeursCorrespondants, 
+            matieresNonAssignees 
+        };
     }
 
-    static async getEnseignementByProfesseur(numProf) {
-        const sql = "SELECT * FROM enseigner WHERE Num_Prof = ?";
-        const { data:rows } = await window.electronAPI.db.query(sql, [numProf]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
+    static async getEnseignements(Annee,NumClass) {
+
+        const sql = `
+                SELECT a.NumProf,a.NomProf,b.CodMat,b.NomMat,c.Coef
+                FROM professeurs a JOIN matieres b 
+                ON a.CodMat = b.CodMat 
+                JOIN coefficientsMatieres c ON b.CodMat = c.CodMat
+                WHERE a.NumProf IN(
+                    SELECT a.NumProf FROM professeurs a JOIN enseigner b
+                    ON a.NumProf = b.NumProf WHERE b.Annee = ? AND b.NumClass = ?
+                )
+                AND c.Annee = ? AND c.NumClass = ?
+
+        `;
+        
+        const { data:rows } = await window.electronAPI.db.query(sql,[Annee,NumClass,Annee,NumClass]);
+        
+        return rows;
     }
 
-    static async getEnseignementByMatiere(codMat) {
-        const sql = "SELECT * FROM enseigner WHERE Cod_Mat = ?";
-        const { data:rows } = await window.electronAPI.db.query(sql, [codMat]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
-
-    static async getEnseignementByClasse(numClass) {
-        const sql = "SELECT * FROM enseigner WHERE Num_Class = ?";
-        const { data:rows } = await window.electronAPI.db.query(sql, [numClass]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
-
-    static async getEnseignementByEtablissement(numEtabli) {
-        const sql = "SELECT * FROM enseigner WHERE Num_Etabli = ?";
-        const { data:rows } = await window.electronAPI.db.query(sql, [numEtabli]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
-
-    static async getEnseignementByAnnee(annee) {
-        const sql = "SELECT * FROM enseigner WHERE Annee = ?";
-        const { data:rows } = await window.electronAPI.db.query(sql, [annee]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
 
     static async createEnseignement(enseignement) {
-        const sql = "INSERT INTO enseigner (Num_Prof, Cod_Mat, Num_Class, Num_Etabli, Annee) VALUES (?, ?, ?, ?, ?)";
-        const result = await window.electronAPI.db.query(sql, [enseignement.numProf, enseignement.codMat, enseignement.numClass, enseignement.numEtabli, enseignement.annee]);
+        const sql = "INSERT INTO enseigner (NumProf, NumClass, NumEtabli, Annee) VALUES (?, ?, ?, ?)";
+        const result = await window.electronAPI.db.query(sql, [enseignement.NumProf,enseignement.NumClass, enseignement.NumEtabli, enseignement.Annee]);
         return result;
     }
 
     static async deleteEnseignement(enseignement) {
-        const sql = "DELETE FROM enseigner WHERE Num_Prof = ? AND Cod_Mat = ? AND Num_Class = ? AND Num_Etabli = ? AND Annee = ?";
-        const result = await window.electronAPI.db.query(sql, [enseignement.numProf, enseignement.codMat, enseignement.numClass, enseignement.numEtabli, enseignement.annee]);
+        const sql = "DELETE FROM enseigner WHERE NumProf = ?  AND NumClass = ? AND Annee = ?";
+        const result = await window.electronAPI.db.query(sql, [enseignement.NumProf, enseignement.NumClass,enseignement.Annee]);
         return result;
     }
 }

@@ -1,10 +1,9 @@
 class Enseigner {
-    constructor(numProf, codMat, numClass, numEtabli, annee) {
-        this.numProf = numProf;
-        this.codMat = codMat;
-        this.numClass = numClass;
-        this.numEtabli = numEtabli;
-        this.annee = annee;
+    constructor(numProf, numClass, numEtabli, annee) {
+        this.NumProf = numProf;
+        this.NumClass = numClass;
+        this.NumEtabli = numEtabli;
+        this.Annee = annee;
     }
 }
 

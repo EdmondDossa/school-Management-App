@@ -1,7 +1,8 @@
-import { app, protocol, BrowserWindow, ipcMain } from "electron";
+import { app, protocol, BrowserWindow, ipcMain, dialog } from "electron";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import Store from "electron-store";
 const store = new Store();
+
 
 const log = require("electron-log");
 import path from "node:path";
@@ -113,6 +114,20 @@ ipcMain.handle("showDialog", async (event, args) => {
 
   return dialog.showMessageBox(win, args.options);
 });
+
+//useful than window.confirm because window.confirm locks input after used
+ipcMain.handle('openDialog', async (events, message) => {
+ const result = await  dialog.showMessageBox(mainWindow, {
+      'type': 'warning',
+      'message': message,
+      'buttons': [
+          'Oui',
+          'Non'
+      ]
+  })
+  return result.response === 0;
+}
+)
 
 ipcMain.handle("app-get-path", (event, args) => {
   return app.getPath(args.path);

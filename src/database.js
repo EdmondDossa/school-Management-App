@@ -69,13 +69,11 @@ class Database {
         `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
                     CodMat INTEGER,
                     Coef INTEGER NOT NULL,
-                    NumEtabli INTEGER,
                     Annee TEXT,
                     NumClass INTEGER,
-                    PRIMARY KEY (CodMat, NumEtabli, Annee, NumClass),
+                    PRIMARY KEY (CodMat, Annee, NumClass) ON CONFLICT IGNORE,
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
-                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
                     FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
                 );`,
 
@@ -98,18 +96,18 @@ class Database {
                     LieuNaissance TEXT,
                     Nationalite TEXT,
                     NumEtabli INTEGER,
+                    CodMat,
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS enseigner (
                     NumProf INTEGER,
-                    CodMat INTEGER,
                     NumClass INTEGER,
                     Annee TEXT,
                     NumEtabli INTEGER,
-                    PRIMARY KEY (NumProf, CodMat, NumClass, Annee),
+                    PRIMARY KEY (NumProf, NumClass, Annee),
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
-                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
                     FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)

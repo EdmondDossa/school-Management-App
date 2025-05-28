@@ -9,18 +9,20 @@ class Professeur {
     Email,
     DateNaissance,
     LieuNaissance,
-    Nationalite
+    Nationalite,
+    CodMat
   ) {
     this.NumProf = NumProf;
     this.NomProf = NomProf;
-    this.PrenomProf = PrenomProf;
+    this.PrenomsProf = PrenomProf;
     this.Sexe = Sexe;
     this.Adresse = Adresse;
     this.Telephone = Telephone;
     this.Email = Email;
     this.DateNaissance = DateNaissance;
     this.LieuNaissance = LieuNaissance;
-    this.Nationalit = Nationalite;
+    this.Nationalite = Nationalite;
+    this.CodMat = CodMat;
   }
 }
 

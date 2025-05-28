@@ -1,11 +1,10 @@
-import React, { useState, useEffect, use } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect} from "react";
 import { toast } from "react-hot-toast";
 import MatiereService from "../../../services/MatiereService.js";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
-import { BookOpen, Delete, DeleteIcon, Edit } from "lucide-react";
+import { BookOpen, Delete, Edit } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,10 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+
 const columns = [{ key: "NomMat", label: "Nom de matiere" }];
 
 const classFields = [
-  { name: "NomMat", label: "Nom de la Matière", type: "text" },
+  { name: "NomMat", label: "Nom de la Matière", type: "text",required:true },
 ];
 
 const MatieresList = () => {
@@ -36,10 +36,8 @@ const MatieresList = () => {
   });
   const [loading, setLoading] = useState(true);
   const [currentEtablissement, setCurrentEtablissement] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(5);
-  const [searchEleve, setSearchEleve] = useState("");
   const [openModal, setOpenModal] = useState(false);
+
 
   const fetchMatieres = async () => {
     try {
@@ -59,9 +57,10 @@ const MatieresList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette matiere ?")) {
+    const confirmDeletion = await window.electronAPI.confirm("Êtes-vous sûr de vouloir supprimer cette matiere ?");
+    if (confirmDeletion) {
       try {
-        const result = MatiereService.deleteMatiere(id);
+        const result = await MatiereService.deleteMatiere(id);
         if (result.success) {
           toast.success("Matiere supprimé avec succès");
           await fetchMatieres();
@@ -85,6 +84,15 @@ const MatieresList = () => {
     });
   };
 
+  const handleModalClose = ()=>{
+    setOpenModal(false);
+    setMatiere({
+      ...matiere,
+      CodMat: null,
+      NomMat: "",
+    });
+  }
+
   const handleSubmit = async (matiere) => {
     try {
       let result;
@@ -100,7 +108,6 @@ const MatieresList = () => {
             ? "Matiere modifiée avec succès"
             : "Matiere ajoutée avec succès"
         );
-        setOpenModal(false);
         await fetchMatieres();
       } else {
         toast.error("Une erreur est survenue");
@@ -108,6 +115,8 @@ const MatieresList = () => {
     } catch (error) {
       console.error(error);
       toast.error("Une erreur est survenue " + error);
+    }finally {
+      handleModalClose();
     }
   };
 
@@ -165,7 +174,7 @@ const MatieresList = () => {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => handleEdit(matiere.CodMat)}
+                              onClick={() => handleDelete(matiere.CodMat)}
                             >
                               <Delete className="h-4 w-4 mr-2" />
                               Supprimer
@@ -183,7 +192,7 @@ const MatieresList = () => {
       </div>
       <Modal
         isOpen={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={handleModalClose}
         title="Ajouter une matiere"
       >
         <Form

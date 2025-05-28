@@ -19,7 +19,6 @@ const Form = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -113,6 +112,7 @@ const Form = ({
               name={field.name}
               value={formData[field.name] || ""}
               required={field.required}
+              min="1"
               readOnly={field.readOnly}
               onChange={handleChange}
               className="mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"

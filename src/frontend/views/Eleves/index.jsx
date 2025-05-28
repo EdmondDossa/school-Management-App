@@ -8,6 +8,7 @@ import Pagination from "../../components/Pagination";
 import { v4 as uniqid } from "uuid";
 import { useSearchParams } from "react-router-dom";
 import useDebounce from "../../hooks/use-debounce";
+import Eleve from "../../../models/Eleve";
 
 const eleveFields = [
   { name: "Nom", label: "Nom", type: "text" },
@@ -100,7 +101,6 @@ const ElevesList = () => {
     setSearchParams({});
   }
   
-
   const handleSubmit = async (formData) => {
         try {
           let result;
@@ -207,7 +207,7 @@ const ElevesList = () => {
       <Modal
         isOpen={openModal}
         onClose={closeModal}
-        title="Ajouter un élève"
+        title={eleve.Matricule ? "Modifier les informations de l'élève": "Ajouter un élève"}
       >
         <Form
           fields={eleveFields}

@@ -68,7 +68,7 @@ const Dashboard = () => {
       const nombreInscriptionsEnCours = await InscriptionService.getInscriptionByAnneeScolaire(anneeScolaire.id);
       if(nombreInscriptionsEnCours?.length > 0) setNombreEleves(nombreInscriptionsEnCours.length);
       
-      const nombreEnseignementsEnCours = await EnseignerService.getEnseignementByAnnee(anneeScolaire.id);
+      const nombreEnseignementsEnCours = [];
       const professeursIds = nombreEnseignementsEnCours?.map((professeur) => professeur.NumProf);
       const professeurIdsSansDoublon = Array.from(new Set(professeursIds));
       setNombreProfesseurs(professeurIdsSansDoublon.length);

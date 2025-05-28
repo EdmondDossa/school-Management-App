@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import ClasseService from "../../../services/ClasseService.js";
 import { Modal, Form } from "../../components";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import AnneeScolaireService from "../../../services/AnneeScolaireService.js";
-import { BookOpen, Edit, Plus, Users } from "lucide-react";
+import { BookOpen, Edit,Users,Delete } from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import {
   Card,
@@ -22,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+import { useNavigate } from "react-router-dom";
 const columns = [
   { key: "NomClass", label: "Nom de classe" },
   { key: "Promotion", label: "Promotions" },
@@ -48,6 +48,8 @@ const classFields = [
 ];
 
 const ClassesList = () => {
+  const navigate = useNavigate();
+
   const [classes, setClasses] = useState([]);
   const [classe, setClasse] = useState({
     NumClass: null,
@@ -55,14 +57,10 @@ const ClassesList = () => {
     Promotion: "6",
     NumEtabli: null,
   });
-  const [selectedAnneeScolaire, setSelectedAnneeScolaire] = useState();
 
   const [anneesScolaires, setAnneesScolaires] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentEtablissement, setCurrentEtablissement] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(5);
-  const [searchEleve, setSearchEleve] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
   const fetchClasses = async () => {
@@ -86,9 +84,10 @@ const ClassesList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette classe ?")) {
+    const confirmDeletion = await window.electronAPI.confirm("Êtes-vous sûr de vouloir supprimer cette classe ?");
+    if (confirmDeletion) {
       try {
-        const result = ClasseService.deleteClasse(id);
+        const result = await ClasseService.deleteClasse(id);
         if (result.success) {
           toast.success("Classe supprimé avec succès");
           await fetchClasses();
@@ -115,7 +114,7 @@ const ClassesList = () => {
   const handleSubmit = async (formData) => {
     try {
       let result;
-      if (formData.NumClass == null) {
+      if (!formData.NumClass) {
         result = await ClasseService.createClasse(formData);
       } else {
         result = await ClasseService.updateClasse(formData);
@@ -188,7 +187,11 @@ const ClassesList = () => {
                         <TableCell>0</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={()=>navigate(`/config-class/${classe.NumClass}`)}
+                            >
                               <BookOpen className="h-4 w-4 mr-2" />
                               Matières
                             </Button>
@@ -199,6 +202,14 @@ const ClassesList = () => {
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Modifier
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(classe.NumClass)}
+                            >
+                              <Delete className="h-4 w-4 mr-2" />
+                              Supprimer
                             </Button>
                           </div>
                         </TableCell>

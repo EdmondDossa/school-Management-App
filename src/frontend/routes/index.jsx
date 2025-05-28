@@ -9,6 +9,7 @@ import { EmploiDuTempsList } from "../views/EmploiDuTemps";
 import Matieres from "../views/Matieres";
 import Professeurs from "../views/Professeurs";
 import AnneeScolaire from "../views/Annee-Scolaire";
+import ClasseConfiguration from "../views/Classes/classe-configuration";
 
 export const router = createHashRouter([
   {
@@ -46,6 +47,10 @@ export const router = createHashRouter([
       {
         path: "emplois-du-temps",
         element: <EmploiDuTempsList />,
+      },
+      {
+        path: "config-class/:id",
+        element: <ClasseConfiguration />,
       },
       /* {
         path: 'notes',
