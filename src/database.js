@@ -104,7 +104,7 @@ class Database {
         `CREATE TABLE IF NOT EXISTS enseigner (
                     NumProf INTEGER,
                     NumClass INTEGER,
-                    Annee TEXT,
+                    Annee TEXT UNIQUE ON CONFLICT IGNORE,
                     NumEtabli INTEGER,
                     PRIMARY KEY (NumProf, NumClass, Annee),
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),

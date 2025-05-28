@@ -65,7 +65,9 @@ class EnseignerService {
     }
 
     static async getEnseignements(Annee,NumClass) {
-
+        //on recupere pour l'annee scolaire en cours et pour une classe en question
+        //la liste des matieres et  des  professeurs qui font deja cours dans la salle
+        //en ajoutant les coefficients correspondants
         const sql = `
                 SELECT a.NumProf,a.NomProf,b.CodMat,b.NomMat,c.Coef
                 FROM professeurs a JOIN matieres b 
@@ -95,6 +97,12 @@ class EnseignerService {
         const sql = "DELETE FROM enseigner WHERE NumProf = ?  AND NumClass = ? AND Annee = ?";
         const result = await window.electronAPI.db.query(sql, [enseignement.NumProf, enseignement.NumClass,enseignement.Annee]);
         return result;
+    }
+
+    static async getEnseignementByAnnee(annee){
+        const sql = "SELECT * FROM enseigner WHERE Annee = ?";
+        const { data:rows } = await window.electronAPI.db.query(sql,[annee]);
+        return rows;
     }
 }
 

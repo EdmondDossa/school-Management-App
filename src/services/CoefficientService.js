@@ -22,8 +22,6 @@ class CoefficientService {
     }
 
     static async update(codmat,numclass,annee,coef) {
-            console.log(coef,annee,numclass,codmat);
-            
         const sql = "UPDATE coefficientsMatieres SET Coef = ? WHERE Annee = ? AND NumClass = ? AND CodMat = ?";
         const result = await window.electronAPI.db.query(sql, [coef,annee,numclass,codmat]);
         return result;

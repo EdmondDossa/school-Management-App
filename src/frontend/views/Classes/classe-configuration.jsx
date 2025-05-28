@@ -151,7 +151,7 @@ async function handleDelete(CodMat,NumProf){
       await fetchMatieresEtProfLibres();
       await fetchEnseignements();
 
-      toast.success("Enseignement supprimer avec succes")
+      toast.success("Enseignement supprimer avec succes");
     } catch (error) {
       toast.error("Une erreur est survenue lors de la suppression");
     } 
@@ -215,14 +215,14 @@ useEffect(()=>{
                   <TableBody>
                     { enseignements.map((enseignement,index) =>
                       (<TableRow key={index} >
-                        <TableCell> { enseignement.NomMat} </TableCell>
-                        <TableCell> { enseignement.NomProf} </TableCell>
+                        <TableCell> { enseignement.NomMat } </TableCell>
+                        <TableCell> { enseignement.NomProf } </TableCell>
 
                         <TableCell
                           title="Double cliquer pour modifier"
                           onClick={()=>setIsUpdatingCoef(true)}
                           contentEditable={isUpdatingCoef}
-                          onInput = { (e) => setCoefToUpdate(e.target.innerText)}
+                          onInput = {(e) => setCoefToUpdate(e.target.innerText)}
                           ref={ref}
                           onBlur={() => handleCoefficientUpdate(enseignement.CodMat)}
                         >
@@ -325,11 +325,13 @@ useEffect(()=>{
 };
 
 function FormLabel ({children}){
-  return (<label
-  htmlFor={children}
-  className="block text-sm font-medium text-gray-700"
-> {children } 
-</label>)
+  return (
+  <label
+    htmlFor={children}
+    className="block text-sm font-medium text-gray-700"
+  > {children } 
+</label>
+);
 }
 
 export default ClasseConfiguration;
