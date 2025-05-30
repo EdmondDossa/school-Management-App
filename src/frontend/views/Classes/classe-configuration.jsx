@@ -103,7 +103,7 @@ async function loadData(){
 };
 
 async function handleSubmit(e){
-  e.preventDefault();
+  e.preventDefault(); 
   try {
     const enseignement = { 
       ...cours,
