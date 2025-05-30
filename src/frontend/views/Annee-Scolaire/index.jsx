@@ -41,6 +41,7 @@ const AnneeScolaire = () => {
     }
     const { NumEtabli } =  await window.electronAPI.store.get("etablissement");
     await AnneeScolaireService.createAnneeScolaire({ ...AnneeScolaire,NumEtabli });
+    await window.electronAPI.store.set("anneeScolaires", { ...AnneeScolaire,NumEtabli });
     toast.success("Annee Scolaire Créee!");
     setAnneeScolaire({
       Annee: "",

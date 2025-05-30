@@ -35,17 +35,17 @@ const SideBar = () => {
     },
   ];
 
-  const [isHidden, setHidden] = useState(false);
-  const toggleNavBarVisibility = () => setHidden(!isHidden);
+  const [isNavbarHidden, setNavbarHidden] = useState(false);
+  const toggleNavBarVisibility = () => setNavbarHidden(!isNavbarHidden);
 
   return (
-    <div className={`${ isHidden ?'w-[60px]' :'w-64' } bg-[#2871FA] shadow-lg shadow-[#00000014] relative`}>
-      { !isHidden &&  
+    <div className={`${ isNavbarHidden ?'w-[60px]' :'w-64' } bg-[#2871FA] shadow-lg shadow-[#00000014] relative transition-all ease-linear `}>
         <nav>
               {menuItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
+                  title={isNavbarHidden ? item.label : ""}
                   className={`flex items-center px-6 py-3 focus:outline-none hover:text-[#2871FA] font-bold hover:bg-[#FFFFFF] ${
                     location.pathname === item.path
                       ? "bg-[#FFFFFF] text-[#2871FA]"
@@ -53,14 +53,13 @@ const SideBar = () => {
                   }`}
                 >
                   <span className="mr-2">{item.icon}</span>
-                  {item.label}
+                  {!isNavbarHidden ? item.label : ""}
                 </Link>
               ))}
         </nav>
-      }
       <div>
         {
-          !isHidden   
+          !isNavbarHidden   
             ? <SidebarCloseIcon 
               className="text-white absolute bottom-0 right-0 m-3 cursor-pointer" 
               onClick={toggleNavBarVisibility}

@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+import EnseignerService from "../../../services/EnseignerService.js";
 
 const columns = [{ key: "NomMat", label: "Nom de matiere" }];
 
@@ -35,14 +36,12 @@ const MatieresList = () => {
     NomMat: "",
   });
   const [loading, setLoading] = useState(true);
-  const [currentEtablissement, setCurrentEtablissement] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
 
   const fetchMatieres = async () => {
     try {
       const etablissement = await window.electronAPI.store.get("etablissement");
-      setCurrentEtablissement(etablissement);
       setMatiere({ ...matiere, NumEtabli: etablissement.NumEtabli });
       const results = await MatiereService.getAllMatieres(
         etablissement.NumEtabli
@@ -61,6 +60,13 @@ const MatieresList = () => {
     if (confirmDeletion) {
       try {
         const result = await MatiereService.deleteMatiere(id);
+
+        //supprimer les cours concernant cette matiere
+        const { Annee } = await window.electronAPI.store.get("anneeScolaireEncours");
+        await EnseignerService.deleteEnseignementByMatiere(
+          id,Annee
+        );
+
         if (result.success) {
           toast.success("Matiere supprimé avec succès");
           await fetchMatieres();

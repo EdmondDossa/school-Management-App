@@ -96,7 +96,7 @@ class Database {
                     LieuNaissance TEXT,
                     Nationalite TEXT,
                     NumEtabli INTEGER,
-                    CodMat,
+                    CodMat INTEGER,
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat)
                 );`,
@@ -104,9 +104,9 @@ class Database {
         `CREATE TABLE IF NOT EXISTS enseigner (
                     NumProf INTEGER,
                     NumClass INTEGER,
-                    Annee TEXT UNIQUE ON CONFLICT IGNORE,
+                    Annee TEXT,
                     NumEtabli INTEGER,
-                    PRIMARY KEY (NumProf, NumClass, Annee),
+                    PRIMARY KEY (NumProf, NumClass, Annee) ON CONFLICT IGNORE,
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),

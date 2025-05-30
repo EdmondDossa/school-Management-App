@@ -16,7 +16,7 @@ class CoefficientService {
     }
 
     static async createCoefficient(coefficient) {
-        const sql = "INSERT INTO coefficientsMatieres (CodMat, Coef, Annee, NumClass) VALUES (?, ?, ?, ?)";
+        const sql = "INSERT OR REPLACE INTO coefficientsMatieres (CodMat, Coef, Annee, NumClass) VALUES (?, ?, ?, ?)";
         const result = await window.electronAPI.db.query(sql, [coefficient.CodMat, coefficient.Coef, coefficient.Annee, coefficient.NumClass]);
         return result;
     }

@@ -1,4 +1,3 @@
-import Enseigner from '../models/Enseigner.js';
 import Matiere from '../models/Matiere.js';
 import Professeur from '../models/Professeur.js';
 
@@ -10,7 +9,7 @@ class EnseignerService {
         //recupere avec les professseurs qui font ces matieres
         
         const sql = `
-                SELECT a.NumProf,a.NomProf,b.CodMat,b.NomMat
+                SELECT a.NumProf,a.NomProf,a.PrenomsProf,b.CodMat,b.NomMat
                 FROM professeurs a RIGHT JOIN matieres b 
                 ON a.CodMat = b.CodMat 
                 WHERE b.CodMat NOT IN(
@@ -69,7 +68,7 @@ class EnseignerService {
         //la liste des matieres et  des  professeurs qui font deja cours dans la salle
         //en ajoutant les coefficients correspondants
         const sql = `
-                SELECT a.NumProf,a.NomProf,b.CodMat,b.NomMat,c.Coef
+                SELECT a.NumProf,a.NomProf,a.PrenomsProf,b.CodMat,b.NomMat,c.Coef
                 FROM professeurs a JOIN matieres b 
                 ON a.CodMat = b.CodMat 
                 JOIN coefficientsMatieres c ON b.CodMat = c.CodMat
@@ -103,6 +102,18 @@ class EnseignerService {
         const sql = "SELECT * FROM enseigner WHERE Annee = ?";
         const { data:rows } = await window.electronAPI.db.query(sql,[annee]);
         return rows;
+    }
+
+    static async deleteEnseignementByMatiere(CodMat){
+        const sql = "DELETE FROM enseigner WHERE NumProf IN (SELECT NumProf FROM professeurs WHERE CodMat = ?)";
+        const result = await window.electronAPI.db.query(sql,[String(CodMat)]);
+        return result;
+    }
+
+    static async deleteEnseignementByProfesseur(NumProf,Annee){
+        const sql = "DELETE FROM enseigner WHERE NumProf = ? AND Annee = ?";
+        const result = await window.electronAPI.db.query(sql, [NumProf,Annee]);
+        return result;
     }
 }
 

@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+import EnseignerService from "../../../services/EnseignerService.js";
 
 
 const professeurFields = [
@@ -73,14 +74,12 @@ const Professeur = () => {
   const [professeur, setProfesseur] = useState(initialValues);
   const [matieres,setMatieres] =useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentEtablissement, setCurrentEtablissement] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   
 
   const fetchProfesseurs = async () => {
     try {
       const etablissement = await window.electronAPI.store.get("etablissement");
-      setCurrentEtablissement(etablissement);
       setProfesseur({ ...professeur, NumEtabli: etablissement.NumEtabli });
       let results = await ProfesseurService.getAllProfesseurs(
         etablissement.NumEtabli
@@ -106,6 +105,12 @@ const Professeur = () => {
     if (confirmDeletion) {
       try {
         const result = await ProfesseurService.deleteProfesseur(id);
+
+        //supprimer le cours enseigner par ce professeur
+        const { Annee } = await window.electronAPI.store.get("anneeScolaireEncours");
+        await EnseignerService.deleteEnseignementByProfesseur(
+          id,Annee
+        );
         if (result.success) {
           toast.success("Professeur supprimé avec succès");
           await fetchProfesseurs();
@@ -131,6 +136,9 @@ const Professeur = () => {
 
   const handleModalClose = ()=>{
     setOpenModal(false);
+    setProfesseur({
+      ...initialValues,NumEtabli:professeur.NumEtabli
+    })
   }
 
   const handleSubmit = async (professeur) => {
@@ -161,21 +169,34 @@ const Professeur = () => {
 
   };
 
+  const updateProfesseurFields = ()=>{
+    if(matieres.length > 0 ) {
+      if(professeurFields[0].name != "CodMat"){
+        professeurFields.unshift(
+          {
+            name:"CodMat",label:"Matiere Enseignee",type:"select",required:true,
+            options:[
+              { label:"Choisir une matiere", value:"" },
+                ...matieres.map((matiere)=>({ label:matiere.NomMat, value:matiere.CodMat }))
+              ]
+          }
+      )
+      }else{
+        professeurFields[0].options = [
+          { label:"Choisir une matiere", value:"" },
+            ...matieres.map((matiere)=>({ label:matiere.NomMat, value:matiere.CodMat }))
+          ];
+      }
+     }
+  };
+
   useEffect(() => {
     fetchProfesseurs();
     fetchMatieres();
   }, []);
 
   useEffect(()=>{
-   if(matieres.length > 0) professeurFields.unshift(
-      {
-        name:"CodMat",label:"Matiere Enseignee",type:"select",required:true,
-        options:[
-          { label:"Choisir une matiere", value:"" },
-            ...matieres.map((matiere)=>({ label:matiere.NomMat, value:matiere.CodMat }))
-          ]
-      }
-  );
+    updateProfesseurFields();
   },[matieres])
 
   if (loading) {
@@ -198,19 +219,19 @@ const Professeur = () => {
           </div>
 
           <div className="grid gap-6">
-            <Card>
+            <Card className="overflow-auto">
               <CardHeader>
                 <CardTitle>Liste des Professeurs</CardTitle>
                 <CardDescription>Gérez les professeurs</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
                     { tableHeadFields.map((field) => <TableHead key={field}> { field } </TableHead>)}
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                  <TableBody >
                     {Professeurs?.map((professeur) => (
                       <TableRow key={professeur.NumProf}>
                         {
@@ -219,8 +240,10 @@ const Professeur = () => {
                             if (key != "NumProf" && key !="CodMat" ) return  <TableCell key={key}> { professeur[key] } </TableCell>;
 
                             if (key === "CodMat") 
-                               return  <TableCell key={key}> { (matieres.find((matiere) => matiere.CodMat === +professeur["CodMat"]))?.NomMat  } </TableCell>
-                          }
+                               return <TableCell key={key}> 
+                                            { (matieres.find((matiere) => matiere.CodMat === +professeur["CodMat"]))?.NomMat ?? "---" } 
+                                       </TableCell>
+                              }
                         ))
                         }
                         <TableCell>

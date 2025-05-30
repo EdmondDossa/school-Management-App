@@ -44,8 +44,6 @@ class ProfesseurService {
   }
 
   static async createProfesseur(professeur) {
-    console.log(professeur.CodMat);
-    
     const sql =
       "INSERT INTO professeurs (NumProf, NomProf, PrenomsProf, Sexe, Adresse, Telephone, Email, DateNaissance, LieuNaissance, Nationalite, NumEtabli,CodMat) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)";
     const result = await window.electronAPI.db.query(sql, [

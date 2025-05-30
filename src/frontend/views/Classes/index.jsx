@@ -60,13 +60,11 @@ const ClassesList = () => {
 
   const [anneesScolaires, setAnneesScolaires] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentEtablissement, setCurrentEtablissement] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
   const fetchClasses = async () => {
     try {
       const etablissement = await window.electronAPI.store.get("etablissement");
-      setCurrentEtablissement(etablissement);
       setClasse({ ...classe, NumEtabli: etablissement.NumEtabli });
       const result = await ClasseService.getAllClasses(etablissement.NumEtabli);
       setClasses(result);
@@ -111,6 +109,10 @@ const ClassesList = () => {
     });
   };
 
+  const handleModalClose = ()=>{
+    setOpenModal(false);
+    setClasse({...classe,NomClass:"",NumClass:""});
+  }
   const handleSubmit = async (formData) => {
     try {
       let result;
@@ -126,7 +128,7 @@ const ClassesList = () => {
             ? "Classe modifiée avec succès"
             : "Classe ajoutée avec succès"
         );
-        setOpenModal(false);
+        handleModalClose();
         await fetchClasses();
       } else {
         toast.error("Une erreur est survenue");
@@ -224,7 +226,7 @@ const ClassesList = () => {
       </div>
       <Modal
         isOpen={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={handleModalClose}
         title="Ajouter une classe"
       >
         <Form

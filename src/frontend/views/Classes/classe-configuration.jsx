@@ -111,7 +111,6 @@ async function handleSubmit(e){
       Annee:InfoScolaire.Annee,
       NumClass
     };
-
     const coefficient = {
       CodMat:cours.CodMat,
       Coef:cours.Coef,
@@ -150,7 +149,8 @@ async function handleDelete(CodMat,NumProf){
 
       await fetchMatieresEtProfLibres();
       await fetchEnseignements();
-
+      setCours(initialValues);
+      
       toast.success("Enseignement supprimer avec succes");
     } catch (error) {
       toast.error("Une erreur est survenue lors de la suppression");
@@ -164,7 +164,7 @@ async function handleCoefficientUpdate(CodMat){
       CodMat,NumClass,InfoScolaire.Annee,+(coefToUpdate.trim())
     );
     await fetchEnseignements();
-
+    toast.success("Coefficient modifié!")
   }else{
     toast.error("Coefficient invalide");
   }
@@ -216,7 +216,7 @@ useEffect(()=>{
                     { enseignements.map((enseignement,index) =>
                       (<TableRow key={index} >
                         <TableCell> { enseignement.NomMat } </TableCell>
-                        <TableCell> { enseignement.NomProf } </TableCell>
+                        <TableCell> { `${enseignement.NomProf} ${enseignement.PrenomsProf}`  } </TableCell>
 
                         <TableCell
                           title="Double cliquer pour modifier"
@@ -301,7 +301,7 @@ useEffect(()=>{
                         prof.NumProf 
                           ?
                           <option key={prof.NumProf} value={prof.NumProf}>
-                            { prof.NomProf } 
+                            { `${prof.NomProf} ${prof.PrenomsProf}`} 
                           </option> 
                           :
                           <option value="" disabled>Aucun professeur disponible pour cette matiere</option>
