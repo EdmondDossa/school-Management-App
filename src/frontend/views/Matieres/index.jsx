@@ -1,6 +1,9 @@
 import React, { useState, useEffect} from "react";
 import { toast } from "react-hot-toast";
-import MatiereService from "../../../services/MatiereService.js";
+import {
+  MatiereService,
+  EnseignerService
+} from "../../../services/";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
@@ -20,13 +23,9 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
-import EnseignerService from "../../../services/EnseignerService.js";
 
-const columns = [{ key: "NomMat", label: "Nom de matiere" }];
-
-const classFields = [
-  { name: "NomMat", label: "Nom de la Matière", type: "text",required:true },
-];
+import { classFields } from "../../utils/form-fields.js";
+import { getEtablissement } from "../../utils/index.js";
 
 const MatieresList = () => {
   const [Matieres, setMatieres] = useState([]);
@@ -41,7 +40,7 @@ const MatieresList = () => {
 
   const fetchMatieres = async () => {
     try {
-      const etablissement = await window.electronAPI.store.get("etablissement");
+      const etablissement = await getEtablissement();
       setMatiere({ ...matiere, NumEtabli: etablissement.NumEtabli });
       const results = await MatiereService.getAllMatieres(
         etablissement.NumEtabli
@@ -61,13 +60,13 @@ const MatieresList = () => {
       try {
         const result = await MatiereService.deleteMatiere(id);
 
-        //supprimer les cours concernant cette matiere
         const { Annee } = await window.electronAPI.store.get("anneeScolaireEncours");
-        await EnseignerService.deleteEnseignementByMatiere(
-          id,Annee
-        );
-
+  
         if (result.success) {
+          //supprimer les cours concernant cette matiere
+          await EnseignerService.deleteEnseignementByMatiere(
+            id,Annee
+          );
           toast.success("Matiere supprimé avec succès");
           await fetchMatieres();
         } else {
@@ -150,7 +149,7 @@ const MatieresList = () => {
           </div>
 
           <div className="grid gap-6">
-            <Card>
+            <Card className="m-auto min-w-[700px]">
               <CardHeader>
                 <CardTitle>Liste des Matières</CardTitle>
                 <CardDescription>Gérez les matières</CardDescription>
@@ -159,7 +158,7 @@ const MatieresList = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nom de la Matière</TableHead>
+                      <TableHead className="text-center">Nom de la Matière</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>

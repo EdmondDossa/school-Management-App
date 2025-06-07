@@ -164,7 +164,7 @@ const ClassesList = () => {
           </div>
 
           <div className="grid gap-6">
-            <Card>
+            <Card className="m-auto min-w-[700px]">
               <CardHeader>
                 <CardTitle>Liste des Classes</CardTitle>
                 <CardDescription>
@@ -192,7 +192,7 @@ const ClassesList = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              onClick={()=>navigate(`/config-class/${classe.NumClass}`)}
+                              onClick={()=>navigate(`/classes/config-class/${classe.NumClass}`)}
                             >
                               <BookOpen className="h-4 w-4 mr-2" />
                               Matières

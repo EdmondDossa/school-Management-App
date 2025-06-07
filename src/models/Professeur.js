@@ -10,7 +10,7 @@ class Professeur {
     DateNaissance,
     LieuNaissance,
     Nationalite,
-    CodMat
+    matieres = []
   ) {
     this.NumProf = NumProf;
     this.NomProf = NomProf;
@@ -22,7 +22,7 @@ class Professeur {
     this.DateNaissance = DateNaissance;
     this.LieuNaissance = LieuNaissance;
     this.Nationalite = Nationalite;
-    this.CodMat = CodMat;
+    this.matieres = matieres;
   }
 }
 

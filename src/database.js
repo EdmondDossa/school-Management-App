@@ -71,10 +71,12 @@ class Database {
                     Coef INTEGER NOT NULL,
                     Annee TEXT,
                     NumClass INTEGER,
+                    NumEtabli INTEGER,
                     PRIMARY KEY (CodMat, Annee, NumClass) ON CONFLICT IGNORE,
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
-                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
+                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee),
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS utilisateurs (
@@ -96,21 +98,29 @@ class Database {
                     LieuNaissance TEXT,
                     Nationalite TEXT,
                     NumEtabli INTEGER,
-                    CodMat INTEGER,
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
+                );`,
+
+        `CREATE TABLE IF NOT EXISTS profmatieres (
+                    NumProf INTEGER ,
+                    CodMat INTEGER,
+                    PRIMARY KEY (NumProf,CodMat),
+                    FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS enseigner (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     NumProf INTEGER,
                     NumClass INTEGER,
+                    CodMat INTEGER,
                     Annee TEXT,
                     NumEtabli INTEGER,
-                    PRIMARY KEY (NumProf, NumClass, Annee) ON CONFLICT IGNORE,
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
-                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
+                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee),
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS eleves (

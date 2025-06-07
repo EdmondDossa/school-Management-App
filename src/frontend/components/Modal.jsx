@@ -17,7 +17,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           </button>
         </div>
         <div
-          className="p-4 max-h-[70vh] overflow-y-auto [&::-webkit-scrollbar]:w-0
+          className="p-4 max-h-[75vh] overflow-y-auto [&::-webkit-scrollbar]:w-0
                     [&::-webkit-scrollbar-track]:rounded-full
                     [&::-webkit-scrollbar-track]:bg-gray-100
                     [&::-webkit-scrollbar-thumb]:rounded-full

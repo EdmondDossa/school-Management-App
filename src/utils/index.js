@@ -95,5 +95,8 @@ async function detectPeriodeActuelle() {
 }
 
 
-
-export { handleUploadFile, getResourcesPath, detectPeriodeActuelle };
+export { 
+    handleUploadFile, 
+    getResourcesPath, 
+    detectPeriodeActuelle,
+ };
