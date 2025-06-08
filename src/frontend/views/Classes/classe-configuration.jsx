@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+import { Tooltip } from "react-tooltip";
 
 const tableHeadFields = ["Matiere", "Professeur", "Coefficient", "Actions"];
 
@@ -58,7 +59,7 @@ const ClasseConfiguration = () => {
   const [openModal, setOpenModal] = useState(false);
 
   const [isUpdatingCoef, setIsUpdatingCoef] = useState(false);
-  const [coefToUpdate, setCoefToUpdate] = useState(1);
+  const [coefToUpdate, setCoefToUpdate] = useState(null);
 
   const [matieres, setMatieres] = useState([]);
   const [professeurs, setProfesseurs] = useState([]);
@@ -82,6 +83,15 @@ const ClasseConfiguration = () => {
     setOpenModal(false);
     setProfesseurs([]);
     setCours(initialValues);
+
+    //when there is an editing statement we must remove the matiere to edit from the list of matieres
+    //because the matieres to print can't include the edited matieres
+    //since all matieres to display represents the matieres non assigned to a classroom
+    if(cours.id){
+      const matieresCopy = Array.from(matieres);
+      matieresCopy.pop();
+      setMatieres(matieresCopy);
+    }
   }
 
   async function fetchMatieresNonAssignee() {
@@ -128,8 +138,9 @@ const ClasseConfiguration = () => {
         Coef: cours.Coef,
         NumClass,
         Annee: InfoScolaire.Annee,
+        NumEtabli: InfoScolaire.NumEtabli,
       };
-      
+
       if (!cours.id) {
         await EnseignerService.createEnseignement(enseignement);
         await CoefficientService.createCoefficient(coefficient);
@@ -164,7 +175,7 @@ const ClasseConfiguration = () => {
         await CoefficientService.deleteCoefficient(
           enseignement.CodMat,
           InfoScolaire.Annee,
-          enseignement.NumClass
+          NumClass
         );
 
         await fetchMatieresNonAssignee();
@@ -182,20 +193,33 @@ const ClasseConfiguration = () => {
   async function handleEdit(id) {
     setOpenModal(true);
     const cours = enseignements.find((enseignement) => enseignement.id === id);
-    setCours({...cours,id});
+    cours.id = id;
+    setCours(cours);
+    //by default the list of matieres do not include the matiere to edit 
+    //so we add it to the list of matieres to simulate the default behaviour
+    setMatieres([...matieres, {
+      CodMat:cours.CodMat,
+      NomMat:cours.NomMat
+    } ]);
+
   }
 
-  async function handleCoefficientUpdate(CodMat) {
-    if (Number(coefToUpdate.trim()) && +coefToUpdate.trim() >= 1) {
+  async function handleCoefficientUpdate(CodMat,oldCoef) {
+    if(!coefToUpdate) return;
+    if(oldCoef === coefToUpdate) return;
+    if (coefToUpdate && coefToUpdate >= 1) {
       await CoefficientService.update(
         CodMat,
         NumClass,
         InfoScolaire.Annee,
-        +coefToUpdate.trim()
+        coefToUpdate
       );
+
       await fetchEnseignements();
       toast.success("Coefficient modifié!");
     } else {
+      console.log(coefToUpdate);
+      
       toast.error("Coefficient invalide");
     }
     setIsUpdatingCoef(false);
@@ -266,16 +290,28 @@ const ClasseConfiguration = () => {
                         </TableCell>
 
                         <TableCell
-                          title='Double cliquer pour modifier'
+                          id='coefficient'
+                          spellCheck={false}
+                          className="cursor-pointer"
                           onClick={() => setIsUpdatingCoef(true)}
                           contentEditable={isUpdatingCoef}
-                          onInput={(e) => setCoefToUpdate(e.target.innerText)}
-                          ref={ref}
+                          onInput={(e) => setCoefToUpdate(parseInt(e.target.innerText))}
                           onBlur={() =>
-                            handleCoefficientUpdate(enseignement.CodMat)
+                            handleCoefficientUpdate(enseignement.CodMat,enseignement.Coef)
                           }
                         >
-                          {enseignement.Coef}
+
+                          <span
+                            ref={ref}
+                            spellCheck={false}
+                          >
+                            {enseignement.Coef}
+                          </span>
+                          <span contentEditable={false}>
+                            <Tooltip anchorSelect='#coefficient'>
+                                { !isUpdatingCoef ? "Double cliquer pour modifier": "Saisir la nouvelle valeur" }
+                            </Tooltip>
+                          </span>
                         </TableCell>
 
                         <TableCell className=''>
@@ -310,9 +346,10 @@ const ClasseConfiguration = () => {
         </main>
       </div>
 
-      <Modal isOpen={openModal} 
-      onClose={closeModal} 
-      title={cours.id ? "Modification du cours":"Nouveau cours"}
+      <Modal
+        isOpen={openModal}
+        onClose={closeModal}
+        title={cours.id ? "Modification du cours" : "Nouveau cours"}
       >
         <form onSubmit={handleSubmit} className='space-y-6'>
           <div>
@@ -326,20 +363,11 @@ const ClasseConfiguration = () => {
               required
             >
               <option value=''>Choisir la matiere</option>
-              {/* If it is an update we must add an option tag for the editing enseignement */}
-              {/* Since the matiere to edit won't appear by default in the list of matieres */}
-              {/* Because the list of matieres refer to non assigned matieres*/}
-              {
-                cours.id &&  <option key={cours.CodMat} value={cours.CodMat}> { cours.NomMat} </option>
-              }
-              {matieres.map((matiere) => (
-                <option 
-                key={matiere.CodMat}
-                value={matiere.CodMat}
-               >
-                  {matiere.NomMat}
-                </option>
-              ))}
+                {matieres.map((matiere) => (
+                  <option key={matiere.CodMat} value={matiere.CodMat}>
+                    {matiere.NomMat}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
@@ -358,7 +386,7 @@ const ClasseConfiguration = () => {
             <select
               name='NumProf'
               id='Professeur'
-              value={cours.id && cours.CodMat && cours.NumProf}
+              value={ cours.NumProf }
               onChange={handleChange}
               className='h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500'
               required
@@ -389,7 +417,7 @@ const ClasseConfiguration = () => {
               type='submit'
               className='px-4 py-2 focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700'
             >
-             {cours.id ? "Modifier":"Ajouter"}
+              {cours.id ? "Modifier" : "Ajouter"}
             </button>
           </div>
         </form>

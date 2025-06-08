@@ -5,7 +5,8 @@ import {
   EtablissementService,
   PeriodeService,
   InscriptionService,
-  EnseignerService
+  EnseignerService,
+  ProfesseurService
 } from "../../../services";
 import {
   Card,
@@ -47,7 +48,12 @@ const Dashboard = () => {
       const classes = await ClasseService.getAllClasses(
         etablissement.NumEtabli
       );
+      
       setNombreClasses(classes.length);
+      
+      const professeurs = await ProfesseurService.getAllProfesseurs(etablissement.NumEtabli);
+      setNombreProfesseurs(professeurs.length);
+
     } else {
       await window.electronAPI.store.set("etablissement", {
         NumEtabli: null,
@@ -67,11 +73,6 @@ const Dashboard = () => {
 
       const nombreInscriptionsEnCours = await InscriptionService.getInscriptionByAnneeScolaire(anneeScolaire.id);
       if(nombreInscriptionsEnCours?.length > 0) setNombreEleves(nombreInscriptionsEnCours.length);
-      
-      const nombreEnseignementsEnCours = await EnseignerService.getEnseignementByAnnee(anneeScolaire.Annee);
-      const professeursIds = nombreEnseignementsEnCours?.map((professeur) => professeur.NumProf);
-      const professeurIdsSansDoublon = Array.from(new Set(professeursIds));
-      setNombreProfesseurs(professeurIdsSansDoublon.length);
 
       await window.electronAPI.store.set("anneeScolaires", anneeScolaires);
       const periode = await detectPeriodeActuelle();
