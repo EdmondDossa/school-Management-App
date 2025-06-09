@@ -79,18 +79,13 @@ const ClasseConfiguration = () => {
     setCours({ ...cours, [name]: value });
   }
 
-  function closeModal() {
+  async function closeModal() {
     setOpenModal(false);
     setProfesseurs([]);
     setCours(initialValues);
-
-    //when there is an editing statement we must remove the matiere to edit from the list of matieres
-    //because the matieres to print can't include the edited matieres
-    //since all matieres to display represents the matieres non assigned to a classroom
+    
     if(cours.id){
-      const matieresCopy = Array.from(matieres);
-      matieresCopy.pop();
-      setMatieres(matieresCopy);
+      await fetchMatieresNonAssignee();
     }
   }
 
@@ -147,12 +142,8 @@ const ClasseConfiguration = () => {
         toast.success("Le cours a bien été ajoutee");
       } else {
         await EnseignerService.updateEnseignement(enseignement);
-        await CoefficientService.update(
-          cours.CodMat,
-          NumClass,
-          InfoScolaire.Annee,
-          cours.Coef
-        );
+        await CoefficientService.deleteCoefficient(cours.CodMat,InfoScolaire.Annee,NumClass);
+        await CoefficientService.createCoefficient(coefficient);
         toast.success("Cours modifiee avec success");
       }
 

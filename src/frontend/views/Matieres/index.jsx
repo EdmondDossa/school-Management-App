@@ -1,13 +1,22 @@
 import React, { useState, useEffect} from "react";
 import { toast } from "react-hot-toast";
-import {
-  MatiereService,
-  EnseignerService
-} from "../../../services/";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import { BookOpen, Delete, Edit } from "lucide-react";
+import { classFields } from "../../utils/form-fields.js";
+
+import { 
+  electronConfirm,
+   getAnneeScolaire,
+   getEtablissement 
+} from "../../utils/index.js";
+
+import {
+  MatiereService,
+  EnseignerService
+} from "../../../services/";
+
 import {
   Card,
   CardContent,
@@ -15,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/Card.jsx";
+
 import {
   Table,
   TableBody,
@@ -24,8 +34,7 @@ import {
   TableRow,
 } from "../../components/CTable.jsx";
 
-import { classFields } from "../../utils/form-fields.js";
-import { getEtablissement } from "../../utils/index.js";
+
 
 const MatieresList = () => {
   const [Matieres, setMatieres] = useState([]);
@@ -55,12 +64,12 @@ const MatieresList = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDeletion = await window.electronAPI.confirm("Êtes-vous sûr de vouloir supprimer cette matiere ?");
+    const confirmDeletion = await electronConfirm("Êtes-vous sûr de vouloir supprimer cette matiere ?");
     if (confirmDeletion) {
       try {
         const result = await MatiereService.deleteMatiere(id);
 
-        const { Annee } = await window.electronAPI.store.get("anneeScolaireEncours");
+        const { Annee } = await getAnneeScolaire("anneeScolaireEncours");
   
         if (result.success) {
           //supprimer les cours concernant cette matiere
@@ -198,7 +207,7 @@ const MatieresList = () => {
       <Modal
         isOpen={openModal}
         onClose={handleModalClose}
-        title="Ajouter une matiere"
+        title={matiere.CodMat ? "Modifier la matiere":"Ajouter une matiere"}
       >
         <Form
           fields={classFields}
