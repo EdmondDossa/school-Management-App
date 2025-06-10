@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
@@ -6,16 +6,13 @@ import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import { BookOpen, Delete, Edit } from "lucide-react";
 import { classFields } from "../../utils/form-fields.js";
 
-import { 
+import {
   electronConfirm,
-   getAnneeScolaire,
-   getEtablissement 
+  getAnneeScolaire,
+  getEtablissement,
 } from "../../utils/index.js";
 
-import {
-  MatiereService,
-  EnseignerService
-} from "../../../services/";
+import { MatiereService, EnseignerService } from "../../../services/";
 
 import {
   Card,
@@ -34,8 +31,6 @@ import {
   TableRow,
 } from "../../components/CTable.jsx";
 
-
-
 const MatieresList = () => {
   const [Matieres, setMatieres] = useState([]);
   const [matiere, setMatiere] = useState({
@@ -45,7 +40,6 @@ const MatieresList = () => {
   });
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
-
 
   const fetchMatieres = async () => {
     try {
@@ -64,18 +58,18 @@ const MatieresList = () => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDeletion = await electronConfirm("Êtes-vous sûr de vouloir supprimer cette matiere ?");
+    const confirmDeletion = await electronConfirm(
+      "Êtes-vous sûr de vouloir supprimer cette matiere ?"
+    );
     if (confirmDeletion) {
       try {
         const result = await MatiereService.deleteMatiere(id);
 
         const { Annee } = await getAnneeScolaire("anneeScolaireEncours");
-  
+
         if (result.success) {
           //supprimer les cours concernant cette matiere
-          await EnseignerService.deleteEnseignementByMatiere(
-            id,Annee
-          );
+          await EnseignerService.deleteEnseignementByMatiere(id, Annee);
           toast.success("Matiere supprimé avec succès");
           await fetchMatieres();
         } else {
@@ -98,14 +92,14 @@ const MatieresList = () => {
     });
   };
 
-  const handleModalClose = ()=>{
+  const handleModalClose = () => {
     setOpenModal(false);
     setMatiere({
       ...matiere,
       CodMat: null,
       NomMat: "",
     });
-  }
+  };
 
   const handleSubmit = async (matiere) => {
     try {
@@ -129,7 +123,7 @@ const MatieresList = () => {
     } catch (error) {
       console.error(error);
       toast.error("Une erreur est survenue " + error);
-    }finally {
+    } finally {
       handleModalClose();
     }
   };
@@ -145,20 +139,20 @@ const MatieresList = () => {
   return (
     <>
       <div>
-        <main className="container mx-auto py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <BookOpen className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Gestion des Matieres</h1>
+        <main className='container mx-auto py-8'>
+          <div className='flex items-center justify-between mb-8'>
+            <div className='flex items-center gap-4'>
+              <BookOpen className='h-8 w-8 text-primary' />
+              <h1 className='text-3xl font-bold'>Gestion des Matieres</h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
               Ajouter une matière
             </Button>
           </div>
 
-          <div className="grid gap-6">
-            <Card className="m-auto min-w-[700px]">
+          <div className='grid gap-6'>
+            <Card className='m-auto min-w-[800px]'>
               <CardHeader>
                 <CardTitle>Liste des Matières</CardTitle>
                 <CardDescription>Gérez les matières</CardDescription>
@@ -167,38 +161,50 @@ const MatieresList = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-center">Nom de la Matière</TableHead>
+                      <TableHead className='text-center'>
+                        Nom de la Matière
+                      </TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {Matieres?.map((matiere) => (
-                      <TableRow key={matiere.CodMat}>
-                        <TableCell>{matiere.NomMat}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(matiere.CodMat)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Modifier
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDelete(matiere.CodMat)}
-                            >
-                              <Delete className="h-4 w-4 mr-2" />
-                              Supprimer
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                  {Matieres.length > 0 && (
+                    <TableBody>
+                      {Matieres.map((matiere) => (
+                        <TableRow key={matiere.CodMat}>
+                          <TableCell>{matiere.NomMat}</TableCell>
+                          <TableCell>
+                            <div className='flex gap-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => handleEdit(matiere.CodMat)}
+                              >
+                                <Edit className='h-4 w-4 mr-2' />
+                                Modifier
+                              </Button>
+                              <Button
+                                variant='destructive'
+                                size='sm'
+                                onClick={() => handleDelete(matiere.CodMat)}
+                              >
+                                <Delete className='h-4 w-4 mr-2' />
+                                Supprimer
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  )}
                 </Table>
+                {Matieres.length === 0 && (
+                  <div>
+                    <p className='text-gray-400 text-md text-center p-10'>
+                      {" "}
+                      Aucune matière enregistrée pour le moment{" "}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -207,7 +213,7 @@ const MatieresList = () => {
       <Modal
         isOpen={openModal}
         onClose={handleModalClose}
-        title={matiere.CodMat ? "Modifier la matiere":"Ajouter une matiere"}
+        title={matiere.CodMat ? "Modifier la matiere" : "Ajouter une matiere"}
       >
         <Form
           fields={classFields}

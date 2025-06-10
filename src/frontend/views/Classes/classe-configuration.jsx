@@ -83,8 +83,8 @@ const ClasseConfiguration = () => {
     setOpenModal(false);
     setProfesseurs([]);
     setCours(initialValues);
-    
-    if(cours.id){
+
+    if (cours.id) {
       await fetchMatieresNonAssignee();
     }
   }
@@ -142,7 +142,11 @@ const ClasseConfiguration = () => {
         toast.success("Le cours a bien été ajoutee");
       } else {
         await EnseignerService.updateEnseignement(enseignement);
-        await CoefficientService.deleteCoefficient(cours.CodMat,InfoScolaire.Annee,NumClass);
+        await CoefficientService.deleteCoefficient(
+          cours.CodMat,
+          InfoScolaire.Annee,
+          NumClass
+        );
         await CoefficientService.createCoefficient(coefficient);
         toast.success("Cours modifiee avec success");
       }
@@ -186,18 +190,20 @@ const ClasseConfiguration = () => {
     const cours = enseignements.find((enseignement) => enseignement.id === id);
     cours.id = id;
     setCours(cours);
-    //by default the list of matieres do not include the matiere to edit 
+    //by default the list of matieres do not include the matiere to edit
     //so we add it to the list of matieres to simulate the default behaviour
-    setMatieres([...matieres, {
-      CodMat:cours.CodMat,
-      NomMat:cours.NomMat
-    } ]);
-
+    setMatieres([
+      ...matieres,
+      {
+        CodMat: cours.CodMat,
+        NomMat: cours.NomMat,
+      },
+    ]);
   }
 
-  async function handleCoefficientUpdate(CodMat,oldCoef) {
-    if(!coefToUpdate) return;
-    if(oldCoef === coefToUpdate) return;
+  async function handleCoefficientUpdate(CodMat, oldCoef) {
+    if (!coefToUpdate) return;
+    if (oldCoef === coefToUpdate) return;
     if (coefToUpdate && coefToUpdate >= 1) {
       await CoefficientService.update(
         CodMat,
@@ -236,9 +242,9 @@ const ClasseConfiguration = () => {
   return (
     <>
       <div>
-      <div>
-        <ButtonBack />
-      </div>
+        <div>
+          <ButtonBack />
+        </div>
         <main className='container mx-auto py-8'>
           <div className='flex items-center justify-between mb-8'>
             <div className='flex items-center gap-4'>
@@ -269,66 +275,79 @@ const ClasseConfiguration = () => {
                       ))}
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {enseignements.map((enseignement, index) => (
-                      <TableRow key={index}>
-                        <TableCell> {enseignement.NomMat} </TableCell>
-                        <TableCell>
-                          {" "}
-                          {`${enseignement.NomProf} ${enseignement.PrenomsProf}`}{" "}
-                        </TableCell>
+                  {enseignements.length > 0 && (
+                    <TableBody>
+                      {enseignements.map((enseignement, index) => (
+                        <TableRow key={index}>
+                          <TableCell> {enseignement.NomMat} </TableCell>
+                          <TableCell>
+                            {" "}
+                            {`${enseignement.NomProf} ${enseignement.PrenomsProf}`}{" "}
+                          </TableCell>
 
-                        <TableCell
-                          id='coefficient'
-                          spellCheck={false}
-                          className="cursor-pointer"
-                          onClick={() => setIsUpdatingCoef(true)}
-                          contentEditable={isUpdatingCoef}
-                          onInput={(e) => setCoefToUpdate(parseInt(e.target.innerText))}
-                          onBlur={() =>
-                            handleCoefficientUpdate(enseignement.CodMat,enseignement.Coef)
-                          }
-                        >
-
-                          <span
-                            ref={ref}
+                          <TableCell
+                            id='coefficient'
                             spellCheck={false}
+                            className='cursor-pointer'
+                            onClick={() => setIsUpdatingCoef(true)}
+                            contentEditable={isUpdatingCoef}
+                            onInput={(e) =>
+                              setCoefToUpdate(parseInt(e.target.innerText))
+                            }
+                            onBlur={() =>
+                              handleCoefficientUpdate(
+                                enseignement.CodMat,
+                                enseignement.Coef
+                              )
+                            }
                           >
-                            {enseignement.Coef}
-                          </span>
-                          <span contentEditable={false}>
-                            <Tooltip anchorSelect='#coefficient'>
-                                { !isUpdatingCoef ? "Double cliquer pour modifier": "Saisir la nouvelle valeur" }
-                            </Tooltip>
-                          </span>
-                        </TableCell>
+                            <span ref={ref} spellCheck={false}>
+                              {enseignement.Coef}
+                            </span>
+                            <span contentEditable={false}>
+                              <Tooltip anchorSelect='#coefficient'>
+                                {!isUpdatingCoef
+                                  ? "Double cliquer pour modifier"
+                                  : "Saisir la nouvelle valeur"}
+                              </Tooltip>
+                            </span>
+                          </TableCell>
 
-                        <TableCell className=''>
-                          <div className='flex gap-2'>
-                            <Button
-                              variant='destructive'
-                              size='sm'
-                              title='Supprimer le cours'
-                              className='cursor-pointer'
-                              onClick={() => handleDelete(enseignement)}
-                            >
-                              <Delete className='h-2 w-4 mr-1' />
-                            </Button>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='px-3'
-                              title='Modifier les informations'
-                              onClick={() => handleEdit(enseignement.id)}
-                            >
-                              <Edit className='h-4 w-4' />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                          <TableCell className=''>
+                            <div className='flex gap-2'>
+                              <Button
+                                variant='destructive'
+                                size='sm'
+                                title='Supprimer le cours'
+                                className='cursor-pointer'
+                                onClick={() => handleDelete(enseignement)}
+                              >
+                                <Delete className='h-2 w-4 mr-1' />
+                              </Button>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='px-3'
+                                title='Modifier les informations'
+                                onClick={() => handleEdit(enseignement.id)}
+                              >
+                                <Edit className='h-4 w-4' />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  )}
                 </Table>
+                {enseignements.length === 0 && (
+                  <div>
+                    <p className='text-gray-400 text-md text-center p-10'>
+                      {" "}
+                      Aucun cours enregistre pour le moment{" "}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -352,11 +371,11 @@ const ClasseConfiguration = () => {
               required
             >
               <option value=''>Choisir la matiere</option>
-                {matieres.map((matiere) => (
-                  <option key={matiere.CodMat} value={matiere.CodMat}>
-                    {matiere.NomMat}
-                  </option>
-                ))}
+              {matieres.map((matiere) => (
+                <option key={matiere.CodMat} value={matiere.CodMat}>
+                  {matiere.NomMat}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -375,7 +394,7 @@ const ClasseConfiguration = () => {
             <select
               name='NumProf'
               id='Professeur'
-              value={ cours.NumProf }
+              value={cours.NumProf}
               onChange={handleChange}
               className='h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500'
               required

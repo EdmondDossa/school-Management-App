@@ -10,8 +10,8 @@ import {
   ProfesseurService,
   MatiereService,
   profMatieresService,
-  EnseignerService
-} from "../../../services/"
+  EnseignerService,
+} from "../../../services/";
 
 import {
   Card,
@@ -37,7 +37,6 @@ import {
   getEtablissement,
 } from "../../utils/";
 
-
 const Professeur = () => {
   const [Professeurs, setProfesseurs] = useState([]);
 
@@ -55,7 +54,7 @@ const Professeur = () => {
     DateNaissance: "",
     LieuNaissance: "",
     Nationalite: "",
-    matieres: []
+    matieres: [],
   };
 
   const [professeur, setProfesseur] = useState(initialValues);
@@ -94,14 +93,14 @@ const Professeur = () => {
   };
 
   const handleSubmit = async (professeur) => {
-      //formater le nom et le prenom definitivement
-      professeur.NomProf = professeur.NomProf.toUpperCase();
-      professeur.PrenomsProf = capitalize(professeur.PrenomsProf);
+    //formater le nom et le prenom definitivement
+    professeur.NomProf = professeur.NomProf.toUpperCase();
+    professeur.PrenomsProf = capitalize(professeur.PrenomsProf);
     try {
       let result;
       if (!professeur.NumProf) {
-          //creation du professeur
-          if(!professeur.NumEtabli){
+        //creation du professeur
+        if (!professeur.NumEtabli) {
           const { NumEtabli } = await getEtablissement();
           professeur.NumEtabli = NumEtabli;
         }
@@ -112,12 +111,12 @@ const Professeur = () => {
 
       if (result.success) {
         //associer les matieres aux professeurs
-        if(!professeur.NumProf){
+        if (!professeur.NumProf) {
           await profMatieresService.defineMatieresForProf(
             result.data.lastID,
             professeur.matieres ?? []
           );
-        }else{
+        } else {
           await profMatieresService.defineMatieresForProf(
             professeur.NumProf,
             professeur.matieres ?? []
@@ -149,14 +148,14 @@ const Professeur = () => {
         const result = await ProfesseurService.deleteProfesseur(id);
         //supprimer le cours enseigner par ce professeur
         const { Annee } = await getAnneeScolaire();
-        
+
         if (result.success) {
           //supprimer les matieres associes à ce professeur
           await profMatieresService.deleteRecordByProf(id);
           toast.success("Professeur supprimé avec succès");
           await fetchProfesseurs();
           //supprimer les cours correspondants
-          await EnseignerService.deleteEnseignementByProfesseur(id,Annee);
+          await EnseignerService.deleteEnseignementByProfesseur(id, Annee);
         } else {
           toast.error("Erreur lors de la suppression");
         }
@@ -198,7 +197,6 @@ const Professeur = () => {
     updateProfesseurFields();
   }, [matieres]);
 
-
   if (loading) {
     return <div>Chargement...</div>;
   }
@@ -233,56 +231,66 @@ const Professeur = () => {
                       ))}
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {Professeurs?.map((professeur) => (
-                      <TableRow key={professeur.NumProf}>
-                        <TableCell>
-                          {" "}
-                          {`${professeur.NomProf} ${professeur.PrenomsProf} `}{" "}
-                        </TableCell>
-                        <TableCell> {professeur.Sexe} </TableCell>
-                        <TableCell>
-                          {professeur.matieres.length === 0
-                            ? "---"
-                            : professeur.matieres
-                                .map((matiere) => matiere.NomMat)
-                                .join(",")}
-                        </TableCell>
-                        <TableCell>
-                          <div className='flex gap-2'>
-                            <Button
-                              className='px-3'
-                              size='sm'
-                              variant='outline'
-                              onClick={() => displayProf(professeur)}
-                              title="Voir plus d'informations"
-                            >
-                              <Eye className='h-4 w-4' />
-                            </Button>
-                            <Button
-                              variant='outline'
-                              size='sm'
-                              className='px-3'
-                              title='Modifier les informations'
-                              onClick={() => handleEdit(professeur.NumProf)}
-                            >
-                              <Edit className='h-4 w-4' />
-                            </Button>
-                            <Button
-                              variant='destructive'
-                              size='sm'
-                              className='ps-3 pe-4'
-                              title='Supprimer'
-                              onClick={() => handleDelete(professeur.NumProf)}
-                            >
-                              <Delete className='h-4 w-4' />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                  {Professeurs.length > 0 && (
+                    <TableBody>
+                      {Professeurs?.map((professeur) => (
+                        <TableRow key={professeur.NumProf}>
+                          <TableCell>
+                            {" "}
+                            {`${professeur.NomProf} ${professeur.PrenomsProf} `}{" "}
+                          </TableCell>
+                          <TableCell> {professeur.Sexe} </TableCell>
+                          <TableCell>
+                            {professeur.matieres.length === 0
+                              ? "---"
+                              : professeur.matieres
+                                  .map((matiere) => matiere.NomMat)
+                                  .join(",")}
+                          </TableCell>
+                          <TableCell>
+                            <div className='flex gap-2'>
+                              <Button
+                                className='px-3'
+                                size='sm'
+                                variant='outline'
+                                onClick={() => displayProf(professeur)}
+                                title="Voir plus d'informations"
+                              >
+                                <Eye className='h-4 w-4' />
+                              </Button>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                className='px-3'
+                                title='Modifier les informations'
+                                onClick={() => handleEdit(professeur.NumProf)}
+                              >
+                                <Edit className='h-4 w-4' />
+                              </Button>
+                              <Button
+                                variant='destructive'
+                                size='sm'
+                                className='ps-3 pe-4'
+                                title='Supprimer'
+                                onClick={() => handleDelete(professeur.NumProf)}
+                              >
+                                <Delete className='h-4 w-4' />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  )}
                 </Table>
+                {Professeurs.length === 0 && (
+                  <div>
+                    <p className='text-gray-400 text-md text-center p-10'>
+                      {" "}
+                      Aucun professeur enregistré pour le moment{" "}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
