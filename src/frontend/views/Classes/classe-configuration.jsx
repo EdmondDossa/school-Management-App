@@ -209,8 +209,6 @@ const ClasseConfiguration = () => {
       await fetchEnseignements();
       toast.success("Coefficient modifié!");
     } else {
-      console.log(coefToUpdate);
-      
       toast.error("Coefficient invalide");
     }
     setIsUpdatingCoef(false);
@@ -238,6 +236,9 @@ const ClasseConfiguration = () => {
   return (
     <>
       <div>
+      <div>
+        <ButtonBack />
+      </div>
         <main className='container mx-auto py-8'>
           <div className='flex items-center justify-between mb-8'>
             <div className='flex items-center gap-4'>
@@ -252,9 +253,6 @@ const ClasseConfiguration = () => {
             </Button>
           </div>
           <div className='grid gap-6'>
-            <div>
-              <ButtonBack />
-            </div>
             <Card className='m-auto min-w-[800px]'>
               <CardHeader>
                 <CardTitle>Liste des cours</CardTitle>
