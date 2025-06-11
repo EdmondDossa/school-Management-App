@@ -71,6 +71,19 @@ class AnneeScolaireService {
     const result = await window.electronAPI.db.query(sql, [anneeScolaire.id]);
     return result;
   }
+
+  static async  getLastAnneeScolaire(){
+    const sql = "SELECT * FROM annees_scolaires ORDER BY id DESC LIMIT 1";
+    const result = await window.electronAPI.db.query(sql);
+    return result.data;
+  }
+  
+  static async setAnneeScolaireAsTerminee(id){
+    const sql = "UPDATE annees_scolaires SET Statut = 'Termine' WHERE id = ?";
+    const result = await window.electronAPI.db.query(sql,[id]);
+    return result;
+  }
+
 }
 
 export default AnneeScolaireService;
