@@ -30,20 +30,21 @@ class Database {
   static async initTables() {
     return new Promise((resolve, reject) => {
       const createTableQueries = [
-      `CREATE TABLE IF NOT EXISTS etablissements (
-                    NumEtabli INTEGER PRIMARY KEY AUTOINCREMENT,
-                    NomEtabli TEXT NOT NULL,
-                    Adresse TEXT,
-                    Telephone TEXT,
-                    Logo TEXT,
-                    Email TEXT
-    );`,
+        `CREATE TABLE IF NOT EXISTS etablissements (
+                      NumEtabli INTEGER PRIMARY KEY AUTOINCREMENT,
+                      NomEtabli TEXT NOT NULL,
+                      Adresse TEXT,
+                      Telephone TEXT,
+                      Logo TEXT,
+                      Email TEXT
+      );`,
 
         `CREATE TABLE IF NOT EXISTS annees_scolaires (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     Annee TEXT NOT NULL,
                     DateDebut TEXT NOT NULL,
                     DateFin TEXT NOT NULL,
+                    Statut TEXT CHECK(Statut IN ('EnCours', 'Termine')) DEFAULT 'EnCours',
                     Periodicite TEXT NOT NULL CHECK(Periodicite IN ('Semestre', 'Trimestre')),
                     NumEtabli INTEGER,
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)

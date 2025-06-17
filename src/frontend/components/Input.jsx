@@ -7,8 +7,10 @@ const Input = ({
   value,
   onChange,
   className,
+  readOnly = false,
   previewFile = null,
-  required = false
+  required = false,
+  autofocus = false,
 }) => {
   const [preview, setPreview] = useState(null);
 
@@ -84,7 +86,9 @@ const Input = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
+      readOnly={readOnly}
       required={required}
+      autoFocus={autofocus}
       className={`w-full p-3 rounded-md bg-[#2871FA1A] text-[#00000099] placeholder-[#00000099] h-[50px] border-[2px] border-gray-500 focus:outline-none focus:ring-0 ${className}`}
     />
   );

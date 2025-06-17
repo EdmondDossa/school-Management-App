@@ -22,6 +22,12 @@ class AnneeScolaireService {
     }
     return [];
   }
+   
+  static async getAllOldAnneeScolaire(){
+    const sql = "SELECT * FROM annees_scolaires WHERE Statut = 'Termine' ORDER BY id DESC";
+    const result = await window.electronAPI.db.query(sql);
+    return result.data;
+  }
 
   static async getAnneeScolaireById(id) {
     const sql = "SELECT * FROM annees_scolaires WHERE id = ?";
@@ -71,6 +77,19 @@ class AnneeScolaireService {
     const result = await window.electronAPI.db.query(sql, [anneeScolaire.id]);
     return result;
   }
+
+  static async  getLastAnneeScolaire(){
+    const sql = "SELECT * FROM annees_scolaires ORDER BY id DESC LIMIT 1";
+    const result = await window.electronAPI.db.query(sql);
+    return result.data[0] ?? {};
+  }
+  
+  static async setAnneeScolaireAsTerminee(id){
+    const sql = "UPDATE annees_scolaires SET Statut = 'Termine' WHERE id = ?";
+    const result = await window.electronAPI.db.query(sql,[id]);
+    return result;
+  }
+
 }
 
 export default AnneeScolaireService;
