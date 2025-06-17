@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import DashboardCard from "../../components/DashboardCard";
 import {
   AnneeScolaireService,
   ClasseService,
   EtablissementService,
   PeriodeService,
+  InscriptionService,
+  EnseignerService,
+  ProfesseurService
 } from "../../../services";
 import {
   Card,
@@ -20,29 +22,38 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { detectPeriodeActuelle } from "../../../utils";
+
 
 const Dashboard = () => {
   const [etablissement, setEtablissement] = useState(null);
   const [nombreEleves, setNombreEleves] = useState(0);
   const [nombreClasses, setNombreClasses] = useState(0);
+  const [nombreProfesseurs,setNombreProfesseurs] = useState(0);
 
   const loadDefaultAppData = async () => {
     const etablissements = await EtablissementService.getAllEtablissements();
-    const anneeScolaires = await AnneeScolaireService.getAllAnneesScolaires();
     const periodes = await PeriodeService.getAllPeriodes();
     await window.electronAPI.store.set("etablissements", etablissements);
-    await window.electronAPI.store.set("anneeScolaires", anneeScolaires);
     await window.electronAPI.store.set("periodes", periodes);
+    let anneeScolaires = [];
 
     if (etablissements.length > 0) {
       const etablissement = etablissements[0];
       setEtablissement(etablissement);
+      await window.electronAPI.store.set("etablissement", { ...etablissement });
+      
+      const res = await AnneeScolaireService.getAllAnneesScolaires(etablissement.NumEtabli);
+      anneeScolaires = res.data;
       const classes = await ClasseService.getAllClasses(
         etablissement.NumEtabli
       );
-
+      
       setNombreClasses(classes.length);
-      await window.electronAPI.store.set("etablissement", { ...etablissement });
+      
+      const professeurs = await ProfesseurService.getAllProfesseurs(etablissement.NumEtabli);
+      setNombreProfesseurs(professeurs.length);
+
     } else {
       await window.electronAPI.store.set("etablissement", {
         NumEtabli: null,
@@ -55,12 +66,16 @@ const Dashboard = () => {
     }
 
     if (anneeScolaires.length > 0) {
-      const anneeScolaire = anneeScolaires[anneeScolaires.length - 1];
+      const anneeScolaire = anneeScolaires.at(-1);
       await window.electronAPI.store.set("anneeScolaireEncours", {
         ...anneeScolaire,
       });
+
+      const nombreInscriptionsEnCours = await InscriptionService.getInscriptionByAnneeScolaire(anneeScolaire.id);
+      if(nombreInscriptionsEnCours?.length > 0) setNombreEleves(nombreInscriptionsEnCours.length);
+
       await window.electronAPI.store.set("anneeScolaires", anneeScolaires);
-      const periode = await detectPeriodeActuelle(anneeScolaire);
+      const periode = await detectPeriodeActuelle();
       await window.electronAPI.store.set("periodeEncours", periode);
     } else {
       await window.electronAPI.store.set("anneeScolaireEncours", {
@@ -83,6 +98,7 @@ const Dashboard = () => {
   useEffect(() => {
     loadDefaultAppData();
   }, []);
+  
   return (
     <main className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8">Tableau de bord</h1>
@@ -113,7 +129,7 @@ const Dashboard = () => {
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold"> {nombreEleves}</div>
           </CardContent>
         </Card>
 
@@ -132,7 +148,7 @@ const Dashboard = () => {
             <Speech className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{nombreProfesseurs}</div>
           </CardContent>
         </Card>
       </div>

@@ -34,8 +34,8 @@ class InscriptionService {
     }
 
     static async getInscriptionByAnneeScolaire(anneeScolaire) {
-        const sql = "SELECT * FROM inscriptions WHERE Annee_Scolaire = ?";
-        const rows = await window.electronAPI.db.query(sql, [anneeScolaire]);
+        const sql = "SELECT * FROM inscriptions WHERE AnneeScolaire = ?";
+        const { data:rows } = await window.electronAPI.db.query(sql, [anneeScolaire]);
         return rows.map(row => new Inscription(row.Num_Ins, row.Date_Ins, row.Statut, row.Matricule, row.Num_Etabli, row.Num_Class, row.Annee_Scolaire));
     }
 
@@ -58,4 +58,4 @@ class InscriptionService {
     }
 }
 
-export default Inscription
+export default InscriptionService;

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { Table, Input, Modal, Form } from "../../components/index";
-import { Button } from "../../components/Bouton.jsx";
+import { Table, Input, Modal, Form } from "../../components/";
+import { Button } from "../../components/Bouton";
 import EleveService from "../../../services/EleveService";
 import { DuplicateIcon, ExportCSVIcon, SearchIcon } from "../../assets/icons";
 import Pagination from "../../components/Pagination";
+import { v4 as uniqid } from "uuid";
+import { useSearchParams } from "react-router-dom";
+import useDebounce from "../../hooks/use-debounce";
+import Eleve from "../../../models/Eleve";
 
 const eleveFields = [
   { name: "Nom", label: "Nom", type: "text" },
@@ -40,21 +43,33 @@ const ElevesList = () => {
   const [eleves, setEleves] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(5);
-  const [searchEleve, setSearchEleve] = useState("");
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
   const [eleve, setEleve] = useState({
     Matricule: "",
     Nom: "",
     Prenoms: "",
-    Sexe: "",
+    Sexe: "M",//default value if this field do not change
     DateNaissance: "",
     LieuNaissance: "",
     Nationalite: "",
     ContactParent: "",
     NumEtabli: "",
   });
-  const [classes, setClasses] = useState([]);
+
+  //searchParams hook is useful to substract query params in the search bar
+  const [searchParams,setSearchParams] = useSearchParams();
+  const matriculeToEdit = searchParams.get("id");
+
+  //to handle students research in the search box
+  const [searchEleve,setSearchEleve] = useState("");
+  const optimizedSearchEleve = useDebounce(searchEleve,500);
+
+  const setupEdit = async (matricule)=>{
+    const result = await EleveService.getEleveByMatricule(matricule);
+    setEleve({ ...result });
+    setOpenModal(true);
+  }
 
   const fetchEleves = async () => {
     setLoading(true);
@@ -63,16 +78,13 @@ const ElevesList = () => {
     setLoading(false);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (matricule) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet eleve ?")) {
       try {
-        const result = await window.electronAPI.dbQuery(
-          "DELETE FROM eleves WHERE id = ?",
-          [id]
-        );
+        const result = await EleveService.deleteEleve(matricule);
         if (result.success) {
           toast.success("Étudiant supprimé avec succès");
-          fetchEleves();
+          await fetchEleves();
         } else {
           toast.error("Erreur lors de la suppression");
         }
@@ -82,35 +94,61 @@ const ElevesList = () => {
     }
   };
 
-  const handleSearchEleve = (e) => {
-    const { name, value } = e.target;
-    setSearchEleve(value);
-  };
+  const handleSearchBoxChange = (e) => setSearchEleve(e.target.value);
 
+  const closeModal = () =>{
+    setOpenModal(false);
+    setSearchParams({});
+  }
+  
   const handleSubmit = async (formData) => {
-    try {
-      let result;
-      if (formData.Matricule !== "") {
-        result = await EleveService.createEleve(formData);
-      } else {
-        result = await EleveService.updateEleve(formData);
-      }
+        try {
+          let result;
+          if (formData.Matricule === "") {
+            result = await EleveService.createEleve({...formData,Matricule: uniqid().slice(0,23)});
+          } else {
+            result = await EleveService.updateEleve(formData);
+            setSearchParams({});//remove the id query value from the search bar
+          }
 
-      if (result.success) {
-        toast.success(
-          id ? "Étudiant modifié avec succès" : "Étudiant ajouté avec succès"
-        );
-        await fetchEleves();
-      } else {
-        toast.error("Une erreur est survenue");
-      }
-    } catch (error) {
-      toast.error("Une erreur est survenue");
-    }
+          if (result.success) {
+            toast.success(
+              eleve.Matricule ? "Étudiant modifié avec succès" : "Étudiant ajouté avec succès"
+            );
+            await fetchEleves();
+            closeModal();
+          } else {
+            toast.error("Une erreur est survenue");
+          }
+        } catch (error) {
+          toast.error("Une erreur est survenue");
+        }
   };
+
+  const setCurrentEtablissement = async  () => {
+    const etablissement = await window.electronAPI.store.get("etablissement");
+    setEleve({...eleve, NumEtabli:etablissement.NumEtabli })
+  };
+
+  const fetchEleveForSearch = async  () => {
+    const result = await EleveService.searchEleve(optimizedSearchEleve);
+    if(result.success) setEleves(result.data);
+    else toast.error("Une erreur est survenue pendant la recherche")
+  };
+
+  useEffect(()=>{
+    if(matriculeToEdit) setupEdit(matriculeToEdit)
+  },[matriculeToEdit]);
+
   useEffect(() => {
-    fetchEleves();
+    setCurrentEtablissement();
   }, []);
+
+  useEffect(()=>{
+    if(optimizedSearchEleve) fetchEleveForSearch(optimizedSearchEleve);
+    else fetchEleves();
+  },[optimizedSearchEleve]);
+
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -125,7 +163,7 @@ const ElevesList = () => {
               type="search"
               value={searchEleve}
               placeholder="Rechercher un eleve..."
-              onChange={handleSearchEleve}
+              onChange={handleSearchBoxChange}
             />
             <Button className="bg-[#2871FA1A]">
               <img src={SearchIcon} className="h-6 w-6" />
@@ -154,7 +192,7 @@ const ElevesList = () => {
           data={eleves}
           elementKey="Matricule"
           onDelete={handleDelete}
-          editRoute="/eleves/edit"
+          editRoute="/eleves"
         />
         {totalPages > 1 && (
           <div className="flex w-full justify-end items-center">
@@ -168,8 +206,8 @@ const ElevesList = () => {
       </div>
       <Modal
         isOpen={openModal}
-        onClose={() => setOpenModal(false)}
-        title="Ajouter un élève"
+        onClose={closeModal}
+        title={eleve.Matricule ? "Modifier les informations de l'élève": "Ajouter un élève"}
       >
         <Form
           fields={eleveFields}

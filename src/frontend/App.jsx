@@ -6,7 +6,6 @@ import {
   EtablissementService,
   PeriodeService,
 } from "../services";
-import { detectPeriodeActuelle } from "../utils";
 
 const App = () => {
   useEffect(() => {}, []);

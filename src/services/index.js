@@ -11,6 +11,7 @@ import InscriptionService from './InscriptionService';
 import MatiereService from './MatiereService';
 import PeriodeService from './PeriodeService';
 import ProfesseurService from './ProfesseurService';
+import profMatieresService from './profMatieresService';
 
 export {
     AnneeScolaireService,
@@ -25,5 +26,6 @@ export {
     InscriptionService,
     MatiereService,
     PeriodeService,
-    ProfesseurService
+    ProfesseurService,
+    profMatieresService
 };

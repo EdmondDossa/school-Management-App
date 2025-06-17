@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import ClasseService from "../../../services/ClasseService.js";
 import { Modal, Form } from "../../components";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import AnneeScolaireService from "../../../services/AnneeScolaireService.js";
-import { BookOpen, Edit, Plus, Users } from "lucide-react";
+import { BookOpen, Edit, Users, Delete } from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
+import { useNavigate } from "react-router-dom";
+
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/Card.jsx";
+
 import {
   Table,
   TableBody,
@@ -22,12 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
-const columns = [
-  { key: "NomClass", label: "Nom de classe" },
-  { key: "Promotion", label: "Promotions" },
-  { key: "capacity", label: "Nombre D'étudiant" },
-  { key: "teacherId", label: "Prof Principal" },
-];
 
 const classFields = [
   { name: "NomClass", label: "Nom de la Classe", type: "text" },
@@ -48,6 +44,8 @@ const classFields = [
 ];
 
 const ClassesList = () => {
+  const navigate = useNavigate();
+
   const [classes, setClasses] = useState([]);
   const [classe, setClasse] = useState({
     NumClass: null,
@@ -55,20 +53,14 @@ const ClassesList = () => {
     Promotion: "6",
     NumEtabli: null,
   });
-  const [selectedAnneeScolaire, setSelectedAnneeScolaire] = useState();
 
   const [anneesScolaires, setAnneesScolaires] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentEtablissement, setCurrentEtablissement] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(5);
-  const [searchEleve, setSearchEleve] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
   const fetchClasses = async () => {
     try {
       const etablissement = await window.electronAPI.store.get("etablissement");
-      setCurrentEtablissement(etablissement);
       setClasse({ ...classe, NumEtabli: etablissement.NumEtabli });
       const result = await ClasseService.getAllClasses(etablissement.NumEtabli);
       setClasses(result);
@@ -86,9 +78,12 @@ const ClassesList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette classe ?")) {
+    const confirmDeletion = await window.electronAPI.confirm(
+      "Êtes-vous sûr de vouloir supprimer cette classe ?"
+    );
+    if (confirmDeletion) {
       try {
-        const result = ClasseService.deleteClasse(id);
+        const result = await ClasseService.deleteClasse(id);
         if (result.success) {
           toast.success("Classe supprimé avec succès");
           await fetchClasses();
@@ -112,10 +107,14 @@ const ClassesList = () => {
     });
   };
 
+  const handleModalClose = () => {
+    setOpenModal(false);
+    setClasse({ ...classe, NomClass: "", NumClass: "" });
+  };
   const handleSubmit = async (formData) => {
     try {
       let result;
-      if (formData.NumClass == null) {
+      if (!formData.NumClass) {
         result = await ClasseService.createClasse(formData);
       } else {
         result = await ClasseService.updateClasse(formData);
@@ -127,7 +126,7 @@ const ClassesList = () => {
             ? "Classe modifiée avec succès"
             : "Classe ajoutée avec succès"
         );
-        setOpenModal(false);
+        handleModalClose();
         await fetchClasses();
       } else {
         toast.error("Une erreur est survenue");
@@ -150,20 +149,20 @@ const ClassesList = () => {
   return (
     <>
       <div>
-        <main className="container mx-auto py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <Users className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Gestion des Classes</h1>
+        <main className='container mx-auto py-8'>
+          <div className='flex items-center justify-between mb-8'>
+            <div className='flex items-center gap-4'>
+              <Users className='h-8 w-8 text-primary' />
+              <h1 className='text-3xl font-bold'>Gestion des Classes</h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
               Ajouter une classe
             </Button>
           </div>
 
-          <div className="grid gap-6">
-            <Card>
+          <div className='grid gap-6'>
+            <Card className='m-auto min-w-[800px]'>
               <CardHeader>
                 <CardTitle>Liste des Classes</CardTitle>
                 <CardDescription>
@@ -180,41 +179,67 @@ const ClassesList = () => {
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {classes.map((classe) => (
-                      <TableRow key={classe.NumClass}>
-                        <TableCell>{classe.NomClass}</TableCell>
-                        <TableCell>{classe.Promotion}</TableCell>
-                        <TableCell>0</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <BookOpen className="h-4 w-4 mr-2" />
-                              Matières
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(classe.NumClass)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Modifier
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                  {classes.length > 0 && (
+                    <TableBody>
+                      {classes.map((classe) => (
+                        <TableRow key={classe.NumClass}>
+                          <TableCell>{classe.NomClass}</TableCell>
+                          <TableCell>{classe.Promotion}</TableCell>
+                          <TableCell>0</TableCell>
+                          <TableCell>
+                            <div className='flex gap-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() =>
+                                  navigate(
+                                    `/classes/config-class/${classe.NumClass}`
+                                  )
+                                }
+                              >
+                                <BookOpen className='h-4 w-4 mr-2' />
+                                Matières
+                              </Button>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => handleEdit(classe.NumClass)}
+                              >
+                                <Edit className='h-4 w-4 mr-2' />
+                                Modifier
+                              </Button>
+                              <Button
+                                variant='destructive'
+                                size='sm'
+                                onClick={() => handleDelete(classe.NumClass)}
+                              >
+                                <Delete className='h-4 w-4 mr-2' />
+                                Supprimer
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  )}
                 </Table>
               </CardContent>
+              {classes.length === 0 && (
+                <div>
+                  <p className='text-gray-400 text-md text-center p-10'>
+                    {" "}
+                    Aucune classe enregistrée pour le moment{" "}
+                  </p>
+                </div>
+              )}
             </Card>
           </div>
         </main>
       </div>
       <Modal
         isOpen={openModal}
-        onClose={() => setOpenModal(false)}
-        title="Ajouter une classe"
+        onClose={handleModalClose}
+        title='Ajouter une classe'
       >
         <Form
           fields={classFields}

@@ -1,53 +1,81 @@
-import Enseigner from '../models/Enseigner.js';
 
 class EnseignerService {
-    static async getAllEnseignements() {
-        const sql = "SELECT * FROM enseigner";
-        const rows = await window.electronAPI.db.query(sql);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
+    static async getMatieresNonEncoreAssigneeAClasse(Annee,NumClass) {
+        //on recupere les matieres disponibles
+        const sql = `
+            SELECT CodMat,NomMat FROM matieres WHERE 
+            CodMat NOT IN (SELECT CodMat FROM enseigner WHERE Annee = ? AND NumClass = ?)
+        `;
+        const { data:matieresNonAssignees } = await window.electronAPI.db.query(sql,[Annee,NumClass]);
+        return matieresNonAssignees;
     }
 
-    static async getEnseignementByProfesseur(numProf) {
-        const sql = "SELECT * FROM enseigner WHERE Num_Prof = ?";
-        const rows = await window.electronAPI.db.query(sql, [numProf]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
+    static async getEnseignementByProfesseur(NumProf,Annee){
+        const sql=`
+              SELECT p.NumProf,p.NomProf,p.PrenomsProf,c.NomClass,e.NumClass
+              FROM enseigner e 
+              JOIN professeurs p ON p.NumProf = e.NumProf
+              JOIN classes c ON c.NumClass = e.NumClass WHERE p.NumProf = ? AND e.Annee = ? 
+        `;
+        const result = await window.electronAPI.db.query(sql,[NumProf,Annee]);
+        return result;
     }
 
-    static async getEnseignementByMatiere(codMat) {
-        const sql = "SELECT * FROM enseigner WHERE Cod_Mat = ?";
-        const rows = await window.electronAPI.db.query(sql, [codMat]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
 
-    static async getEnseignementByClasse(numClass) {
-        const sql = "SELECT * FROM enseigner WHERE Num_Class = ?";
-        const rows = await window.electronAPI.db.query(sql, [numClass]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
-
-    static async getEnseignementByEtablissement(numEtabli) {
-        const sql = "SELECT * FROM enseigner WHERE Num_Etabli = ?";
-        const rows = await window.electronAPI.db.query(sql, [numEtabli]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
-    }
-
-    static async getEnseignementByAnnee(annee) {
+    static async getEnseignementByAnnee(annee){
         const sql = "SELECT * FROM enseigner WHERE Annee = ?";
-        const rows = await window.electronAPI.db.query(sql, [annee]);
-        return rows.map(row => new Enseigner(row.Num_Prof, row.Cod_Mat, row.Num_Class, row.Num_Etabli, row.Annee));
+        const { data:rows } = await window.electronAPI.db.query(sql,[annee]);
+        return rows;
+    }
+
+    static async getEnseignements(Annee,NumClass) {
+        //on recupere pour l'annee scolaire en cours et pour une classe en question
+        //la liste des matieres et  des  professeurs qui font deja cours dans la salle
+        //en ajoutant les coefficients correspondants
+        const sql = `
+                SELECT p.NumProf,p.NomProf,p.PrenomsProf,e.CodMat,m.NomMat,c.Coef,e.id
+                FROM professeurs p 
+                JOIN enseigner e ON e.NumProf = p.NumProf
+                JOIN matieres m ON m.CodMat = e.CodMat
+                JOIN coefficientsMatieres c ON e.CodMat = c.CodMat
+                WHERE c.Annee = ? AND c.NumClass = ? AND e.Annee = ? AND e.NumClass = ?
+        `;
+        const { data:rows } = await window.electronAPI.db.query(sql,[Annee,NumClass,Annee,NumClass]);
+        return rows;
     }
 
     static async createEnseignement(enseignement) {
-        const sql = "INSERT INTO enseigner (Num_Prof, Cod_Mat, Num_Class, Num_Etabli, Annee) VALUES (?, ?, ?, ?, ?)";
-        const result = await window.electronAPI.db.query(sql, [enseignement.numProf, enseignement.codMat, enseignement.numClass, enseignement.numEtabli, enseignement.annee]);
+        const sql = "INSERT INTO enseigner (NumProf, NumClass, CodMat, NumEtabli, Annee) VALUES (?, ?, ?, ?, ?)";
+        const result = await window.electronAPI.db.query(sql, [enseignement.NumProf,enseignement.NumClass, enseignement.CodMat ,enseignement.NumEtabli, enseignement.Annee]);
         return result;
     }
 
-    static async deleteEnseignement(enseignement) {
-        const sql = "DELETE FROM enseigner WHERE Num_Prof = ? AND Cod_Mat = ? AND Num_Class = ? AND Num_Etabli = ? AND Annee = ?";
-        const result = await window.electronAPI.db.query(sql, [enseignement.numProf, enseignement.codMat, enseignement.numClass, enseignement.numEtabli, enseignement.annee]);
+    static async updateEnseignement(enseignement){
+        const sql = "UPDATE enseigner SET NumProf = ?, CodMat = ? WHERE id = ?";
+        const result = await window.electronAPI.db.query(sql, [enseignement.NumProf,enseignement.CodMat, enseignement.id]);
         return result;
     }
+    static async deleteEnseignement(id) {
+        const sql = "DELETE FROM enseigner WHERE id = ?";
+        const result = await window.electronAPI.db.query(sql, [id]);
+        return result;
+    }
+
+
+
+    static async deleteEnseignementByMatiere(CodMat,Annee){
+        const sql = "DELETE FROM enseigner WHERE CodMat = ? AND Annee = ?";
+        const result = await window.electronAPI.db.query(sql,[String(CodMat),Annee]);
+        return result;
+    }
+
+    static async deleteEnseignementByProfesseur(NumProf,Annee){
+        const sql = "DELETE FROM enseigner WHERE NumProf = ? AND Annee = ?";
+        const result = await window.electronAPI.db.query(sql, [NumProf,Annee]);
+        return result;
+    }
+
+
 }
 
 export default EnseignerService;

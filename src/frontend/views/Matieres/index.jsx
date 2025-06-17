@@ -1,11 +1,19 @@
-import React, { useState, useEffect, use } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import MatiereService from "../../../services/MatiereService.js";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
-import { BookOpen, Delete, DeleteIcon, Edit } from "lucide-react";
+import { BookOpen, Delete, Edit } from "lucide-react";
+import { classFields } from "../../utils/form-fields.js";
+
+import {
+  electronConfirm,
+  getAnneeScolaire,
+  getEtablissement,
+} from "../../utils/index.js";
+
+import { MatiereService, EnseignerService } from "../../../services/";
+
 import {
   Card,
   CardContent,
@@ -13,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/Card.jsx";
+
 import {
   Table,
   TableBody,
@@ -21,11 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
-const columns = [{ key: "NomMat", label: "Nom de matiere" }];
-
-const classFields = [
-  { name: "NomMat", label: "Nom de la Matière", type: "text" },
-];
 
 const MatieresList = () => {
   const [Matieres, setMatieres] = useState([]);
@@ -35,16 +39,11 @@ const MatieresList = () => {
     NomMat: "",
   });
   const [loading, setLoading] = useState(true);
-  const [currentEtablissement, setCurrentEtablissement] = useState(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(5);
-  const [searchEleve, setSearchEleve] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
   const fetchMatieres = async () => {
     try {
-      const etablissement = await window.electronAPI.store.get("etablissement");
-      setCurrentEtablissement(etablissement);
+      const etablissement = await getEtablissement();
       setMatiere({ ...matiere, NumEtabli: etablissement.NumEtabli });
       const results = await MatiereService.getAllMatieres(
         etablissement.NumEtabli
@@ -59,10 +58,18 @@ const MatieresList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette matiere ?")) {
+    const confirmDeletion = await electronConfirm(
+      "Êtes-vous sûr de vouloir supprimer cette matiere ?"
+    );
+    if (confirmDeletion) {
       try {
-        const result = MatiereService.deleteMatiere(id);
+        const result = await MatiereService.deleteMatiere(id);
+
+        const { Annee } = await getAnneeScolaire("anneeScolaireEncours");
+
         if (result.success) {
+          //supprimer les cours concernant cette matiere
+          await EnseignerService.deleteEnseignementByMatiere(id, Annee);
           toast.success("Matiere supprimé avec succès");
           await fetchMatieres();
         } else {
@@ -85,6 +92,15 @@ const MatieresList = () => {
     });
   };
 
+  const handleModalClose = () => {
+    setOpenModal(false);
+    setMatiere({
+      ...matiere,
+      CodMat: null,
+      NomMat: "",
+    });
+  };
+
   const handleSubmit = async (matiere) => {
     try {
       let result;
@@ -100,7 +116,6 @@ const MatieresList = () => {
             ? "Matiere modifiée avec succès"
             : "Matiere ajoutée avec succès"
         );
-        setOpenModal(false);
         await fetchMatieres();
       } else {
         toast.error("Une erreur est survenue");
@@ -108,6 +123,8 @@ const MatieresList = () => {
     } catch (error) {
       console.error(error);
       toast.error("Une erreur est survenue " + error);
+    } finally {
+      handleModalClose();
     }
   };
 
@@ -122,20 +139,20 @@ const MatieresList = () => {
   return (
     <>
       <div>
-        <main className="container mx-auto py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <BookOpen className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Gestion des Matieres</h1>
+        <main className='container mx-auto py-8'>
+          <div className='flex items-center justify-between mb-8'>
+            <div className='flex items-center gap-4'>
+              <BookOpen className='h-8 w-8 text-primary' />
+              <h1 className='text-3xl font-bold'>Gestion des Matieres</h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
               Ajouter une matière
             </Button>
           </div>
 
-          <div className="grid gap-6">
-            <Card>
+          <div className='grid gap-6'>
+            <Card className='m-auto min-w-[800px]'>
               <CardHeader>
                 <CardTitle>Liste des Matières</CardTitle>
                 <CardDescription>Gérez les matières</CardDescription>
@@ -144,38 +161,50 @@ const MatieresList = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nom de la Matière</TableHead>
+                      <TableHead className='text-center'>
+                        Nom de la Matière
+                      </TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {Matieres?.map((matiere) => (
-                      <TableRow key={matiere.CodMat}>
-                        <TableCell>{matiere.NomMat}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(matiere.CodMat)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Modifier
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleEdit(matiere.CodMat)}
-                            >
-                              <Delete className="h-4 w-4 mr-2" />
-                              Supprimer
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                  {Matieres.length > 0 && (
+                    <TableBody>
+                      {Matieres.map((matiere) => (
+                        <TableRow key={matiere.CodMat}>
+                          <TableCell>{matiere.NomMat}</TableCell>
+                          <TableCell>
+                            <div className='flex gap-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => handleEdit(matiere.CodMat)}
+                              >
+                                <Edit className='h-4 w-4 mr-2' />
+                                Modifier
+                              </Button>
+                              <Button
+                                variant='destructive'
+                                size='sm'
+                                onClick={() => handleDelete(matiere.CodMat)}
+                              >
+                                <Delete className='h-4 w-4 mr-2' />
+                                Supprimer
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  )}
                 </Table>
+                {Matieres.length === 0 && (
+                  <div>
+                    <p className='text-gray-400 text-md text-center p-10'>
+                      {" "}
+                      Aucune matière enregistrée pour le moment{" "}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -183,8 +212,8 @@ const MatieresList = () => {
       </div>
       <Modal
         isOpen={openModal}
-        onClose={() => setOpenModal(false)}
-        title="Ajouter une matiere"
+        onClose={handleModalClose}
+        title={matiere.CodMat ? "Modifier la matiere" : "Ajouter une matiere"}
       >
         <Form
           fields={classFields}

@@ -4,18 +4,21 @@ class AnneeScolaireService {
   static async getAllAnneesScolaires(Num_Etabli) {
     const sql = "SELECT * FROM annees_scolaires WHERE NumEtabli = ?";
     const result = await window.electronAPI.db.query(sql, [Num_Etabli]);
+        
     if (result.success) {
-      return result.data.map(
+      const data = result.data.map(
         (an) =>
           new AnneeScolaire(
-            an.id,
             an.Annee,
             an.DateDebut,
             an.DateFin,
             an.Periodicite,
-            an.NumEtabli
+            an.NumEtabli,
+            an.id,
           )
       );
+
+      return { success:true, data };
     }
     return [];
   }

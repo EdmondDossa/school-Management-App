@@ -3,7 +3,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { Input } from "../../components";
 import EtablissementService from "../../../services/EtablissementService";
-import { getResourcesPath, handleUploadFile } from "../../../utils";
+import { handleUploadFile } from "../../../utils";
 import toast from "react-hot-toast";
 import {
   Card,
@@ -51,7 +51,6 @@ const Etablissement = () => {
       }
     }
     if (etablissement.NumEtabli === null) {
-      etablissement.NumEtabli = null;
       EtablissementService.createEtablissement(etablissement)
         .then(async (response) => {
           if (response.success) {

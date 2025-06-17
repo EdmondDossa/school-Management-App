@@ -16,20 +16,20 @@ class CoefficientService {
     }
 
     static async createCoefficient(coefficient) {
-        const sql = "INSERT INTO coefficientsMatieres (Cod_Mat, Coef, Num_Etabli, Annee, Num_Class) VALUES (?, ?, ?, ?, ?)";
-        const result = await window.electronAPI.db.query(sql, [coefficient.codMat, coefficient.coef, coefficient.numEtabli, coefficient.annee, coefficient.numClass]);
+        const sql = "INSERT OR REPLACE INTO coefficientsMatieres (CodMat, Coef, Annee, NumClass,NumEtabli) VALUES (?, ?, ?, ?,?)";
+        const result = await window.electronAPI.db.query(sql, [coefficient.CodMat, coefficient.Coef, coefficient.Annee, coefficient.NumClass,  coefficient.NumEtabli]);
         return result;
     }
 
-    static async updateCoefficient(coefficient) {
-        const sql = "UPDATE coefficientsMatieres SET Coef = ?, Num_Etabli = ?, Annee = ?, Num_Class = ? WHERE Cod_Mat = ?";
-        const result = await window.electronAPI.db.query(sql, [coefficient.coef, coefficient.numEtabli, coefficient.annee, coefficient.numClass, coefficient.codMat]);
+    static async update(codmat,numclass,annee,coef) {
+        const sql = "UPDATE coefficientsMatieres SET Coef = ? WHERE Annee = ? AND NumClass = ? AND CodMat = ?";
+        const result = await window.electronAPI.db.query(sql, [coef,annee,numclass,codmat]);
         return result;
     }
 
-    static async deleteCoefficient(codMat, Num_Etabli, Annee, Num_Class) {
-        const sql = "DELETE FROM coefficientsMatieres WHERE Cod_Mat = ?, Num_Etabli = ?, Annee = ?, Num_Class = ?";
-        const result = await window.electronAPI.db.query(sql, [codMat, Num_Etabli, Annee, Num_Class]);
+    static async deleteCoefficient(codMat,Annee, NumClass) {
+        const sql = "DELETE FROM coefficientsMatieres WHERE CodMat = ? AND Annee = ? AND NumClass = ?";
+        const result = await window.electronAPI.db.query(sql, [codMat,Annee, NumClass]);
         return result;
     }
 }

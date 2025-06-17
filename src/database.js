@@ -30,6 +30,15 @@ class Database {
   static async initTables() {
     return new Promise((resolve, reject) => {
       const createTableQueries = [
+      `CREATE TABLE IF NOT EXISTS etablissements (
+                    NumEtabli INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NomEtabli TEXT NOT NULL,
+                    Adresse TEXT,
+                    Telephone TEXT,
+                    Logo TEXT,
+                    Email TEXT
+    );`,
+
         `CREATE TABLE IF NOT EXISTS annees_scolaires (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     Annee TEXT NOT NULL,
@@ -40,14 +49,7 @@ class Database {
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
-        `CREATE TABLE IF NOT EXISTS etablissements (
-                    NumEtabli INTEGER PRIMARY KEY AUTOINCREMENT,
-                    NomEtabli TEXT NOT NULL,
-                    Adresse TEXT,
-                    Telephone TEXT,
-                    Logo TEXT,
-                    Email TEXT
-                );`,
+
 
         `CREATE TABLE IF NOT EXISTS classes (
                     NumClass INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,14 +69,14 @@ class Database {
         `CREATE TABLE IF NOT EXISTS coefficientsMatieres (
                     CodMat INTEGER,
                     Coef INTEGER NOT NULL,
-                    NumEtabli INTEGER,
                     Annee TEXT,
                     NumClass INTEGER,
-                    PRIMARY KEY (CodMat, NumEtabli, Annee, NumClass),
+                    NumEtabli INTEGER,
+                    PRIMARY KEY (CodMat, Annee, NumClass) ON CONFLICT IGNORE,
                     FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
-                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
-                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee)
+                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee),
+                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS utilisateurs (
@@ -99,17 +101,26 @@ class Database {
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
                 );`,
 
-        `CREATE TABLE IF NOT EXISTS enseigner (
-                    NumProf INTEGER,
+        `CREATE TABLE IF NOT EXISTS profmatieres (
+                    NumProf INTEGER ,
                     CodMat INTEGER,
-                    NumClass INTEGER,
-                    Annee TEXT,
-                    PRIMARY KEY (NumProf, CodMat, NumClass, Annee),
+                    PRIMARY KEY (NumProf,CodMat),
                     FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
-                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat),
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat)
+                );`,
+
+        `CREATE TABLE IF NOT EXISTS enseigner (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    NumProf INTEGER,
+                    NumClass INTEGER,
+                    CodMat INTEGER,
+                    Annee TEXT,
+                    NumEtabli INTEGER,
+                    FOREIGN KEY (NumProf) REFERENCES professeurs(NumProf),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
                     FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
-                    FOREIGN KEY (Annee) REFERENCES anneesscolaires(Annee)
+                    FOREIGN KEY (Annee) REFERENCES annees_scolaires(Annee),
+                    FOREIGN KEY (CodMat) REFERENCES matieres(CodMat)
                 );`,
 
         `CREATE TABLE IF NOT EXISTS eleves (
