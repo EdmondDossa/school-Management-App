@@ -245,21 +245,21 @@ const ClasseConfiguration = () => {
         <div>
           <ButtonBack />
         </div>
-        <main className='container mx-auto py-8'>
-          <div className='flex items-center justify-between mb-8'>
-            <div className='flex items-center gap-4'>
-              <SettingsIcon className='h-8 w-8 text-primary' />
-              <h1 className='text-3xl font-bold'>
+        <main className="container pt-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <SettingsIcon className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">
                 Configurer la classe de {classe.NomClass}{" "}
               </h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
+              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
               Ajouter un cours
             </Button>
           </div>
-          <div className='grid gap-6'>
-            <Card className='m-auto min-w-[800px]'>
+          <div className="grid gap-6">
+            <Card className="m-auto min-w-[800px]">
               <CardHeader>
                 <CardTitle>Liste des cours</CardTitle>
               </CardHeader>
@@ -268,86 +268,86 @@ const ClasseConfiguration = () => {
                   <TableHeader>
                     <TableRow>
                       {tableHeadFields.map((field) => (
-                        <TableHead className='text-center' key={field}>
+                        <TableHead className="text-center" key={field}>
                           {" "}
                           {field}{" "}
                         </TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
-                  {enseignements.length > 0 && (
-                    <TableBody>
-                      {enseignements.map((enseignement, index) => (
-                        <TableRow key={index}>
-                          <TableCell> {enseignement.NomMat} </TableCell>
-                          <TableCell>
-                            {" "}
-                            {`${enseignement.NomProf} ${enseignement.PrenomsProf}`}{" "}
-                          </TableCell>
+                  <TableBody>
+                    {enseignements.length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-gray-400 text-md text-center"
+                        >
+                          Aucun cours enregistré pour le moment
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {enseignements.map((enseignement, index) => (
+                      <TableRow key={index}>
+                        <TableCell> {enseignement.NomMat} </TableCell>
+                        <TableCell>
+                          {" "}
+                          {`${enseignement.NomProf} ${enseignement.PrenomsProf}`}{" "}
+                        </TableCell>
 
-                          <TableCell
-                            id='coefficient'
-                            spellCheck={false}
-                            className='cursor-pointer'
-                            onClick={() => setIsUpdatingCoef(true)}
-                            contentEditable={isUpdatingCoef}
-                            onInput={(e) =>
-                              setCoefToUpdate(parseInt(e.target.innerText))
-                            }
-                            onBlur={() =>
-                              handleCoefficientUpdate(
-                                enseignement.CodMat,
-                                enseignement.Coef
-                              )
-                            }
-                          >
-                            <span ref={ref} spellCheck={false}>
-                              {enseignement.Coef}
-                            </span>
-                            <span contentEditable={false}>
-                              <Tooltip anchorSelect='#coefficient'>
-                                {!isUpdatingCoef
-                                  ? "Double cliquer pour modifier"
-                                  : "Saisir la nouvelle valeur"}
-                              </Tooltip>
-                            </span>
-                          </TableCell>
+                        <TableCell
+                          id="coefficient"
+                          spellCheck={false}
+                          className="cursor-pointer"
+                          onClick={() => setIsUpdatingCoef(true)}
+                          contentEditable={isUpdatingCoef}
+                          onInput={(e) =>
+                            setCoefToUpdate(parseInt(e.target.innerText))
+                          }
+                          onBlur={() =>
+                            handleCoefficientUpdate(
+                              enseignement.CodMat,
+                              enseignement.Coef
+                            )
+                          }
+                        >
+                          <span ref={ref} spellCheck={false}>
+                            {enseignement.Coef}
+                          </span>
+                          <span contentEditable={false}>
+                            <Tooltip anchorSelect="#coefficient">
+                              {!isUpdatingCoef
+                                ? "Double cliquer pour modifier"
+                                : "Saisir la nouvelle valeur"}
+                            </Tooltip>
+                          </span>
+                        </TableCell>
 
-                          <TableCell className=''>
-                            <div className='flex gap-2'>
-                              <Button
-                                variant='destructive'
-                                size='sm'
-                                title='Supprimer le cours'
-                                className='cursor-pointer'
-                                onClick={() => handleDelete(enseignement)}
-                              >
-                                <Delete className='h-2 w-4 mr-1' />
-                              </Button>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                className='px-3'
-                                title='Modifier les informations'
-                                onClick={() => handleEdit(enseignement.id)}
-                              >
-                                <Edit className='h-4 w-4' />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  )}
+                        <TableCell className="">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              title="Supprimer le cours"
+                              className="cursor-pointer"
+                              onClick={() => handleDelete(enseignement)}
+                            >
+                              <Delete className="h-2 w-4 mr-1" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="px-3"
+                              title="Modifier les informations"
+                              onClick={() => handleEdit(enseignement.id)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                 </Table>
-                {enseignements.length === 0 && (
-                  <div>
-                    <p className='text-gray-400 text-md text-center p-10'>
-                      {" "}
-                      Aucun cours enregistre pour le moment{" "}
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
@@ -359,18 +359,18 @@ const ClasseConfiguration = () => {
         onClose={closeModal}
         title={cours.id ? "Modification du cours" : "Nouveau cours"}
       >
-        <form onSubmit={handleSubmit} className='space-y-6'>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <FormLabel>Matieres</FormLabel>
             <select
-              name='CodMat'
-              id='Matieres'
+              name="CodMat"
+              id="Matieres"
               onChange={handleChange}
               defaultValue={cours.CodMat}
-              className='h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500'
+              className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
               required
             >
-              <option value=''>Choisir la matiere</option>
+              <option value="">Choisir la matiere</option>
               {matieres.map((matiere) => (
                 <option key={matiere.CodMat} value={matiere.CodMat}>
                   {matiere.NomMat}
@@ -381,27 +381,27 @@ const ClasseConfiguration = () => {
           <div>
             <FormLabel>Définir le coefficient</FormLabel>
             <input
-              type='number'
-              min='1'
+              type="number"
+              min="1"
               value={cours.Coef}
-              name='Coef'
+              name="Coef"
               onChange={handleChange}
-              className='mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500'
+              className="mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           <div>
             <FormLabel>Professeur</FormLabel>
             <select
-              name='NumProf'
-              id='Professeur'
+              name="NumProf"
+              id="Professeur"
               value={cours.NumProf}
               onChange={handleChange}
-              className='h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500'
+              className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
               required
             >
-              <option value=''>Attribuer un professeur</option>
+              <option value="">Attribuer un professeur</option>
               {professeurs?.length === 0 ? (
-                <option value='' disabled>
+                <option value="" disabled>
                   Aucun professeur disponible pour cette matiere
                 </option>
               ) : (
@@ -411,7 +411,7 @@ const ClasseConfiguration = () => {
                       {`${prof.NomProf} ${prof.PrenomsProf}`}
                     </option>
                   ) : (
-                    <option value='' disabled>
+                    <option value="" disabled>
                       Aucun professeur disponible pour cette matiere
                     </option>
                   )
@@ -420,10 +420,10 @@ const ClasseConfiguration = () => {
             </select>
           </div>
 
-          <div className='flex justify-end'>
+          <div className="flex justify-end">
             <button
-              type='submit'
-              className='px-4 py-2 focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700'
+              type="submit"
+              className="px-4 py-2 focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               {cours.id ? "Modifier" : "Ajouter"}
             </button>
@@ -438,7 +438,7 @@ function FormLabel({ children }) {
   return (
     <label
       htmlFor={children}
-      className='block text-sm font-medium text-gray-700'
+      className="block text-sm font-medium text-gray-700"
     >
       {children}
     </label>

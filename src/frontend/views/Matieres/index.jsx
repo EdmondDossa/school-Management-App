@@ -139,76 +139,76 @@ const MatieresList = () => {
   return (
     <>
       <div>
-        <main className='container mx-auto py-8'>
-          <div className='flex items-center justify-between mb-8'>
-            <div className='flex items-center gap-4'>
-              <BookOpen className='h-8 w-8 text-primary' />
-              <h1 className='text-3xl font-bold'>Gestion des Matieres</h1>
+        <main className="container pt-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <BookOpen className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Gestion des Matieres</h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
+              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
               Ajouter une matière
             </Button>
           </div>
-
-          <div className='grid gap-6'>
-            <Card className='m-auto min-w-[800px]'>
-              <CardHeader>
-                <CardTitle>Liste des Matières</CardTitle>
-                <CardDescription>Gérez les matières</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className='text-center'>
-                        Nom de la Matière
-                      </TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  {Matieres.length > 0 && (
-                    <TableBody>
-                      {Matieres.map((matiere) => (
-                        <TableRow key={matiere.CodMat}>
-                          <TableCell>{matiere.NomMat}</TableCell>
-                          <TableCell>
-                            <div className='flex gap-2'>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                onClick={() => handleEdit(matiere.CodMat)}
-                              >
-                                <Edit className='h-4 w-4 mr-2' />
-                                Modifier
-                              </Button>
-                              <Button
-                                variant='destructive'
-                                size='sm'
-                                onClick={() => handleDelete(matiere.CodMat)}
-                              >
-                                <Delete className='h-4 w-4 mr-2' />
-                                Supprimer
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  )}
-                </Table>
-                {Matieres.length === 0 && (
-                  <div>
-                    <p className='text-gray-400 text-md text-center p-10'>
-                      {" "}
-                      Aucune matière enregistrée pour le moment{" "}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </main>
+
+        <div className="grid gap-6">
+          <Card className="m-auto min-w-[800px]">
+            <CardHeader>
+              <CardTitle>Liste des Matières</CardTitle>
+              <CardDescription>Gérez les matières</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-center">
+                      Nom de la Matière
+                    </TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Matieres.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={2}
+                        className="text-gray-400 text-md text-center"
+                      >
+                        Aucune matière enregistrée pour le moment{" "}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {Matieres.map((matiere) => (
+                    <TableRow key={matiere.CodMat}>
+                      <TableCell>{matiere.NomMat}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(matiere.CodMat)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Modifier
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(matiere.CodMat)}
+                          >
+                            <Delete className="h-4 w-4 mr-2" />
+                            Supprimer
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       <Modal
         isOpen={openModal}
