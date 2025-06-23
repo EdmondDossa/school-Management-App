@@ -11,7 +11,6 @@ import Professeurs from "../views/Professeurs";
 import AnneeScolaire from "../views/Annee-Scolaire";
 import ClasseConfiguration from "../views/Classes/classe-configuration";
 
-
 export const router = createHashRouter([
   {
     path: "/",

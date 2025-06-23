@@ -10,7 +10,7 @@ const RootLayout = () => {
       <AppBar />
       <div className="flex h-[calc(100vh-50px)] bg-gray-50">
         <SideBar />
-        <main className="flex-1 overflow-auto p-4 relative">
+        <main className="flex-1 overflow-auto p-4 relative no-scrollbar w-[calc(100vw-64px)]">
           <Outlet />
         </main>
         <Toaster position="top-right" />

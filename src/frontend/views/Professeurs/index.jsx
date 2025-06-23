@@ -204,26 +204,26 @@ const Professeur = () => {
   return (
     <>
       <div>
-        <main className='container mx-auto py-8'>
-          <div className='flex items-center justify-between mb-8'>
-            <div className='flex items-center gap-4'>
-              <BookOpen className='h-8 w-8 text-primary' />
-              <h1 className='text-3xl font-bold'>Gestion des Professeurs</h1>
+        <main className="container pt-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <BookOpen className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Gestion des Professeurs</h1>
             </div>
             <Button onClick={() => setOpenEditModal(true)}>
-              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
+              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
               Ajouter un professeur
             </Button>
           </div>
 
-          <div className='grid gap-6'>
-            <Card className='m-auto min-w-[800px]'>
+          <div className="grid gap-6">
+            <Card className="m-auto min-w-[800px]">
               <CardHeader>
                 <CardTitle>Liste des Professeurs</CardTitle>
                 <CardDescription>Gérez les professeurs</CardDescription>
               </CardHeader>
-              <CardContent className='overflow-auto'>
-                <Table className='[&_td]:text-left'>
+              <CardContent className="overflow-auto">
+                <Table className="[&_td]:text-left">
                   <TableHeader>
                     <TableRow>
                       {tableHeadFields.map((field) => (
@@ -231,66 +231,66 @@ const Professeur = () => {
                       ))}
                     </TableRow>
                   </TableHeader>
-                  {Professeurs.length > 0 && (
-                    <TableBody>
-                      {Professeurs?.map((professeur) => (
-                        <TableRow key={professeur.NumProf}>
-                          <TableCell>
-                            {" "}
-                            {`${professeur.NomProf} ${professeur.PrenomsProf} `}{" "}
-                          </TableCell>
-                          <TableCell> {professeur.Sexe} </TableCell>
-                          <TableCell>
-                            {professeur.matieres.length === 0
-                              ? "---"
-                              : professeur.matieres
-                                  .map((matiere) => matiere.NomMat)
-                                  .join(",")}
-                          </TableCell>
-                          <TableCell>
-                            <div className='flex gap-2'>
-                              <Button
-                                className='px-3'
-                                size='sm'
-                                variant='outline'
-                                onClick={() => displayProf(professeur)}
-                                title="Voir plus d'informations"
-                              >
-                                <Eye className='h-4 w-4' />
-                              </Button>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                className='px-3'
-                                title='Modifier les informations'
-                                onClick={() => handleEdit(professeur.NumProf)}
-                              >
-                                <Edit className='h-4 w-4' />
-                              </Button>
-                              <Button
-                                variant='destructive'
-                                size='sm'
-                                className='ps-3 pe-4'
-                                title='Supprimer'
-                                onClick={() => handleDelete(professeur.NumProf)}
-                              >
-                                <Delete className='h-4 w-4' />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  )}
+                  <TableBody>
+                    {Professeurs.length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-gray-400 text-md text-center"
+                        >
+                          Aucun professeur enregistré pour le moment
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {Professeurs?.map((professeur) => (
+                      <TableRow key={professeur.NumProf}>
+                        <TableCell>
+                          {" "}
+                          {`${professeur.NomProf} ${professeur.PrenomsProf} `}{" "}
+                        </TableCell>
+                        <TableCell> {professeur.Sexe} </TableCell>
+                        <TableCell>
+                          {professeur.matieres.length === 0
+                            ? "---"
+                            : professeur.matieres
+                                .map((matiere) => matiere.NomMat)
+                                .join(",")}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              className="px-3"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => displayProf(professeur)}
+                              title="Voir plus d'informations"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="px-3"
+                              title="Modifier les informations"
+                              onClick={() => handleEdit(professeur.NumProf)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="ps-3 pe-4"
+                              title="Supprimer"
+                              onClick={() => handleDelete(professeur.NumProf)}
+                            >
+                              <Delete className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                 </Table>
-                {Professeurs.length === 0 && (
-                  <div>
-                    <p className='text-gray-400 text-md text-center p-10'>
-                      {" "}
-                      Aucun professeur enregistré pour le moment{" "}
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
@@ -318,7 +318,7 @@ const Professeur = () => {
       <Modal
         isOpen={openProfInfoModal}
         onClose={handleModalClose}
-        title='Informations supplémentaires'
+        title="Informations supplémentaires"
       >
         <Table>
           <TableBody>
