@@ -45,6 +45,30 @@ class InscriptionService {
         return result;
     }
 
+    static async insertManyInClass(matricules,NumClass,AnneeScolaire){
+        //on doit définir le statut de l'étudiant à inscrire
+        //s'il existe déjà dans  la table inscription pour une mm classe et une annee anterieure alors il est doublant/ redoublant
+        //s'il n'existe pas  il est nouveau
+        
+        const query1 = "SELECT Matricule from inscriptions WHERE NumClass = ? AND AnneeScolaire != ?";
+        const oldClassStudents = (await window.electronAPI.db.query(query1,[NumClass,AnneeScolaire])).data.map((e) => e.Matricule);
+        
+        const values = matricules.map((matricule) =>{
+                let Statut = "";
+                if(!oldClassStudents.includes(matricule)){
+                    Statut = "Nouveau";
+                }else{
+                    const occurences = oldClassStudents.filter((m) => m === matricule).length;
+                    Statut = occurences > 1 ? "Redoublant":"Doublant";
+                }
+
+                return `('${Statut}','${matricule}','${NumClass}','${AnneeScolaire}')`
+        }).join(",");
+       const sql =`INSERT INTO inscriptions (Statut,Matricule,NumClass,AnneeScolaire) VALUES ${values} ON CONFLICT (Matricule,AnneeScolaire,NumClass) DO NOTHING`;
+       const result = await window.electronAPI.db.query(sql);
+       return result;
+    }
+
     static async updateInscription(inscription) {
         const sql = "UPDATE inscriptions SET Date_Ins = ?, Statut = ?, Matricule = ?, Num_Etabli = ?, Num_Class = ?, Annee_Scolaire = ? WHERE Num_Ins = ?";
         const result = await window.electronAPI.db.query(sql, [inscription.dateIns, inscription.statut, inscription.matricule, inscription.numEtabli, inscription.numClass, inscription.anneeScolaire, inscription.numIns]);

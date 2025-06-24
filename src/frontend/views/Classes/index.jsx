@@ -4,9 +4,17 @@ import ClasseService from "../../../services/ClasseService.js";
 import { Modal, Form } from "../../components";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import AnneeScolaireService from "../../../services/AnneeScolaireService.js";
-import { BookOpen, Edit, Users, Delete } from "lucide-react";
+import {
+  BookOpen,
+  Edit,
+  Users,
+  Delete,
+  EllipsisVertical,
+  Milestone,
+} from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import { useNavigate } from "react-router-dom";
+import ExtractElevesButton from "../../components/ExtractElevesButton.jsx";
 
 import {
   Card,
@@ -24,6 +32,10 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+import { Tooltip } from "react-tooltip";
+import EleveService from "../../../services/EleveService.js";
+import InscriptionService from "../../../services/InscriptionService.js";
+import { getAnneeScolaire } from "../../utils/index.js";
 
 const classFields = [
   { name: "NomClass", label: "Nom de la Classe", type: "text" },
@@ -137,6 +149,39 @@ const ClassesList = () => {
     }
   };
 
+  const handleExtraction = async (eleves, numclass) => {
+    console.log(numclass,eleves);
+
+    try {
+      //on enrégistre les élèves s'ils n'existaient pas
+      let result = await EleveService.insertManyEleves(eleves);
+      if (result.success) {
+        toast.success(
+          `Import de ${result.data.changes} / ${eleves.length} élèves de la liste
+          `,
+          { duration: 5000 }
+        );
+        //on fait l'inscription des élèves dans la classe
+        const lastInsertedMatricules = eleves.map((e) => e.Matricule);
+        const { Annee } = await getAnneeScolaire();
+
+        result = await InscriptionService.insertManyInClass(
+          lastInsertedMatricules,
+          numclass,
+          Annee
+        );
+      }
+      if (result.success) {
+        toast.success(`${result.data.changes} nouvelles inscriptions`, {
+          duration: 5000,
+        });
+      } else toast.error("Une erreur est survenue lors de l'import");
+    } catch (error) {
+      console.log(err);
+      toast.error("Une erreur est survenue lors de l'import");
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
     fetchAllAnneesScolaires();
@@ -149,20 +194,20 @@ const ClassesList = () => {
   return (
     <>
       <div>
-        <main className="container pt-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <Users className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Gestion des Classes</h1>
+        <main className='container pt-8'>
+          <div className='flex items-center justify-between mb-8'>
+            <div className='flex items-center gap-4'>
+              <Users className='h-8 w-8 text-primary' />
+              <h1 className='text-3xl font-bold'>Gestion des Classes</h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
               Ajouter une classe
             </Button>
           </div>
 
-          <div className="grid gap-6">
-            <Card className="m-auto min-w-[800px]">
+          <div className='grid gap-6'>
+            <Card className='m-auto min-w-[800px]'>
               <CardHeader>
                 <CardTitle>Liste des Classes</CardTitle>
                 <CardDescription>
@@ -184,48 +229,101 @@ const ClassesList = () => {
                       <TableRow>
                         <TableCell
                           colSpan={4}
-                          className="text-gray-400 text-md text-center p-10"
+                          className='text-gray-400 text-md text-center p-10'
                         >
                           {" "}
                           Aucune classe enregistrée pour le moment{" "}
                         </TableCell>
                       </TableRow>
                     )}
-                    {classes.map((classe) => (
+                    {classes.map((classe,index) => (
                       <TableRow key={classe.NumClass}>
                         <TableCell>{classe.NomClass}</TableCell>
                         <TableCell>{classe.Promotion}</TableCell>
                         <TableCell>0</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                navigate(
-                                  `/classes/config-class/${classe.NumClass}`
-                                )
-                              }
-                            >
-                              <BookOpen className="h-4 w-4 mr-2" />
-                              Matières
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(classe.NumClass)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Modifier
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDelete(classe.NumClass)}
-                            >
-                              <Delete className="h-4 w-4 mr-2" />
-                              Supprimer
-                            </Button>
+                          <div className='flex gap-2'>
+                            <div>
+                              <Button
+                                variant='outline'
+                                id={`matieres-${index}`}
+                                size='sm'
+                                onClick={() =>
+                                  navigate(
+                                    `/classes/config-class/${classe.NumClass}`
+                                  )
+                                }
+                              >
+                                <BookOpen className='h-4 w-4' />
+                              </Button>
+                              <Tooltip
+                                className='opacity-100'
+                                anchorSelect={`#matieres-${index}`}
+                                content='Affecter les matières aux classes'
+                              />
+                            </div>
+                            <div>
+                              <Button
+                                variant='outline'
+                                className='px-3'
+                                id={`editer-${index}`}
+                                size='sm'
+                                onClick={() => handleEdit(classe.NumClass)}
+                              >
+                                <Edit className='h-4 w-4' />
+                              </Button>
+                              <Tooltip
+                                className='opacity-100'
+                                anchorSelect={`#editer-${index}`}
+                                content='Modifier les informations'
+                              />
+                            </div>
+                            <div id={`more-${index}`}>
+                              <Button variant='outline' size='sm' id='more' title="Plus d'options">
+                                <EllipsisVertical className='h-4 w-4'   />
+                              </Button>
+                            </div>
+                            <div>
+                              <Tooltip
+                                anchorSelect={`#more-${index}`}
+                                clickable
+                                className='w-[190px] opacity-100 card shadow-lg px-0  gap-2 bg-white z-20 '
+                                openOnClick
+                                place='right-left'
+                                noArrow
+                                delayHide={0}
+                                positionStrategy='fixed'
+                              >
+                                <div>
+                                  <h2 className='text-gray-500 text-[16px] mb-3 '>
+                                    Options
+                                  </h2>
+                                </div>
+                                <hr />
+                                <div className='my-2'>
+                                  <Button
+                                    variant='secondary'
+                                    size='sm'
+                                    className='mb-2 hover:text-white hover:bg-red-500 py-4'
+                                    onClick={() =>
+                                      handleDelete(classe.NumClass)
+                                    }
+                                  >
+                                    <Delete className='h-4 w-4 mr-2 text-red-800' />
+                                    Supprimer classe
+                                  </Button>
+                                </div>
+                                <div className='mt-2'>
+                                  <hr />
+                                  <ExtractElevesButton
+                                    className='mt-2 hover:text-white hover:bg-emerald-600'
+                                    buttonText='Importer les élèves '
+                                    onExtract={(eleves) => handleExtraction(eleves, classe.NumClass) }
+                                    onError={(err) => toast.error(err.message)}
+                                  />
+                                </div>
+                              </Tooltip>
+                            </div>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -240,7 +338,7 @@ const ClassesList = () => {
       <Modal
         isOpen={openModal}
         onClose={handleModalClose}
-        title="Ajouter une classe"
+        title='Ajouter une classe'
       >
         <Form
           fields={classFields}
