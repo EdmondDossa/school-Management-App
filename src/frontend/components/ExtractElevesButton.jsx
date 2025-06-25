@@ -130,7 +130,7 @@ export function ExtractElevesButton({
         }
         {...props}
       >
-        {!loading && <ImportIcon />}
+        {!loading && <ImportIcon className="text-emerald-700" />}
         {loading && <Loader />}
         {buttonText ?? "Extraire les étudiants"}
       </Button>
@@ -144,3 +144,4 @@ export function ExtractElevesButton({
     </>
   );
 }
+export default ExtractElevesButton;

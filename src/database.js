@@ -133,22 +133,20 @@ class Database {
                     LieuNaissance TEXT,
                     Nationalite TEXT,
                     ContactParent TEXT,
-                    NumEtabli INTEGER,
-                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli)
+                    created_at timestamps DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now'))
                 );`,
 
         `CREATE TABLE IF NOT EXISTS inscriptions (
                     NumIns INTEGER PRIMARY KEY AUTOINCREMENT,
-                    DateIns TEXT NOT NULL,
+                    DateIns timestamps NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now')),
                     Statut TEXT NOT NULL CHECK(Statut IN ('Nouveau', 'Doublant', 'Redoublant')),
                     Matricule TEXT,
-                    NumEtabli INTEGER,
                     NumClass INTEGER,
                     AnneeScolaire TEXT,
                     FOREIGN KEY (Matricule) REFERENCES eleves(Matricule),
-                    FOREIGN KEY (NumEtabli) REFERENCES etablissements(NumEtabli),
                     FOREIGN KEY (NumClass) REFERENCES classes(NumClass),
-                    FOREIGN KEY (AnneeScolaire) REFERENCES annees_scolaires(Annee)
+                    FOREIGN KEY (AnneeScolaire) REFERENCES annees_scolaires(Annee),
+                    UNIQUE(Matricule,NumClass,AnneeScolaire) 
                 );`,
 
         `CREATE TABLE IF NOT EXISTS periodes (
