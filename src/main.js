@@ -3,12 +3,11 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import Store from "electron-store";
 const store = new Store();
 
-
 const log = require("electron-log");
 import path from "node:path";
 import fs from "node:fs";
 import started from "electron-squirrel-startup";
-import Database from "./database.js";
+import { db as Database, initializeDatabase } from "./database.js";
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
@@ -84,7 +83,7 @@ function createDbHandler(method) {
     }
   };
 }
-Database.initTables();
+initializeDatabase();
 // Function To Minimize Window
 ipcMain.handle("minimize", () => {
   mainWindow.minimize();
@@ -116,18 +115,14 @@ ipcMain.handle("showDialog", async (event, args) => {
 });
 
 //useful than window.confirm because window.confirm locks input after used
-ipcMain.handle('openDialog', async (events, message) => {
- const result = await  dialog.showMessageBox(mainWindow, {
-      'type': 'warning',
-      'message': message,
-      'buttons': [
-          'Oui',
-          'Non'
-      ]
-  })
+ipcMain.handle("openDialog", async (events, message) => {
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: "warning",
+    message: message,
+    buttons: ["Oui", "Non"],
+  });
   return result.response === 0;
-}
-)
+});
 
 ipcMain.handle("app-get-path", (event, args) => {
   return app.getPath(args.path);
@@ -190,7 +185,7 @@ ipcMain.handle("close", (event, args) => {
 // Handlers de base de données
 ipcMain.handle(
   "db-query",
-  createDbHandler(({ sql, params }) => Database.query(sql, params))
+  createDbHandler(({ sql, params }) => Database.raw(sql, params))
 );
 ipcMain.handle(
   "db-get-all",
@@ -235,7 +230,7 @@ ipcMain.handle("db-transaction", async (event, { operations }) => {
             await Database.delete(args.table, args.conditions);
             break;
           case "query":
-            await Database.query(args.sql, args.params);
+            await Database.raw(args.sql, args.params);
             break;
           default:
             throw new Error(`Type d'opération inconnu: ${type}`);
