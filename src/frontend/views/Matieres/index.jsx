@@ -6,11 +6,7 @@ import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import { BookOpen, Delete, Edit } from "lucide-react";
 import { classFields } from "../../utils/form-fields.js";
 
-import {
-  electronConfirm,
-  getAnneeScolaire,
-  getEtablissement,
-} from "../../utils/index.js";
+import { electronConfirm, getAnneeScolaire } from "../../utils/index.js";
 
 import { MatiereService, EnseignerService } from "../../../services/";
 
@@ -35,7 +31,6 @@ const MatieresList = () => {
   const [Matieres, setMatieres] = useState([]);
   const [matiere, setMatiere] = useState({
     CodMat: null,
-    NumEtabli: null,
     NomMat: "",
   });
   const [loading, setLoading] = useState(true);
@@ -43,11 +38,7 @@ const MatieresList = () => {
 
   const fetchMatieres = async () => {
     try {
-      const etablissement = await getEtablissement();
-      setMatiere({ ...matiere, NumEtabli: etablissement.NumEtabli });
-      const results = await MatiereService.getAllMatieres(
-        etablissement.NumEtabli
-      );
+      const results = await MatiereService.getAllMatieres();
       setMatieres(results);
     } catch (error) {
       console.error(error);

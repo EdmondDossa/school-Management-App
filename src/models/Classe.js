@@ -1,9 +1,8 @@
 class Classe {
-  constructor(numClass, nomClass, promotion, numEtabli) {
+  constructor(numClass, nomClass, promotion) {
     this.NumClass = numClass;
     this.NomClass = nomClass;
     this.Promotion = promotion;
-    this.NumEtabli = numEtabli;
   }
 }
 

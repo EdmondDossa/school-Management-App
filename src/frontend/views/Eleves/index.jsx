@@ -49,27 +49,26 @@ const ElevesList = () => {
     Matricule: "",
     Nom: "",
     Prenoms: "",
-    Sexe: "M",//default value if this field do not change
+    Sexe: "M", //default value if this field do not change
     DateNaissance: "",
     LieuNaissance: "",
     Nationalite: "",
     ContactParent: "",
-    NumEtabli: "",
   });
 
   //searchParams hook is useful to substract query params in the search bar
-  const [searchParams,setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const matriculeToEdit = searchParams.get("id");
 
   //to handle students research in the search box
-  const [searchEleve,setSearchEleve] = useState("");
-  const optimizedSearchEleve = useDebounce(searchEleve,500);
+  const [searchEleve, setSearchEleve] = useState("");
+  const optimizedSearchEleve = useDebounce(searchEleve, 500);
 
-  const setupEdit = async (matricule)=>{
+  const setupEdit = async (matricule) => {
     const result = await EleveService.getEleveByMatricule(matricule);
     setEleve({ ...result });
     setOpenModal(true);
-  }
+  };
 
   const fetchEleves = async () => {
     setLoading(true);
@@ -96,59 +95,54 @@ const ElevesList = () => {
 
   const handleSearchBoxChange = (e) => setSearchEleve(e.target.value);
 
-  const closeModal = () =>{
+  const closeModal = () => {
     setOpenModal(false);
     setSearchParams({});
-  }
-  
+  };
+
   const handleSubmit = async (formData) => {
-        try {
-          let result;
-          if (formData.Matricule === "") {
-            result = await EleveService.createEleve({...formData,Matricule: uniqid().slice(0,23)});
-          } else {
-            result = await EleveService.updateEleve(formData);
-            setSearchParams({});//remove the id query value from the search bar
-          }
+    try {
+      let result;
+      if (formData.Matricule === "") {
+        result = await EleveService.createEleve({
+          ...formData,
+          Matricule: uniqid().slice(0, 23),
+        });
+      } else {
+        result = await EleveService.updateEleve(formData);
+        setSearchParams({}); //remove the id query value from the search bar
+      }
 
-          if (result.success) {
-            toast.success(
-              eleve.Matricule ? "Étudiant modifié avec succès" : "Étudiant ajouté avec succès"
-            );
-            await fetchEleves();
-            closeModal();
-          } else {
-            toast.error("Une erreur est survenue");
-          }
-        } catch (error) {
-          toast.error("Une erreur est survenue");
-        }
+      if (result.success) {
+        toast.success(
+          eleve.Matricule
+            ? "Étudiant modifié avec succès"
+            : "Étudiant ajouté avec succès"
+        );
+        await fetchEleves();
+        closeModal();
+      } else {
+        toast.error("Une erreur est survenue");
+      }
+    } catch (error) {
+      toast.error("Une erreur est survenue");
+    }
   };
 
-  const setCurrentEtablissement = async  () => {
-    const etablissement = await window.electronAPI.store.get("etablissement");
-    setEleve({...eleve, NumEtabli:etablissement.NumEtabli })
-  };
-
-  const fetchEleveForSearch = async  () => {
+  const fetchEleveForSearch = async () => {
     const result = await EleveService.searchEleve(optimizedSearchEleve);
-    if(result.success) setEleves(result.data);
-    else toast.error("Une erreur est survenue pendant la recherche")
+    if (result.success) setEleves(result.data);
+    else toast.error("Une erreur est survenue pendant la recherche");
   };
-
-  useEffect(()=>{
-    if(matriculeToEdit) setupEdit(matriculeToEdit)
-  },[matriculeToEdit]);
 
   useEffect(() => {
-    setCurrentEtablissement();
-  }, []);
+    if (matriculeToEdit) setupEdit(matriculeToEdit);
+  }, [matriculeToEdit]);
 
-  useEffect(()=>{
-    if(optimizedSearchEleve) fetchEleveForSearch(optimizedSearchEleve);
+  useEffect(() => {
+    if (optimizedSearchEleve) fetchEleveForSearch(optimizedSearchEleve);
     else fetchEleves();
-  },[optimizedSearchEleve]);
-
+  }, [optimizedSearchEleve]);
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -207,7 +201,11 @@ const ElevesList = () => {
       <Modal
         isOpen={openModal}
         onClose={closeModal}
-        title={eleve.Matricule ? "Modifier les informations de l'élève": "Ajouter un élève"}
+        title={
+          eleve.Matricule
+            ? "Modifier les informations de l'élève"
+            : "Ajouter un élève"
+        }
       >
         <Form
           fields={eleveFields}

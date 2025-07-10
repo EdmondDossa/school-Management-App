@@ -6,4 +6,15 @@ import SideBar from "./SideBar.jsx";
 import Table from "./Table.jsx";
 import Modal from "./Modal.jsx";
 import Label from "./Label.jsx";
-export { Input, AppBar, DashboardCard, Form, SideBar, Table, Modal, Label };
+import Select from "./Select.jsx";
+export {
+  Input,
+  AppBar,
+  DashboardCard,
+  Form,
+  SideBar,
+  Table,
+  Modal,
+  Label,
+  Select,
+};

@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { CalendarDays } from "lucide-react";
-import { Input, Label } from "../../components";
+import { Input, Label, Select } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { AnneeScolaireService } from "../../../services";
 import toast from "react-hot-toast";
 import { Modal } from "../../components";
 import AnneeScolaireAnterieures from "./components/Annee-Scolaire-Anterieure.jsx";
 
-import {
-  checkAnneeScolaireValidity,
-  electronConfirm,
-  getEtablissement,
-} from "../../utils/";
+import { checkAnneeScolaireValidity, electronConfirm } from "../../utils/";
 
 import {
   Card,
@@ -41,6 +37,10 @@ const AnneeScolaire = () => {
     const { name, value } = e.target;
     setAnneeScolaire({ ...AnneeScolaire, [name]: value });
   }
+
+  const handleChangePeriodicite = (option) => {
+    setAnneeScolaire({ ...AnneeScolaire, Periodicite: option.value });
+  };
 
   async function fetchAnneeScolaireEnCours() {
     const currentAnnee = await AnneeScolaireService.getLastAnneeScolaire();
@@ -82,6 +82,7 @@ const AnneeScolaire = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    console.log(AnneeScolaire);
     if (!["Semestre", "Trimestre"].includes(AnneeScolaire.Periodicite)) {
       return toast.error(
         `${AnneeScolaire.Periodicite} n'est pas une période valide!`
@@ -98,15 +99,11 @@ const AnneeScolaire = () => {
     if (!isAnneeScolaireValid) {
       return toast.error(message);
     }
-
-    const { NumEtabli } = await getEtablissement("etablissement");
     await AnneeScolaireService.createAnneeScolaire({
       ...AnneeScolaire,
-      NumEtabli,
     });
     await window.electronAPI.store.set("anneeScolaireEncours", {
       ...AnneeScolaire,
-      NumEtabli,
     });
     toast.dismiss();
     toast.success("Annee Scolaire Créee!");
@@ -121,10 +118,10 @@ const AnneeScolaire = () => {
 
   return (
     <div>
-      <main className='container mx-auto py-8'>
-        <div className='flex items-center gap-4 mb-8'>
-          <CalendarDays className='h-8 w-8 text-primary' />
-          <h1 className='text-3xl font-bold'>Gestion de l'année scolaire</h1>
+      <main className="container mx-auto py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <CalendarDays className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold">Gestion de l'année scolaire</h1>
         </div>
 
         <AnneeScolaireAnterieures isAnneeUpdate={isAnneeUpdate} />
@@ -134,14 +131,14 @@ const AnneeScolaire = () => {
             <CardTitle>Configuration de l'année scolaire</CardTitle>
           </CardHeader>
           <CardContent>
-            <form className='space-y-6' onSubmit={handleSubmit}>
-              <div className='grid gap-4 md:grid-cols-2'>
-                <div className='space-y-2'>
-                  <Label htmlFor='annee'>Année scolaire</Label>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="annee">Année scolaire</Label>
                   <Input
-                    id='annee'
-                    name='Annee'
-                    placeholder='Ex: 2024-2025'
+                    id="annee"
+                    name="Annee"
+                    placeholder="Ex: 2024-2025"
                     readOnly={isAnneeEnCours}
                     onChange={handleChange}
                     value={
@@ -152,12 +149,35 @@ const AnneeScolaire = () => {
                     required
                   />
                 </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='dateDebut'>Date de début</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="periodicite">Périodicité</Label>
+                  <Select
+                    id="periodicite"
+                    name="Periodicite"
+                    placeholder="Semestre/Trimestre"
+                    readOnly={isAnneeEnCours}
+                    onChange={handleChangePeriodicite}
+                    value={
+                      isAnneeEnCours
+                        ? anneeScolaireEncours.Periodicite
+                        : AnneeScolaire.Periodicite
+                    }
+                    required
+                    options={[
+                      { value: "Semestre", label: "Semestre" },
+                      { value: "Trimestre", label: "Trimestre" },
+                    ]}
+                    variant="primary"
+                    size="md"
+                    triggerClassName="h-[50px] flex items-center justify-between"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateDebut">Date de début</Label>
                   <Input
-                    id='dateDebut'
-                    name='DateDebut'
-                    type='date'
+                    id="dateDebut"
+                    name="DateDebut"
+                    type="date"
                     readOnly={isAnneeEnCours}
                     onChange={handleChange}
                     value={
@@ -168,12 +188,12 @@ const AnneeScolaire = () => {
                     required
                   />
                 </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='dateFin'>Date de fin</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="dateFin">Date de fin</Label>
                   <Input
-                    id='dateFin'
-                    type='date'
-                    name='DateFin'
+                    id="dateFin"
+                    type="date"
+                    name="DateFin"
                     readOnly={isAnneeEnCours}
                     value={
                       isAnneeEnCours
@@ -184,45 +204,29 @@ const AnneeScolaire = () => {
                     required
                   />
                 </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='periodicite'>Périodicité</Label>
-                  <Input
-                    id='periodicite'
-                    name='Periodicite'
-                    placeholder='Semestre/Trimestre'
-                    readOnly={isAnneeEnCours}
-                    onChange={handleChange}
-                    value={
-                      isAnneeEnCours
-                        ? anneeScolaireEncours.Periodicite
-                        : AnneeScolaire.Periodicite
-                    }
-                    required
-                  />
-                </div>
               </div>
-              <div className='flex justify-between gap-4'>
+              <div className="flex justify-between gap-4">
                 <Button
-                  type='submit'
-                  size='lg'
+                  type="submit"
+                  size="lg"
                   disabled={isAnneeEnCours}
-                  className='w-1/2 bg-blue-600 text-white rounded-md h-[50px]'
+                  className="w-1/2 bg-blue-600 text-white rounded-md h-[50px]"
                 >
                   Enregistrer l'année scolaire
                 </Button>
                 {isAnneeEnCours && (
                   <Button
-                    type='reset'
-                    size='lg'
+                    type="reset"
+                    size="lg"
                     onClick={marqueeAnneeScolaireAsTerminee}
-                    className='
+                    className="
                     bg-red-600
                     text-white 
                       rounded-mds
                       h-[50px] 
                       w-1/2
                     hover:bg-red-500
-                    '
+                    "
                   >
                     Marquer l'année en cours comme terminé
                   </Button>
@@ -244,15 +248,15 @@ const AnneeScolaire = () => {
           <div>
             <Label>Saisissez {anneeScolaireEncours.Annee} dans ce champ</Label>
             <Input
-              type='text'
+              type="text"
               onChange={(e) => setConfirmAnnee(e.target.value)}
               value={confirmAnnee}
-              className='my-5'
+              className="my-5"
               required={true}
               autofocus={true}
             />
           </div>
-          <Button className='bg-red-700 text-white hover:bg-red-600'>
+          <Button className="bg-red-700 text-white hover:bg-red-600">
             Confirmer
           </Button>
         </form>

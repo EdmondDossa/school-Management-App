@@ -30,12 +30,7 @@ import {
   TableRow,
 } from "../../components/CTable.jsx";
 
-import {
-  capitalize,
-  electronConfirm,
-  getAnneeScolaire,
-  getEtablissement,
-} from "../../utils/";
+import { capitalize, electronConfirm, getAnneeScolaire } from "../../utils/";
 
 const Professeur = () => {
   const [Professeurs, setProfesseurs] = useState([]);
@@ -66,9 +61,8 @@ const Professeur = () => {
 
   const fetchProfesseurs = async () => {
     try {
-      const { NumEtabli } = await getEtablissement();
-      setProfesseur({ ...professeur, NumEtabli });
-      let results = await ProfesseurService.getAllProfesseurs(NumEtabli);
+      setProfesseur({ ...professeur });
+      let results = await ProfesseurService.getAllProfesseurs();
       setProfesseurs(results);
     } catch (error) {
       toast.error("Erreur lors du chargement des professeurs");
@@ -78,8 +72,7 @@ const Professeur = () => {
   };
 
   const fetchMatieres = async () => {
-    const { NumEtabli } = await getEtablissement();
-    const result = await MatiereService.getAllMatieres(NumEtabli);
+    const result = await MatiereService.getAllMatieres();
     setMatieres(result);
   };
 
@@ -88,7 +81,6 @@ const Professeur = () => {
     setOpenProfInfoModal(false);
     setProfesseur({
       ...initialValues,
-      NumEtabli: professeur.NumEtabli,
     });
   };
 
@@ -100,10 +92,7 @@ const Professeur = () => {
       let result;
       if (!professeur.NumProf) {
         //creation du professeur
-        if (!professeur.NumEtabli) {
-          const { NumEtabli } = await getEtablissement();
-          professeur.NumEtabli = NumEtabli;
-        }
+
         result = await ProfesseurService.createProfesseur(professeur);
       } else {
         result = await ProfesseurService.updateProfesseur(professeur);

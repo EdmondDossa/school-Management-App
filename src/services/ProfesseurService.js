@@ -2,9 +2,9 @@ import Professeur from "../models/Professeur.js";
 import profMatieresService from "../services/profMatieresService.js";
 
 class ProfesseurService {
-  static async getAllProfesseurs(numEtabli) {
-    const sql = "SELECT * FROM professeurs where NumEtabli = ?";
-    const { data: rows } = await window.electronAPI.db.query(sql, [numEtabli]);
+  static async getAllProfesseurs() {
+    const sql = "SELECT * FROM professeurs";
+    const { data: rows } = await window.electronAPI.db.query(sql);
     let professeurs = [];
     for(const row of rows){
       let matieres = await profMatieresService.getProfMatieres(row.NumProf);
@@ -61,7 +61,7 @@ class ProfesseurService {
 
   static async createProfesseur(professeur) {
     const sql =
-      "INSERT INTO professeurs (NumProf, NomProf, PrenomsProf, Sexe, Adresse, Telephone, Email, DateNaissance, LieuNaissance, Nationalite, NumEtabli) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+      "INSERT INTO professeurs (NumProf, NomProf, PrenomsProf, Sexe, Adresse, Telephone, Email, DateNaissance, LieuNaissance, Nationalite) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     const result = await window.electronAPI.db.query(sql, [
       professeur.NomProf,
       professeur.PrenomsProf,
@@ -71,8 +71,7 @@ class ProfesseurService {
       professeur.Email,
       professeur.DateNaissance,
       professeur.LieuNaissance,
-      professeur.Nationalite,
-      professeur.NumEtabli,
+      professeur.Nationalite
     ]);
     return result;
   }

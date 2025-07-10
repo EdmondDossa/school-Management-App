@@ -15,8 +15,7 @@ class EleveService {
             row.DateNaissance,
             row.LieuNaissance,
             row.Nationalite,
-            row.ContactParent,
-            row.NumEtabli
+            row.ContactParent
           )
       );
     } else {
@@ -38,14 +37,13 @@ class EleveService {
       row.DateNaissance,
       row.LieuNaissance,
       row.Nationalite,
-      row.ContactParent,
-      row.NumEtabli
+      row.ContactParent
     );
   }
 
   static async createEleve(eleve) {
     const sql =
-      "INSERT INTO eleves (Matricule, Nom, Prenoms, Sexe, DateNaissance, LieuNaissance, Nationalite, ContactParent, NumEtabli) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      "INSERT INTO eleves (Matricule, Nom, Prenoms, Sexe, DateNaissance, LieuNaissance, Nationalite, ContactParent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     const result = await window.electronAPI.db.query(sql, [
       eleve.Matricule,
       eleve.Nom,
@@ -54,8 +52,7 @@ class EleveService {
       eleve.DateNaissance,
       eleve.LieuNaissance,
       eleve.Nationalite,
-      eleve.ContactParent,
-      eleve.NumEtabli,
+      eleve.ContactParent
     ]);
     return result;
   }
@@ -78,7 +75,7 @@ class EleveService {
 
   static async updateEleve(eleve) {
     const sql =
-      "UPDATE eleves SET Nom = ?, Prenoms = ?, Sexe = ?, DateNaissance = ?, LieuNaissance = ?, Nationalite = ?, ContactParent = ?, NumEtabli = ? WHERE Matricule = ?";
+      "UPDATE eleves SET Nom = ?, Prenoms = ?, Sexe = ?, DateNaissance = ?, LieuNaissance = ?, Nationalite = ?, ContactParent = ? WHERE Matricule = ?";
     const result = await window.electronAPI.db.query(sql, [
       eleve.Nom,
       eleve.Prenoms,
@@ -87,7 +84,6 @@ class EleveService {
       eleve.LieuNaissance,
       eleve.Nationalite,
       eleve.ContactParent,
-      eleve.NumEtabli,
       eleve.Matricule,
     ]);
     return result;

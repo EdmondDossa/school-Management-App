@@ -8,7 +8,6 @@ import {
   AnneeScolaireService,
   ClasseService,
   EtablissementService,
-  PeriodeService,
   InscriptionService,
   ProfesseurService,
 } from "../../../services";
@@ -36,9 +35,7 @@ const Dashboard = () => {
 
   const loadDefaultAppData = async () => {
     const etablissements = await EtablissementService.getAllEtablissements();
-    const periodes = await PeriodeService.getAllPeriodes();
     await window.electronAPI.store.set("etablissements", etablissements);
-    await window.electronAPI.store.set("periodes", periodes);
     let anneeScolaires = [];
 
     if (etablissements.length > 0) {
@@ -46,18 +43,12 @@ const Dashboard = () => {
       setEtablissement(etablissement);
       await window.electronAPI.store.set("etablissement", { ...etablissement });
 
-      const res = await AnneeScolaireService.getAllAnneesScolaires(
-        etablissement.NumEtabli
-      );
+      const res = await AnneeScolaireService.getAllAnneesScolaires();
       anneeScolaires = res.data;
-      const classes = await ClasseService.getAllClasses(
-        etablissement.NumEtabli
-      );
+      const classes = await ClasseService.getAllClasses();
       setNombreClasses(classes.length);
 
-      const professeurs = await ProfesseurService.getAllProfesseurs(
-        etablissement.NumEtabli
-      );
+      const professeurs = await ProfesseurService.getAllProfesseurs();
       setNombreProfesseurs(professeurs.length);
     } else {
       await window.electronAPI.store.set("etablissement", {
@@ -98,7 +89,17 @@ const Dashboard = () => {
 
       await window.electronAPI.store.set("anneeScolaires", anneeScolaires);
       const periode = await detectPeriodeActuelle();
-      await window.electronAPI.store.set("periodeEncours", periode);
+      if (
+        [
+          "1er Semestre",
+          "2ème Semestre",
+          "1er Trimestre",
+          "2ème Trimestre",
+          "3ème Trimestre",
+        ].includes(periode)
+      ) {
+        await window.electronAPI.store.set("periodeEncours", periode);
+      }
     } else {
       await window.electronAPI.store.set("anneeScolaireEncours", {
         Annee: null,
@@ -109,12 +110,6 @@ const Dashboard = () => {
       await window.electronAPI.store.set("periodeEncours", {});
       await window.electronAPI.store.set("anneeScolaires", []);
     }
-
-    if (periodes.length > 0) {
-      await window.electronAPI.store.set("periodes", periodes);
-    } else {
-      await window.electronAPI.store.set("periodes", []);
-    }
   };
 
   useEffect(() => {
@@ -122,21 +117,21 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <main className='container mx-auto py-8'>
-      <h1 className='text-3xl font-bold mb-8'>Tableau de bord</h1>
+    <main className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Tableau de bord</h1>
 
-      <div className='grid gap-4 md:grid-cols-2'>
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Établissement</CardTitle>
-            <School className='h-4 w-4 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Établissement</CardTitle>
+            <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {!etablissement && (
-              <div className='text-sm text-muted-foreground'>Non configuré</div>
+              <div className="text-sm text-muted-foreground">Non configuré</div>
             )}
             {etablissement && (
-              <div className='text-sm text-muted-foreground'>
+              <div className="text-sm text-muted-foreground">
                 <b>Nom: </b> {etablissement.NomEtabli} <br />
                 <b>Adresse: </b> {etablissement.Adresse} <br />
                 <b>Telephone: </b> {etablissement.Telephone} <br />
@@ -146,69 +141,69 @@ const Dashboard = () => {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Total Élèves</CardTitle>
-            <GraduationCap className='h-4 w-4 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Élèves</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'> {nombreEleves}</div>
+            <div className="text-2xl font-bold"> {nombreEleves}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Classes</CardTitle>
-            <Users className='h-4 w-4 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Classes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>{nombreClasses}</div>
+            <div className="text-2xl font-bold">{nombreClasses}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Professeurs</CardTitle>
-            <Speech className='h-4 w-4 text-muted-foreground' />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Professeurs</CardTitle>
+            <Speech className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className='text-2xl font-bold'>{nombreProfesseurs}</div>
+            <div className="text-2xl font-bold">{nombreProfesseurs}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className='mt-8'>
-        <h2 className='text-xl font-semibold mb-4'>Actions rapides</h2>
-        <div className='flex flex-wrap gap-4 md:grid-cols-2 lg:grid-cols-4'>
-          <Link to='/etablissements'>
-            <Card className='cursor-pointer hover:bg-gray-50 transition-colors'>
-              <CardHeader className='flex flex-row items-center gap-4'>
-                <School className='h-5 w-5 text-primary' />
-                <CardTitle className='text-sm'>
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Actions rapides</h2>
+        <div className="flex flex-wrap gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Link to="/etablissements">
+            <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <School className="h-5 w-5 text-primary" />
+                <CardTitle className="text-sm">
                   Configurer l'établissement
                 </CardTitle>
               </CardHeader>
             </Card>
           </Link>
-          <Link to='/classes'>
-            <Card className='cursor-pointer hover:bg-gray-50 transition-colors'>
-              <CardHeader className='flex flex-row items-center gap-4'>
-                <Users className='h-5 w-5 text-primary' />
-                <CardTitle className='text-sm'>Ajouter une classe</CardTitle>
+          <Link to="/classes">
+            <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <Users className="h-5 w-5 text-primary" />
+                <CardTitle className="text-sm">Ajouter une classe</CardTitle>
               </CardHeader>
             </Card>
           </Link>
-          <Link to='/eleves'>
-            <Card className='cursor-pointer hover:bg-gray-50 transition-colors'>
-              <CardHeader className='flex flex-row items-center gap-4'>
-                <GraduationCap className='h-5 w-5 text-primary' />
-                <CardTitle className='text-sm'>Inscrire un élève</CardTitle>
+          <Link to="/eleves">
+            <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                <CardTitle className="text-sm">Inscrire un élève</CardTitle>
               </CardHeader>
             </Card>
           </Link>
-          <Link to='/annees-scolaires'>
-            <Card className='cursor-pointer hover:bg-gray-50 transition-colors'>
-              <CardHeader className='flex flex-row items-center gap-4'>
-                <CalendarDays className='h-5 w-5 text-primary' />
-                <CardTitle className='text-sm'>
+          <Link to="/annees-scolaires">
+            <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <CalendarDays className="h-5 w-5 text-primary" />
+                <CardTitle className="text-sm">
                   Gérer l'année scolaire
                 </CardTitle>
               </CardHeader>

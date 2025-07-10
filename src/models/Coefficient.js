@@ -1,8 +1,7 @@
 class Coefficient {
-    constructor(codMat, numEtablissement, annee, coef) {
+    constructor(codMat, annee, coef) {
         this.codMat = codMat;
         this.coef = coef;
-        this.numEtablissement = numEtablissement;
         this.annee = annee;
     }
 }
