@@ -341,7 +341,7 @@ const ElevesList = () => {
           </span>
           <Tooltip anchorSelect="#addEleve" content="Ajouter un élève" />
         </div>
-        {!optimizedSearchEleve && !classeFilter && (
+        {!optimizedSearchEleve && !classeFilter && eleves.length > 0 && (
           <span className="fixed bottom-1">
             {" "}
             <Pagination

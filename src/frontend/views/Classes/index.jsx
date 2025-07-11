@@ -4,13 +4,17 @@ import ClasseService from "../../../services/ClasseService.js";
 import { Modal, Form } from "../../components";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import AnneeScolaireService from "../../../services/AnneeScolaireService.js";
+import {
+  BookOpen,
+  Edit,
+  Users,
+  Delete,
+  EllipsisVertical,
+  Milestone,
+} from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import { useNavigate } from "react-router-dom";
 import ExtractElevesButton from "../../components/ExtractElevesButton.jsx";
-import { Tooltip } from "react-tooltip";
-import EleveService from "../../../services/EleveService.js";
-import InscriptionService from "../../../services/InscriptionService.js";
-import { getAnneeScolaire } from "../../utils/index.js";
 
 import {
   Card,
@@ -21,14 +25,6 @@ import {
 } from "../../components/Card.jsx";
 
 import {
-  BookOpen,
-  Edit,
-  Users,
-  Delete,
-  EllipsisVertical,
-} from "lucide-react";
-
-import {
   Table,
   TableBody,
   TableCell,
@@ -36,9 +32,14 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
+import { Tooltip } from "react-tooltip";
+import EleveService from "../../../services/EleveService.js";
+import InscriptionService from "../../../services/InscriptionService.js";
+import { getAnneeScolaire } from "../../utils/index.js";
+import { HiLightBulb } from "react-icons/hi";
 
 const classFields = [
-  { name: "NomClass", label: "Nom de la Classe", type: "text",required:true },
+  { name: "NomClass", label: "Nom de la Classe", type: "text" },
   {
     name: "Promotion",
     label: "Promotion de la classe",
@@ -201,8 +202,6 @@ const ClassesList = () => {
     } catch (error) {
       console.log(error);
       toast.error("Une erreur est survenue lors de l'import");
-    }finally{
-      await fetchEffectifsParClasse();
     }
   };
 
@@ -267,7 +266,7 @@ const ClassesList = () => {
                         <TableCell>{classe.Promotion}</TableCell>
                         <TableCell>
                           {" "}
-                          {effectifsParClasse[classe.NumClass] || 0}{" "}
+                          {effectifsParClasse[classe.NumClass]}{" "}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -320,7 +319,7 @@ const ClassesList = () => {
                               <Tooltip
                                 anchorSelect={`#more-${index}`}
                                 clickable
-                                className="w-[190px] opacity-100 card shadow-lg px-0  gap-2 bg-white z-20 "
+                                className="w-[190px] opacity-100 card shadow-lg p-0 bg-white z-20 border-[1px] border-gray-300"
                                 openOnClick
                                 place="right-left"
                                 noArrow
@@ -328,16 +327,15 @@ const ClassesList = () => {
                                 positionStrategy="fixed"
                               >
                                 <div>
-                                  <h2 className="text-gray-500 text-[16px] mb-3 ">
+                                  <h2 className="text-white font-bold text-sm border-t-2 border-gray-300 py-2 bg-gray-500">
                                     Options
                                   </h2>
                                 </div>
-                                <hr />
-                                <div className="my-2">
+                                <div className="border-y-2  border-gray-300">
                                   <Button
                                     variant="secondary"
                                     size="sm"
-                                    className="mb-2 hover:text-white hover:bg-red-500 py-4"
+                                    className="w-full rounded-none bg-white  hover:text-white hover:bg-red-500 py-5"
                                     onClick={() =>
                                       handleDelete(classe.NumClass)
                                     }
@@ -346,16 +344,26 @@ const ClassesList = () => {
                                     Supprimer classe
                                   </Button>
                                 </div>
-                                <div className="mt-2">
-                                  <hr />
+                                <div className="border-b-2  border-gray-300">
                                   <ExtractElevesButton
-                                    className="mt-2 hover:text-white hover:bg-emerald-600"
+                                    className="w-full rounded-none bg-white py-0 hover:text-white hover:bg-emerald-600"
                                     buttonText="Importer les élèves "
                                     onExtract={(eleves) =>
                                       handleExtraction(eleves, classe.NumClass)
                                     }
                                     onError={(err) => toast.error(err.message)}
                                   />
+                                </div>
+                                <div className="border-gray-300">
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="w-full rounded-none bg-white  hover:text-white transition hover:bg-blue-500 py-5"
+                                    onClick={()=>{}}
+                                  >
+                                    <HiLightBulb className="h-4 w-4 mr-2 text-blue-300" />
+                                    Notes/Inscriptions
+                                  </Button>
                                 </div>
                               </Tooltip>
                             </div>
