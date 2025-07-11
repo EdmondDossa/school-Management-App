@@ -59,6 +59,7 @@ const ClassesList = () => {
   const navigate = useNavigate();
 
   const [classes, setClasses] = useState([]);
+  const [effectifsParClasse, setEffectifsParClasse] = useState({});
   const [classe, setClasse] = useState({
     NumClass: null,
     NomClass: "",
@@ -80,6 +81,17 @@ const ClassesList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchEffectifsParClasse = async () => {
+    const { Annee } = await getAnneeScolaire();
+    const rawResult = await InscriptionService.getEffectifsByClasse(Annee);
+    //on transforme le resulat sous forme d'un objet clé:NumClass/valeur:effectif afin de faciliter son acces dans le composant jsx
+    let result = {};
+    rawResult.forEach((element) => {
+      result = { ...result, ...element };
+    });
+    setEffectifsParClasse(result);
   };
 
   const fetchAllAnneesScolaires = async () => {
@@ -148,34 +160,46 @@ const ClassesList = () => {
   };
 
   const handleExtraction = async (eleves, numclass) => {
-    console.log(numclass, eleves);
-
     try {
+      //récupérer le nombre d'élèves déjà enrégistrés afin de pouvoir constatés les changements
+      const totalAvant = await EleveService.getTotalEleves();
       //on enrégistre les élèves s'ils n'existaient pas
       let result = await EleveService.insertManyEleves(eleves);
+      const totalApres = await EleveService.getTotalEleves();
       if (result.success) {
         toast.success(
-          `Import de ${result.data.changes} / ${eleves.length} élèves de la liste
+          `Import de ${+totalApres - +totalAvant} / ${
+            eleves.length
+          } élèves de la liste
           `,
           { duration: 5000 }
         );
+
         //on fait l'inscription des élèves dans la classe
         const lastInsertedMatricules = eleves.map((e) => e.Matricule);
         const { Annee } = await getAnneeScolaire();
 
+        const totalInscritsAvant = await InscriptionService.getTotalInscrits();
         result = await InscriptionService.insertManyInClass(
           lastInsertedMatricules,
           numclass,
           Annee
         );
+        const totalInscritsApres = await InscriptionService.getTotalInscrits();
+
+        if (result.success) {
+          toast.success(
+            `${
+              +totalInscritsApres - +totalInscritsAvant
+            } nouvelles inscriptions`,
+            {
+              duration: 5000,
+            }
+          );
+        } else toast.error("Une erreur est survenue lors de l'import");
       }
-      if (result.success) {
-        toast.success(`${result.data.changes} nouvelles inscriptions`, {
-          duration: 5000,
-        });
-      } else toast.error("Une erreur est survenue lors de l'import");
     } catch (error) {
-      console.log(err);
+      console.log(error);
       toast.error("Une erreur est survenue lors de l'import");
     }
   };
@@ -183,6 +207,7 @@ const ClassesList = () => {
   useEffect(() => {
     fetchClasses();
     fetchAllAnneesScolaires();
+    fetchEffectifsParClasse();
   }, []);
 
   if (loading) {
@@ -238,7 +263,10 @@ const ClassesList = () => {
                       <TableRow key={classe.NumClass}>
                         <TableCell>{classe.NomClass}</TableCell>
                         <TableCell>{classe.Promotion}</TableCell>
-                        <TableCell>0</TableCell>
+                        <TableCell>
+                          {" "}
+                          {effectifsParClasse[classe.NumClass]}{" "}
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <div>

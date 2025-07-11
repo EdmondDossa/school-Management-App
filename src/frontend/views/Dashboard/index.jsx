@@ -80,12 +80,8 @@ const Dashboard = () => {
         displayAnneeAnterieureToast(localAnneeScolaire.Annee);
       }
 
-      const nombreInscriptionsEnCours =
-        await InscriptionService.getInscriptionByAnneeScolaire(
-          anneeScolaire.id
-        );
-      if (nombreInscriptionsEnCours?.length > 0)
-        setNombreEleves(nombreInscriptionsEnCours.length);
+      const nombreInscriptionsEnCours = await InscriptionService.getTotalInscrits(localAnneeScolaire?.AnneeScolaire);
+      setNombreEleves(nombreInscriptionsEnCours || 0);
 
       await window.electronAPI.store.set("anneeScolaires", anneeScolaires);
       const periode = await detectPeriodeActuelle();

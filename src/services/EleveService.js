@@ -24,6 +24,12 @@ class EleveService {
     }
   }
 
+  static async getTotalEleves(){
+    const sql = "SELECT COUNT(Matricule) as total FROM eleves";
+    const rows = await window.electronAPI.db.query(sql);
+    return rows.data[0].total;
+  }
+
   static async getEleveByMatricule(matricule) {
     const sql = "SELECT * FROM eleves WHERE Matricule = ?";
     const { data: rows } = await window.electronAPI.db.query(sql, [matricule]);
@@ -68,8 +74,6 @@ class EleveService {
         `;
         
         const result = await window.electronAPI.db.query(sql);
-        console.log(result);
-
         return result;
   }
 

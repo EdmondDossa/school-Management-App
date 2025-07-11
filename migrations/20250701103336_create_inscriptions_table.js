@@ -19,7 +19,7 @@ exports.up = function (knex) {
       .foreign("AnneeScolaire")
       .references("Annee")
       .inTable("annees_scolaires");
-    table.unique(["Matricule", "NumClass", "AnneeScolaire"]);
+    table.unique(["Matricule","AnneeScolaire"]);
   });
 };
 

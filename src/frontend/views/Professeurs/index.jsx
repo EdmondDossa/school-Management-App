@@ -92,7 +92,6 @@ const Professeur = () => {
       let result;
       if (!professeur.NumProf) {
         //creation du professeur
-
         result = await ProfesseurService.createProfesseur(professeur);
       } else {
         result = await ProfesseurService.updateProfesseur(professeur);
@@ -101,8 +100,10 @@ const Professeur = () => {
       if (result.success) {
         //associer les matieres aux professeurs
         if (!professeur.NumProf) {
+          //on a besoin de l'id du dernier prof inscrit afin de l'enregitrer dans la table profmatieres
+          const lastProfInserted = await ProfesseurService.getLastInsertedProf();
           await profMatieresService.defineMatieresForProf(
-            result.data.lastID,
+            lastProfInserted.NumProf,
             professeur.matieres ?? []
           );
         } else {
@@ -212,7 +213,7 @@ const Professeur = () => {
                 <CardDescription>Gérez les professeurs</CardDescription>
               </CardHeader>
               <CardContent className="overflow-auto">
-                <Table className="[&_td]:text-left">
+                <Table>
                   <TableHeader>
                     <TableRow>
                       {tableHeadFields.map((field) => (

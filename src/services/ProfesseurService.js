@@ -94,6 +94,12 @@ class ProfesseurService {
     return result;
   }
 
+  static async getLastInsertedProf(){
+    const sql = "SELECT NumProf FROM professeurs ORDER BY created_at DESC LIMIT 1";
+    const result = await window.electronAPI.db.query(sql);
+    return result.data[0];
+  }
+
   static async deleteProfesseur(numProf) {
     const sql = "DELETE FROM professeurs WHERE NumProf = ?";
     const result = await window.electronAPI.db.query(sql, [numProf]);

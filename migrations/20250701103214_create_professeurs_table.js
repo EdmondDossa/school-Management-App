@@ -19,6 +19,8 @@ exports.up = function (knex) {
       .foreign("NumEtabli")
       .references("NumEtabli")
       .inTable("etablissements");
+    table.timestamp("created_at").defaultTo(knex.fn.now());
+
   });
 };
 
