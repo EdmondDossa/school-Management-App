@@ -14,6 +14,8 @@ import { eleveFields, eleveMatriculeField } from "../../utils/form-fields.js";
 import InscriptionService from "../../../services/InscriptionService.js";
 import { FaCirclePlus } from "react-icons/fa6";
 import { Tooltip } from "react-tooltip";
+import { Check, Edit, Eye, Info, Search, Delete } from "lucide-react";
+import Pagination from "../../components/Pagination.jsx";
 
 import {
   Card,
@@ -31,9 +33,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
-
-import { Check, Edit, Eye, Info, Search, Delete } from "lucide-react";
-import Pagination from "../../components/Pagination.jsx";
 
 const tableHeadFields = ["Numéro", "Matricule", "Nom", "Prenoms", "Actions"];
 
@@ -98,7 +97,7 @@ const ElevesList = () => {
       const eleves = await EleveService.getEleveByClasse(classeFilter);
       setEleves(eleves);
     } else {
-      if (eleves.length === 0) fetchEleves();
+      fetchEleves();
     }
   }
 
@@ -204,7 +203,7 @@ const ElevesList = () => {
   }
 
   return (
-    <>
+    <section>
       <div className="flex flex-wrap justify-between content-center gap-3 items-center">
         <div className="flex items-center content-center space-x-2 ">
           <span>
@@ -251,7 +250,7 @@ const ElevesList = () => {
             />
           </div>
         </div>
-        <div className="grid gap-6">
+        <div className="grid gap-6  max-h-[70vh] overflow-y-auto">
           <Card className="m-auto min-w-[800px]">
             <CardHeader>
               <CardTitle>Liste des Élèves</CardTitle>
@@ -334,7 +333,7 @@ const ElevesList = () => {
         <div>
           <span
             id="addEleve"
-            className="fixed text-[35px] cursor-pointer text-green-600 right-10 bottom-10 shadow-lg"
+            className="fixed text-[35px] cursor-pointer text-green-600 right-10 bottom-10"
             onClick={() => setOpenFormModal(true)}
           >
             {" "}
@@ -342,12 +341,15 @@ const ElevesList = () => {
           </span>
           <Tooltip anchorSelect="#addEleve" content="Ajouter un élève" />
         </div>
-        {!optimizedSearchEleve && (
-          <Pagination
-            onPageChange={fetchPaginatedEleves}
-            totalPages={+pagination.total}
-            currentPage={+pagination.currentPage}
-          />
+        {!optimizedSearchEleve && !classeFilter && (
+          <span className="fixed bottom-1">
+            {" "}
+            <Pagination
+              onPageChange={fetchPaginatedEleves}
+              totalPages={+pagination.total}
+              currentPage={+pagination.currentPage}
+            />
+          </span>
         )}
       </main>
       {/* Modal for informations */}
@@ -428,7 +430,7 @@ const ElevesList = () => {
           </TableBody>
         </Table>
       </Modal>
-    </>
+    </section>
   );
 };
 
