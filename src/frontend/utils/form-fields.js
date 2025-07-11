@@ -27,6 +27,24 @@ export const professeurFields = [
   { name: "Nationalite", label: "Nationalite", type: "text"  },
 ];
 
+export const eleveFields = [
+  { name: "Nom", label: "Nom", type: "text" },
+  { name: "Prenoms", label: "Prénoms", type: "text" },
+  {
+    name: "Sexe",
+    label: "Sexe",
+    type: "select",
+    options: [
+      { label: "Masculin", value: "M" },
+      { label: "Féminin", value: "F" },
+    ],
+  },
+  { name: "DateNaissance", label: "Date de naissance", type: "date" },
+  { name: "LieuNaissance", label: "Lieu de naissance", type: "text" },
+  { name: "Nationalite", label: "Nationalité", type: "text" },
+  { name: "ContactParent", label: "Contact de l'étudiant", type: "tel" },
+];
+
 
 export const classFields = [
   { name: "NomMat", label: "Nom de la Matière", type: "text",required:true },
