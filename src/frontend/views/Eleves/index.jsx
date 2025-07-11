@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import EleveService from "../../../services/EleveService";
 import { toast } from "react-hot-toast";
 import { Button } from "../../components/Bouton.jsx";
-import { Check, Edit, Eye, Info, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import useDebounce from "../../hooks/use-debounce.js";
 import Input from "../../components/Input.jsx";
@@ -10,6 +9,11 @@ import { Users } from "lucide-react";
 import Modal from "../../components/Modal.jsx";
 import Form from "../../components/Form.jsx";
 import ClasseService from "../../../services/ClasseService.js";
+import { electronConfirm, getAnneeScolaire } from "../../utils/";
+import { eleveFields, eleveMatriculeField } from "../../utils/form-fields.js";
+import InscriptionService from "../../../services/InscriptionService.js";
+import { FaCirclePlus } from "react-icons/fa6";
+import { Tooltip } from "react-tooltip";
 
 import {
   Card,
@@ -27,39 +31,59 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
-import { eleveFields } from "../../utils/form-fields.js";
+
+import { Check, Edit, Eye, Info, Search, Delete } from "lucide-react";
+import Pagination from "../../components/Pagination.jsx";
 
 const tableHeadFields = ["Numéro", "Matricule", "Nom", "Prenoms", "Actions"];
 
 const ElevesList = () => {
   const [eleves, setEleves] = useState([]);
-  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({});
+  const MAX_ELEVE_BY_PAGE = 20;
   const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
-  const [eleve, setEleve] = useState({});
 
+  const initialValues = {
+    Matricule: "",
+    Sexe: "M",
+    Nom: "",
+    Prenoms: "",
+    ContactParent: "",
+  };
+  const [eleve, setEleve] = useState(initialValues);
+  const [anneeEnCours, setAnneeEnCours] = useState("");
 
-  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openFormModal, setOpenFormModal] = useState(false);
   const [openInfoModal, setOpenInfoModal] = useState(false);
+  const [openEleveInfoModal, setOpenEleveInfoModal] = useState(false);
 
   //to handle students research in the search box
   const [searchEleve, setSearchEleve] = useState("");
   const optimizedSearchEleve = useDebounce(searchEleve, 500);
   const [classes, setClasses] = useState([]);
   const [classeFilter, setClasseForFilter] = useState("");
+  const [formFields, setFormFields] = useState(eleveFields);
+
+  async function fetchPaginatedEleves(currentPage = 1) {
+    const result = await EleveService.getPaginatedEleves(
+      currentPage,
+      MAX_ELEVE_BY_PAGE
+    );
+    setEleves(result.eleves);
+    setPagination({ currentPage: result.currentPage, total: result.total });
+  }
 
   async function fetchEleves() {
     setLoading(true);
-    const result = await EleveService.getAllEleves();
-    setEleves(result);
+    await fetchPaginatedEleves();
     setLoading(false);
   }
 
   async function fetchAppData() {
-    const etablissement = await window.electronAPI.store.get("etablissement");
-    setEleve({ ...eleve, NumEtabli: etablissement.NumEtabli });
-    const res = await ClasseService.getAllClasses(etablissement.NumEtabli);
+    const res = await ClasseService.getAllClasses();
     setClasses(res);
+    const { Annee } = await getAnneeScolaire();
+    setAnneeEnCours(Annee);
   }
 
   async function fetchEleveForSearch() {
@@ -78,31 +102,76 @@ const ElevesList = () => {
     }
   }
 
-  const handleEdit = (matricule) => {
+  function handleEdit(matricule) {
     EleveService.getEleveByMatricule(matricule).then((result) => {
       if (result != null) {
         setEleve(result);
-        setOpenEditModal(true);
+        setOpenFormModal(true);
       } else {
         toast.error("Erreur lors de la modification");
       }
     });
-  };
+  }
+
+  async function handleDelete(matricule) {
+    let result = null;
+    const confirmDelete = await electronConfirm(
+      "Êtes-vous sûr de vouloir supprimer cet élève ?"
+    );
+    if (confirmDelete) {
+      try {
+        result = await EleveService.deleteEleve(matricule);
+      } catch (error) {
+        console.log(error);
+        toast.error("Une erreur est survenue lors de la suppression.");
+      } finally {
+        if (result.success) {
+          //on le supprime de la table des inscriptions également
+          await InscriptionService.deleteInscriptionByMatricule(
+            matricule,
+            anneeEnCours
+          );
+          await fetchEleves();
+        } else {
+          toast.error("Une erreur est survenue lors de la suppression.");
+        }
+      }
+    }
+  }
+
+  async function displayEleve(Matricule) {
+    const eleve = await EleveService.getEleveByMatricule(Matricule);
+    const details = await InscriptionService.getElevesInformations(
+      Matricule,
+      anneeEnCours
+    );
+    setEleve({ ...eleve, ...details });
+    setOpenEleveInfoModal(true);
+  }
 
   const handleSearchBoxChange = (e) => setSearchEleve(e.target.value);
 
-  async function handleSubmit(eleve){
-    console.log(eleve);
+  function handleFormModalClose() {
+    setOpenFormModal(false);
+    setEleve(initialValues);
+  }
 
+  async function handleSubmit(eleve) {
     let result;
     try {
-      result = EleveService.updateEleve(eleve);
+      if (formFields[0].name !== "Matricule") {
+        result = await EleveService.updateEleve(eleve);
+      } else {
+        result = await EleveService.createEleve(eleve);
+      }
+      await fetchEleves();
     } catch (error) {
       console.log(error);
-      toast.error("Une erreur est survenue lors de la modification")
-    }finally{
-      if(result.success) toast.success("Modification effectuée");
+      toast.error("Une erreur est survenue lors de la modification");
+    } finally {
+      if (result.success) toast.success("Modification effectuée");
       else toast.error("Une erreur est survenue");
+      handleFormModalClose();
     }
   }
 
@@ -112,10 +181,10 @@ const ElevesList = () => {
 
   useEffect(() => {
     if (optimizedSearchEleve) {
-        setClasseForFilter("");
-        fetchEleveForSearch(optimizedSearchEleve);
+      setClasseForFilter("");
+      fetchEleveForSearch(optimizedSearchEleve);
     } else {
-       if(!classeFilter) fetchEleves();
+      if (!classeFilter) fetchEleves();
     }
   }, [optimizedSearchEleve]);
 
@@ -123,33 +192,40 @@ const ElevesList = () => {
     filterEleveByClasse();
   }, [classeFilter]);
 
+  useEffect(() => {
+    //si il s'agit d'une édition d'eleves le champ matricule ne s'affiche pas.
+    //sinon il s'affiche pour qu'on puisse lui en attribuer un
+    if (!eleve.Matricule) setFormFields([eleveMatriculeField, ...eleveFields]);
+    else setFormFields(eleveFields);
+  }, [eleve.Matricule]);
+
   if (loading) {
     return <div>Chargement...</div>;
   }
 
   return (
     <>
-      <div className='flex flex-wrap justify-between content-center gap-3 items-center'>
-        <div className='flex items-center content-center space-x-2 '>
+      <div className="flex flex-wrap justify-between content-center gap-3 items-center">
+        <div className="flex items-center content-center space-x-2 ">
           <span>
             {" "}
-            <Search className='translate-x-[34px]' />{" "}
+            <Search className="translate-x-[34px]" />{" "}
           </span>
           <Input
-            type='search'
-            className='ps-8'
+            type="search"
+            className="ps-8"
             value={searchEleve}
-            placeholder='Rechercher un eleve...'
+            placeholder="Rechercher un eleve..."
             onChange={handleSearchBoxChange}
           />
         </div>
-        <div className='place-content-center'>
+        <div className="place-content-center">
           <select
-            name='classes'
-            id='classes'
+            name="classes"
+            id="classes"
             value={classeFilter}
             onChange={(e) => setClasseForFilter(e.target.value)}
-            className='py-3 border-2  border-gray-500 outline-none bg-blue-50 px-2 rounded-md hover:outline-none text-md text-gray-500'
+            className="py-3 border-2  border-gray-500 outline-none bg-blue-50 px-2 rounded-md hover:outline-none text-md text-gray-500"
           >
             <option value=""> Filtrer par classe </option>
 
@@ -162,27 +238,27 @@ const ElevesList = () => {
           </select>
         </div>
       </div>
-      <main className='container pt-8'>
-        <div className='flex items-center justify-between mb-8'>
-          <div className='flex items-center gap-4'>
-            <Users className='h-8 w-8 text-primary' />
-            <h1 className='text-3xl font-bold'>Gestion des Élèves</h1>
+      <main className="container pt-8 relative">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Users className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">Gestion des Élèves</h1>
           </div>
           <div>
             <Info
-              className='text-emerald-600 cursor-pointer'
+              className="text-emerald-600 cursor-pointer"
               onClick={() => setOpenInfoModal(true)}
             />
           </div>
         </div>
-        <div className='grid gap-6'>
-          <Card className='m-auto min-w-[800px]'>
+        <div className="grid gap-6">
+          <Card className="m-auto min-w-[800px]">
             <CardHeader>
               <CardTitle>Liste des Élèves</CardTitle>
               <CardDescription>Gérez les élèves</CardDescription>
             </CardHeader>
-            <CardContent className='overflow-auto'>
-              <Table className='[&_td]:text-left'>
+            <CardContent className="overflow-auto">
+              <Table>
                 <TableHeader>
                   <TableRow>
                     {tableHeadFields.map((field) => (
@@ -194,37 +270,39 @@ const ElevesList = () => {
                   {eleves.length === 0 && (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
-                        className='text-gray-400 text-lg text-center flex flex-col items-center content-center'
+                        colSpan={5}
+                        className="text-gray-400 text-md text-center"
                       >
-                        <div className='text-center'>
-                          {optimizedSearchEleve
-                            ? `Aucun élève correspondant au terme "${optimizedSearchEleve}"`
-                            : "Aucun élève enregistré pour le moment"}
-                        </div>
+                        {optimizedSearchEleve
+                          ? `Aucun élève correspondant au terme <${optimizedSearchEleve}>`
+                          : "Aucun élève enregistré pour le moment"}
                       </TableCell>
                     </TableRow>
                   )}
                   {eleves?.map((eleve, index) => (
                     <TableRow key={eleve.Matricule}>
-                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>
+                        {index +
+                          1 +
+                          (pagination.currentPage - 1) * MAX_ELEVE_BY_PAGE}
+                      </TableCell>
                       <TableCell>{eleve.Matricule}</TableCell>
                       <TableCell>{eleve.Nom}</TableCell>
-                      <TableCell className='truncate'>
+                      <TableCell className="truncate">
                         {eleve.Prenoms.length < 25
                           ? eleve.Prenoms
                           : eleve.Prenoms.slice(0, 22) + " ..."}
                       </TableCell>
                       <TableCell>
-                        <div className='flex gap-2'>
+                        <div className="flex gap-2">
                           <Button
-                            className='px-3 border-[1px] border-blue-500'
-                            size='sm'
-                            variant='outline'
-                            onClick={() => displayProf(eleve)}
+                            className="px-3 border-[1px] border-blue-500"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => displayEleve(eleve.Matricule)}
                             title="Voir plus d'informations"
                           >
-                            <Eye className='h-4 w-4 text-blue-700' />
+                            <Eye className="h-4 w-4 text-blue-700" />
                           </Button>
                           <Button
                             variant="outline"
@@ -235,6 +313,15 @@ const ElevesList = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="ps-3 pe-4"
+                            title="Supprimer"
+                            onClick={() => handleDelete(eleve.Matricule)}
+                          >
+                            <Delete className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -244,51 +331,102 @@ const ElevesList = () => {
             </CardContent>
           </Card>
         </div>
+        <div>
+          <span
+            id="addEleve"
+            className="fixed text-[35px] cursor-pointer text-green-600 right-10 bottom-10 shadow-lg"
+            onClick={() => setOpenFormModal(true)}
+          >
+            {" "}
+            <FaCirclePlus />{" "}
+          </span>
+          <Tooltip anchorSelect="#addEleve" content="Ajouter un élève" />
+        </div>
+        {!optimizedSearchEleve && (
+          <Pagination
+            onPageChange={fetchPaginatedEleves}
+            totalPages={+pagination.total}
+            currentPage={+pagination.currentPage}
+          />
+        )}
       </main>
       {/* Modal for informations */}
       <Modal
         isOpen={openInfoModal}
         onClose={() => setOpenInfoModal(false)}
-        title='Informations'
+        title="Informations"
       >
-        <div className='flex items-center  text-gray-500'>
+        <div className="flex items-center  text-gray-500">
           <span>
-            <Check className='w-10 h-10' />
+            <Check className="w-10 h-10" />
           </span>
           <p>
             Pour les opérations de modification ou de suppresion ,assurez-vous
-            de les faire aussi sur EDUCMASTER car toutes opérations effectués
-            ici ne seront pas pris en compte directement là-bas.
+            de les faire aussi sur EDUCMASTER car toute opération effectuée ici
+            ne sera pas pris en compte directement.
           </p>
         </div>
 
-        <div className='flex items-center mt-5 text-gray-500'>
+        <div className="flex items-center mt-5 text-gray-500">
           <div>
-            <Check className='w-10 h-10' />
+            <Check className="w-10 h-10" />
           </div>
           <p>
             Pour les opérations d'ajout, rendez-vous dans la section{" "}
-            <Link to='/classes' className=' text-blue-500 font-bold'>
+            <Link to="/classes" className=" text-blue-500 font-bold">
               {" "}
               Classes{" "}
             </Link>{" "}
             puis accéder à une classe pour importer les élèves depuis le fichier
-            pdf obtenu depuis EDUCMASTER .
+            pdf obtenu depuis EDUCMASTER, ou ajouter l'élève ici puis aller
+            l'ajouter manuellement dans sa classe
           </p>
         </div>
-        </Modal>
-        {/* Modal for editing prof informations */}
-        <Modal
-          isOpen={openEditModal}
-          onClose={()=>setOpenEditModal(false)}
-          title={"Modifier les informations de l'élève"}
+      </Modal>
+      {/* Modal for editing/submiting eleves informations */}
+      <Modal
+        isOpen={openFormModal}
+        onClose={() => handleFormModalClose()}
+        title={
+          eleve.Matricule
+            ? "Modifier les informations de l'élève"
+            : "Ajouter un élève"
+        }
       >
         <Form
-          fields={eleveFields}
+          fields={formFields}
           onSubmit={handleSubmit}
           initialValues={eleve}
-          submitLabel={"Modifier"}
+          submitLabel={eleve.Matricule ? "Modifier" : "Ajouter"}
         />
+      </Modal>
+      {/* Modal to display more information about a student */}
+
+      <Modal
+        isOpen={openEleveInfoModal}
+        onClose={() => setOpenEleveInfoModal(false)}
+        title="Informations supplémentaires"
+      >
+        <Table>
+          <TableBody>
+            {eleveFields.map((field, index) => {
+              return (
+                <TableRow key={index}>
+                  <TableHead> {field.label} </TableHead>
+                  <TableCell> {eleve[field.name] || "---"} </TableCell>
+                </TableRow>
+              );
+            })}
+            <TableRow>
+              <TableHead> Classe </TableHead>
+              <TableCell> {eleve.NomClass || "---"} </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableHead> Statut </TableHead>
+              <TableCell> {eleve.Statut || "---"} </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </Modal>
     </>
   );

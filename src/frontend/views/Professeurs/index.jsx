@@ -318,7 +318,7 @@ const Professeur = () => {
                 return (
                   <TableRow key={index}>
                     <TableHead> {field.label} </TableHead>
-                    <TableCell> {professeur[field.name]} </TableCell>
+                    <TableCell> {professeur[field.name] || '---'} </TableCell>
                   </TableRow>
                 );
               }

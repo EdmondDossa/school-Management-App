@@ -4,17 +4,13 @@ import ClasseService from "../../../services/ClasseService.js";
 import { Modal, Form } from "../../components";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import AnneeScolaireService from "../../../services/AnneeScolaireService.js";
-import {
-  BookOpen,
-  Edit,
-  Users,
-  Delete,
-  EllipsisVertical,
-  Milestone,
-} from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import { useNavigate } from "react-router-dom";
 import ExtractElevesButton from "../../components/ExtractElevesButton.jsx";
+import { Tooltip } from "react-tooltip";
+import EleveService from "../../../services/EleveService.js";
+import InscriptionService from "../../../services/InscriptionService.js";
+import { getAnneeScolaire } from "../../utils/index.js";
 
 import {
   Card,
@@ -25,6 +21,14 @@ import {
 } from "../../components/Card.jsx";
 
 import {
+  BookOpen,
+  Edit,
+  Users,
+  Delete,
+  EllipsisVertical,
+} from "lucide-react";
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -32,13 +36,9 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/CTable.jsx";
-import { Tooltip } from "react-tooltip";
-import EleveService from "../../../services/EleveService.js";
-import InscriptionService from "../../../services/InscriptionService.js";
-import { getAnneeScolaire } from "../../utils/index.js";
 
 const classFields = [
-  { name: "NomClass", label: "Nom de la Classe", type: "text" },
+  { name: "NomClass", label: "Nom de la Classe", type: "text",required:true },
   {
     name: "Promotion",
     label: "Promotion de la classe",
@@ -201,6 +201,8 @@ const ClassesList = () => {
     } catch (error) {
       console.log(error);
       toast.error("Une erreur est survenue lors de l'import");
+    }finally{
+      await fetchEffectifsParClasse();
     }
   };
 
@@ -265,7 +267,7 @@ const ClassesList = () => {
                         <TableCell>{classe.Promotion}</TableCell>
                         <TableCell>
                           {" "}
-                          {effectifsParClasse[classe.NumClass]}{" "}
+                          {effectifsParClasse[classe.NumClass] || 0}{" "}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">

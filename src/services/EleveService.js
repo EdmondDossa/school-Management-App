@@ -48,8 +48,12 @@ class EleveService {
   }
 
   static async createEleve(eleve) {
-    const sql =
-      "INSERT INTO eleves (Matricule, Nom, Prenoms, Sexe, DateNaissance, LieuNaissance, Nationalite, ContactParent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    console.log(eleve);
+    const sql = `
+      INSERT INTO eleves
+        (Matricule, Nom, Prenoms, Sexe, DateNaissance, LieuNaissance, Nationalite, ContactParent)
+      VALUES (?,?,?,?,?,?,?,?) ON CONFLICT (Matricule) DO NOTHING
+    `
     const result = await window.electronAPI.db.query(sql, [
       eleve.Matricule,
       eleve.Nom,
@@ -57,8 +61,8 @@ class EleveService {
       eleve.Sexe,
       eleve.DateNaissance,
       eleve.LieuNaissance,
-      eleve.Nationalite,
-      eleve.ContactParent
+      eleve.Nationalite  ?? "",
+      eleve.ContactParent ?? ""
     ]);
     return result;
   }
@@ -112,22 +116,20 @@ class EleveService {
   static async getLastInserted(length){
     const sql = "SELECT Matricule FROM eleves ORDER BY created_at DESC LIMIT ?";
     const result = await window.electronAPI.db.query(sql, [length]);
-    console.log(result);
-    
     return result.data.map((res) => res.Matricule);
   }
+
+  
   static async getPaginatedEleves(page = 1, max = 20){
     const totalElevesQuery = "SELECT COUNT(*) as total FROM eleves";
     const { data } = await window.electronAPI.db.query(totalElevesQuery);
-    const totalEleves = data.total;
+    const totalEleves = data[0].total;
 
     const start = (page - 1)*max;
-    const end = max*page;
-
-    const sql = `SELECT * FROM  eleves LIMIT ${start},${end}`
+    const sql = `SELECT * FROM  eleves LIMIT ${start},${max}`
     const { data: rows } = await window.electronAPI.db.query(sql);
     return {
-      total:totalEleves,
+      total:Math.ceil(totalEleves / max),
       currentPage:page,
       eleves:rows
     };

@@ -35,6 +35,12 @@ class InscriptionService {
     }));
   }
 
+  static async getElevesInformations(Matricule,AnneeScolaire){
+    const sql = "SELECT c.NomClass, i.Statut FROM inscriptions i JOIN classes c ON c.NumClass = i.NumClass WHERE AnneeScolaire = ? AND i.Matricule = ?";
+    const rows = await window.electronAPI.db.query(sql, [AnneeScolaire,Matricule]);
+    return rows.data[0];
+  }
+
   static async getInscriptionByNum(numIns) {
     const sql = "SELECT * FROM inscriptions WHERE Num_Ins = ?";
     const rows = await window.electronAPI.db.query(sql, [numIns]);
@@ -161,6 +167,11 @@ class InscriptionService {
   static async deleteInscription(numIns) {
     const sql = "DELETE FROM inscriptions WHERE Num_Ins = ?";
     const result = await window.electronAPI.db.query(sql, [numIns]);
+    return result;
+  }
+  static async deleteInscriptionByMatricule(matricule,anneeScolaire) {
+    const sql = "DELETE FROM inscriptions WHERE Matricule = ? AND AnneeScolaire = ?";
+    const result = await window.electronAPI.db.query(sql, [matricule,anneeScolaire]);
     return result;
   }
 }
