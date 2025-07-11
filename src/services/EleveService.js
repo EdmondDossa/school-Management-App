@@ -116,6 +116,28 @@ class EleveService {
     
     return result.data.map((res) => res.Matricule);
   }
+  static async getPaginatedEleves(page = 1, max = 20){
+    const totalElevesQuery = "SELECT COUNT(*) as total FROM eleves";
+    const { data } = await window.electronAPI.db.query(totalElevesQuery);
+    const totalEleves = data.total;
+
+    const start = (page - 1)*max;
+    const end = max*page;
+
+    const sql = `SELECT * FROM  eleves LIMIT ${start},${end}`
+    const { data: rows } = await window.electronAPI.db.query(sql);
+    return {
+      total:totalEleves,
+      currentPage:page,
+      eleves:rows
+    };
+  }
+  
+  static async getEleveByClasse(NumClass){
+    const sql = "SELECT * FROM eleves a JOIN inscriptions b ON a.Matricule = b.Matricule WHERE NumClass = ? ";
+    const result = await window.electronAPI.db.query(sql, [NumClass]);
+    return result.data;
+  }
 }
 
 export default EleveService;
