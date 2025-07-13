@@ -101,7 +101,8 @@ const Professeur = () => {
         //associer les matieres aux professeurs
         if (!professeur.NumProf) {
           //on a besoin de l'id du dernier prof inscrit afin de l'enregitrer dans la table profmatieres
-          const lastProfInserted = await ProfesseurService.getLastInsertedProf();
+          const lastProfInserted =
+            await ProfesseurService.getLastInsertedProf();
           await profMatieresService.defineMatieresForProf(
             lastProfInserted.NumProf,
             professeur.matieres ?? []
@@ -194,7 +195,7 @@ const Professeur = () => {
   return (
     <>
       <div>
-        <main className="container pt-8">
+        <main className="pt-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <BookOpen className="h-8 w-8 text-primary" />
@@ -207,7 +208,7 @@ const Professeur = () => {
           </div>
 
           <div className="grid gap-6">
-            <Card className="m-auto min-w-[800px]">
+            <Card className="m-auto w-full">
               <CardHeader>
                 <CardTitle>Liste des Professeurs</CardTitle>
                 <CardDescription>Gérez les professeurs</CardDescription>
@@ -318,7 +319,7 @@ const Professeur = () => {
                 return (
                   <TableRow key={index}>
                     <TableHead> {field.label} </TableHead>
-                    <TableCell> {professeur[field.name] || '---'} </TableCell>
+                    <TableCell> {professeur[field.name] || "---"} </TableCell>
                   </TableRow>
                 );
               }

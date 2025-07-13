@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import EleveService from "../../../services/EleveService";
 import { toast } from "react-hot-toast";
 import { Button } from "../../components/Bouton.jsx";
@@ -13,7 +13,7 @@ import { eleveFields, eleveMatriculeField } from "../../utils/form-fields.js";
 import InscriptionService from "../../../services/InscriptionService.js";
 import { FaCirclePlus } from "react-icons/fa6";
 import { Tooltip } from "react-tooltip";
-import { Check, Edit, Eye, Info, Search, Delete } from "lucide-react";
+import { Check, Edit, Eye, Info, Search, Delete, X } from "lucide-react";
 import Pagination from "../../components/Pagination.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
 
@@ -41,6 +41,7 @@ const ElevesList = () => {
   const [pagination, setPagination] = useState({});
   const MAX_ELEVE_BY_PAGE = 20;
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const initialValues = {
     Matricule: "",
@@ -56,39 +57,99 @@ const ElevesList = () => {
   const [openInfoModal, setOpenInfoModal] = useState(false);
   const [openEleveInfoModal, setOpenEleveInfoModal] = useState(false);
 
-  //to handle students research in the search box
+  // États pour la recherche optimisée
   const [searchEleve, setSearchEleve] = useState("");
+  const [isSearchMode, setIsSearchMode] = useState(false);
   const optimizedSearchEleve = useDebounce(searchEleve, 500);
   const [formFields, setFormFields] = useState(eleveFields);
 
-  async function fetchPaginatedEleves(currentPage = 1) {
-    const result = await EleveService.getPaginatedEleves(
-      currentPage,
-      MAX_ELEVE_BY_PAGE
-    );
-    console.log(result);
+  // Fonction pour récupérer les élèves paginés
+  const fetchPaginatedEleves = useCallback(
+    async (currentPage = 1) => {
+      try {
+        const result = await EleveService.getPaginatedEleves(
+          currentPage,
+          MAX_ELEVE_BY_PAGE
+        );
+        console.log(result);
 
-    setEleves(result.eleves);
-    setPagination({ currentPage: result.currentPage, total: result.total });
-  }
+        setEleves(result.eleves);
+        setPagination({ currentPage: result.currentPage, total: result.total });
+      } catch (error) {
+        console.error("Erreur lors de la récupération des élèves:", error);
+        toast.error("Erreur lors du chargement des élèves");
+      }
+    },
+    [MAX_ELEVE_BY_PAGE]
+  );
 
-  async function fetchEleves() {
+  // Fonction pour récupérer tous les élèves
+  const fetchEleves = useCallback(async () => {
     setLoading(true);
     await fetchPaginatedEleves();
     setLoading(false);
-  }
+  }, [fetchPaginatedEleves]);
 
-  async function fetchAppData() {
+  // Fonction pour récupérer les données de l'application
+  const fetchAppData = useCallback(async () => {
     await fetchEleves();
     const { Annee } = await getAnneeScolaire();
     setAnneeEnCours(Annee);
-  }
+  }, [fetchEleves]);
 
-  async function fetchEleveForSearch() {
-    const result = await EleveService.searchEleve(optimizedSearchEleve);
-    if (result.success) setEleves(result.data);
-    else toast.error("Une erreur est survenue pendant la recherche");
-  }
+  // Fonction optimisée pour la recherche
+  const fetchEleveForSearch = useCallback(
+    async (searchTerm) => {
+      if (!searchTerm || searchTerm.trim() === "") {
+        // Si le terme de recherche est vide, revenir à la liste paginée
+        setIsSearchMode(false);
+        await fetchPaginatedEleves(1);
+        return;
+      }
+
+      setSearchLoading(true);
+      setIsSearchMode(true);
+
+      try {
+        const result = await EleveService.searchEleve(searchTerm);
+        if (result.success) {
+          setEleves(result.data);
+          // Réinitialiser la pagination en mode recherche
+          setPagination({ currentPage: 1, total: result.data.length });
+        } else {
+          toast.error("Une erreur est survenue pendant la recherche");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la recherche:", error);
+        toast.error("Une erreur est survenue pendant la recherche");
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [fetchPaginatedEleves]
+  );
+
+  // Fonction pour vider la recherche
+  const clearSearch = useCallback(() => {
+    setSearchEleve("");
+    setIsSearchMode(false);
+    fetchPaginatedEleves(1);
+  }, [fetchPaginatedEleves]);
+
+  // Gestionnaire optimisé pour le changement de la recherche
+  const handleSearchBoxChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchEleve(value);
+
+      // Si l'utilisateur vide le champ, réinitialiser immédiatement
+      if (value === "") {
+        setIsSearchMode(false);
+        fetchPaginatedEleves(1);
+      }
+    },
+    [fetchPaginatedEleves]
+  );
 
   function handleEdit(matricule) {
     EleveService.getEleveByMatricule(matricule).then((result) => {
@@ -119,7 +180,12 @@ const ElevesList = () => {
             matricule,
             anneeEnCours
           );
-          await fetchEleves();
+          // Actualiser la liste selon le mode actuel
+          if (isSearchMode && searchEleve) {
+            await fetchEleveForSearch(searchEleve);
+          } else {
+            await fetchEleves();
+          }
         } else {
           toast.error("Une erreur est survenue lors de la suppression.");
         }
@@ -137,8 +203,6 @@ const ElevesList = () => {
     setOpenEleveInfoModal(true);
   }
 
-  const handleSearchBoxChange = (e) => setSearchEleve(e.target.value);
-
   function handleFormModalClose() {
     setOpenFormModal(false);
     setEleve(initialValues);
@@ -152,7 +216,13 @@ const ElevesList = () => {
       } else {
         result = await EleveService.createEleve(eleve);
       }
-      await fetchEleves();
+
+      // Actualiser la liste selon le mode actuel
+      if (isSearchMode && searchEleve) {
+        await fetchEleveForSearch(searchEleve);
+      } else {
+        await fetchEleves();
+      }
     } catch (error) {
       console.log(error);
       toast.error("Une erreur est survenue lors de la modification");
@@ -163,15 +233,26 @@ const ElevesList = () => {
     }
   }
 
-  useEffect(() => {
-    fetchAppData();
-  }, []);
+  // Gestionnaire pour la pagination
+  const handlePageChange = useCallback(
+    (page) => {
+      if (!isSearchMode) {
+        fetchPaginatedEleves(page);
+      }
+    },
+    [isSearchMode, fetchPaginatedEleves]
+  );
 
   useEffect(() => {
-    if (optimizedSearchEleve) {
+    fetchAppData();
+  }, [fetchAppData]);
+
+  // Effet pour la recherche optimisée
+  useEffect(() => {
+    if (optimizedSearchEleve !== undefined) {
       fetchEleveForSearch(optimizedSearchEleve);
     }
-  }, [optimizedSearchEleve]);
+  }, [optimizedSearchEleve, fetchEleveForSearch]);
 
   useEffect(() => {
     //si il s'agit d'une édition d'eleves le champ matricule ne s'affiche pas.
@@ -187,21 +268,18 @@ const ElevesList = () => {
   return (
     <section>
       <div className="flex flex-wrap justify-between content-center gap-3 items-center">
-        <div className="flex items-center content-center space-x-2 ">
-          <span>
-            {" "}
-            <Search className="translate-x-[34px]" />{" "}
-          </span>
+        <div className="flex items-center content-center space-x-2 relative w-[300px]">
           <Input
             type="search"
-            className="ps-8"
+            className="px-[30px]"
             value={searchEleve}
             placeholder="Rechercher un eleve..."
             onChange={handleSearchBoxChange}
           />
+          <Search className="absolute right-[10px] top-1/2 transform -translate-y-1/2" />
         </div>
       </div>
-      <main className="container pt-8">
+      <main className="pt-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Users className="h-8 w-8 text-primary" />
@@ -223,17 +301,23 @@ const ElevesList = () => {
           </div>
         </div>
         <div className="grid gap-6 relative">
-          <Card className="m-auto min-w-[800px]">
+          <Card className="m-auto w-full">
             <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white">
               <CardTitle>Liste des Élèves</CardTitle>
-              <CardDescription>Gérez les élèves</CardDescription>
+              <CardDescription>
+                Gérez les élèves
+                {isSearchMode && ` - ${eleves.length} résultat(s) trouvé(s)`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader className="sticky top-0">
                   <TableRow>
                     {tableHeadFields.map((field) => (
-                      <TableHead key={field}> {field} </TableHead>
+                      <TableHead key={field} className={"text-start"}>
+                        {" "}
+                        {field}{" "}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -244,22 +328,28 @@ const ElevesList = () => {
                         colSpan={5}
                         className="text-gray-400 text-md text-center"
                       >
-                        {optimizedSearchEleve
-                          ? `Aucun élève correspondant au terme <${optimizedSearchEleve}>`
+                        {searchEleve
+                          ? `Aucun élève correspondant au terme "${searchEleve}"`
                           : "Aucun élève enregistré pour le moment"}
                       </TableCell>
                     </TableRow>
                   )}
                   {eleves?.map((eleve, index) => (
                     <TableRow key={eleve.Matricule}>
-                      <TableCell>
-                        {index +
-                          1 +
-                          (pagination.currentPage - 1) * MAX_ELEVE_BY_PAGE}
+                      <TableCell className={"text-start"}>
+                        {isSearchMode
+                          ? index + 1
+                          : index +
+                            1 +
+                            (pagination.currentPage - 1) * MAX_ELEVE_BY_PAGE}
                       </TableCell>
-                      <TableCell>{eleve.Matricule}</TableCell>
-                      <TableCell>{eleve.Nom}</TableCell>
-                      <TableCell className="truncate">
+                      <TableCell className={"text-start"}>
+                        {eleve.Matricule}
+                      </TableCell>
+                      <TableCell className={"text-start"}>
+                        {eleve.Nom}
+                      </TableCell>
+                      <TableCell className="truncate text-start">
                         {eleve.Prenoms.length < 25
                           ? eleve.Prenoms
                           : eleve.Prenoms.slice(0, 22) + " ..."}
@@ -302,7 +392,19 @@ const ElevesList = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Afficher la pagination seulement en mode normal */}
+        {!isSearchMode && pagination.total > MAX_ELEVE_BY_PAGE && (
+          <div className="mt-6 flex justify-center">
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={Math.ceil(pagination.total / MAX_ELEVE_BY_PAGE)}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </main>
+
       {/* Modal for informations */}
       <Modal
         isOpen={openInfoModal}
@@ -336,6 +438,7 @@ const ElevesList = () => {
           </p>
         </div>
       </Modal>
+
       {/* Modal for editing/submiting eleves informations */}
       <Modal
         isOpen={openFormModal}
@@ -353,8 +456,8 @@ const ElevesList = () => {
           submitLabel={eleve.Matricule ? "Modifier" : "Ajouter"}
         />
       </Modal>
-      {/* Modal to display more information about a student */}
 
+      {/* Modal to display more information about a student */}
       <Modal
         isOpen={openEleveInfoModal}
         onClose={() => setOpenEleveInfoModal(false)}

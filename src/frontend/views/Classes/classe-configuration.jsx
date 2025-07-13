@@ -237,7 +237,7 @@ const ClasseConfiguration = () => {
         <div>
           <ButtonBack />
         </div>
-        <main className="container pt-8">
+        <main className="pt-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <SettingsIcon className="h-8 w-8 text-primary" />
@@ -251,7 +251,7 @@ const ClasseConfiguration = () => {
             </Button>
           </div>
           <div className="grid gap-6">
-            <Card className="m-auto min-w-[800px]">
+            <Card className="m-auto w-full">
               <CardHeader>
                 <CardTitle>Liste des cours</CardTitle>
               </CardHeader>

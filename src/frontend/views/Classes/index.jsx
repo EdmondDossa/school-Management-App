@@ -218,7 +218,7 @@ const ClassesList = () => {
   return (
     <>
       <div>
-        <main className="container pt-8">
+        <main className=" pt-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <Users className="h-8 w-8 text-primary" />
@@ -231,7 +231,7 @@ const ClassesList = () => {
           </div>
 
           <div className="grid gap-6">
-            <Card className="m-auto min-w-[800px]">
+            <Card className="m-auto w-full">
               <CardHeader>
                 <CardTitle>Liste des Classes</CardTitle>
                 <CardDescription>
@@ -359,7 +359,7 @@ const ClassesList = () => {
                                     variant="secondary"
                                     size="sm"
                                     className="w-full rounded-none bg-white  hover:text-white transition hover:bg-blue-500 py-5"
-                                    onClick={()=>{}}
+                                    onClick={() => {}}
                                   >
                                     <HiLightBulb className="h-4 w-4 mr-2 text-blue-300" />
                                     Notes/Inscriptions
