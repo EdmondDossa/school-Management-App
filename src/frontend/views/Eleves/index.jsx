@@ -8,7 +8,6 @@ import Input from "../../components/Input.jsx";
 import { Users } from "lucide-react";
 import Modal from "../../components/Modal.jsx";
 import Form from "../../components/Form.jsx";
-import ClasseService from "../../../services/ClasseService.js";
 import { electronConfirm, getAnneeScolaire } from "../../utils/";
 import { eleveFields, eleveMatriculeField } from "../../utils/form-fields.js";
 import InscriptionService from "../../../services/InscriptionService.js";
@@ -16,6 +15,7 @@ import { FaCirclePlus } from "react-icons/fa6";
 import { Tooltip } from "react-tooltip";
 import { Check, Edit, Eye, Info, Search, Delete } from "lucide-react";
 import Pagination from "../../components/Pagination.jsx";
+import { DuplicateIcon } from "../../assets/icons/index.jsx";
 
 import {
   Card,
@@ -59,8 +59,6 @@ const ElevesList = () => {
   //to handle students research in the search box
   const [searchEleve, setSearchEleve] = useState("");
   const optimizedSearchEleve = useDebounce(searchEleve, 500);
-  const [classes, setClasses] = useState([]);
-  const [classeFilter, setClasseForFilter] = useState("");
   const [formFields, setFormFields] = useState(eleveFields);
 
   async function fetchPaginatedEleves(currentPage = 1) {
@@ -68,6 +66,8 @@ const ElevesList = () => {
       currentPage,
       MAX_ELEVE_BY_PAGE
     );
+    console.log(result);
+
     setEleves(result.eleves);
     setPagination({ currentPage: result.currentPage, total: result.total });
   }
@@ -79,8 +79,7 @@ const ElevesList = () => {
   }
 
   async function fetchAppData() {
-    const res = await ClasseService.getAllClasses();
-    setClasses(res);
+    await fetchEleves();
     const { Annee } = await getAnneeScolaire();
     setAnneeEnCours(Annee);
   }
@@ -89,16 +88,6 @@ const ElevesList = () => {
     const result = await EleveService.searchEleve(optimizedSearchEleve);
     if (result.success) setEleves(result.data);
     else toast.error("Une erreur est survenue pendant la recherche");
-  }
-
-  async function filterEleveByClasse() {
-    if (classeFilter) {
-      setSearchEleve("");
-      const eleves = await EleveService.getEleveByClasse(classeFilter);
-      setEleves(eleves);
-    } else {
-      fetchEleves();
-    }
   }
 
   function handleEdit(matricule) {
@@ -180,16 +169,9 @@ const ElevesList = () => {
 
   useEffect(() => {
     if (optimizedSearchEleve) {
-      setClasseForFilter("");
       fetchEleveForSearch(optimizedSearchEleve);
-    } else {
-      if (!classeFilter) fetchEleves();
     }
   }, [optimizedSearchEleve]);
-
-  useEffect(() => {
-    filterEleveByClasse();
-  }, [classeFilter]);
 
   useEffect(() => {
     //si il s'agit d'une édition d'eleves le champ matricule ne s'affiche pas.
@@ -218,45 +200,35 @@ const ElevesList = () => {
             onChange={handleSearchBoxChange}
           />
         </div>
-        <div className="place-content-center">
-          <select
-            name="classes"
-            id="classes"
-            value={classeFilter}
-            onChange={(e) => setClasseForFilter(e.target.value)}
-            className="py-3 border-2  border-gray-500 outline-none bg-blue-50 px-2 rounded-md hover:outline-none text-md text-gray-500"
-          >
-            <option value=""> Filtrer par classe </option>
-
-            {classes.map((classe) => (
-              <option key={classe.NumClass} value={classe.NumClass}>
-                {" "}
-                {classe.NomClass}{" "}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
-      <main className="container pt-8 relative">
+      <main className="container pt-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Users className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Gestion des Élèves</h1>
           </div>
-          <div>
-            <Info
-              className="text-emerald-600 cursor-pointer"
-              onClick={() => setOpenInfoModal(true)}
-            />
+          <div className="flex items-center">
+            <div className="place-content-center">
+              <Info
+                className="text-emerald-600 cursor-pointer w-6 h-6"
+                onClick={() => setOpenInfoModal(true)}
+              />
+            </div>
+            <div className="ms-4">
+              <Button onClick={() => setOpenFormModal(true)}>
+                <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+                Ajouter un élève
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="grid gap-6  max-h-[70vh] overflow-y-auto">
+        <div className="grid gap-6 h-[150px]">
           <Card className="m-auto min-w-[800px]">
-            <CardHeader>
+            <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white">
               <CardTitle>Liste des Élèves</CardTitle>
               <CardDescription>Gérez les élèves</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -330,27 +302,6 @@ const ElevesList = () => {
             </CardContent>
           </Card>
         </div>
-        <div>
-          <span
-            id="addEleve"
-            className="fixed text-[35px] cursor-pointer text-green-600 right-10 bottom-10"
-            onClick={() => setOpenFormModal(true)}
-          >
-            {" "}
-            <FaCirclePlus />{" "}
-          </span>
-          <Tooltip anchorSelect="#addEleve" content="Ajouter un élève" />
-        </div>
-        {!optimizedSearchEleve && !classeFilter && eleves.length > 0 && (
-          <span className="fixed bottom-1">
-            {" "}
-            <Pagination
-              onPageChange={fetchPaginatedEleves}
-              totalPages={+pagination.total}
-              currentPage={+pagination.currentPage}
-            />
-          </span>
-        )}
       </main>
       {/* Modal for informations */}
       <Modal
