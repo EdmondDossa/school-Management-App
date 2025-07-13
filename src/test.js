@@ -12,4 +12,4 @@ async function initializeDatabase() {
   }
 }
 
-export { db, initializeDatabase };
+module.exports = { db, initializeDatabase };

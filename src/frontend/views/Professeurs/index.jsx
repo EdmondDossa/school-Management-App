@@ -30,12 +30,7 @@ import {
   TableRow,
 } from "../../components/CTable.jsx";
 
-import {
-  capitalize,
-  electronConfirm,
-  getAnneeScolaire,
-  getEtablissement,
-} from "../../utils/";
+import { capitalize, electronConfirm, getAnneeScolaire } from "../../utils/";
 
 const Professeur = () => {
   const [Professeurs, setProfesseurs] = useState([]);
@@ -66,9 +61,8 @@ const Professeur = () => {
 
   const fetchProfesseurs = async () => {
     try {
-      const { NumEtabli } = await getEtablissement();
-      setProfesseur({ ...professeur, NumEtabli });
-      let results = await ProfesseurService.getAllProfesseurs(NumEtabli);
+      setProfesseur({ ...professeur });
+      let results = await ProfesseurService.getAllProfesseurs();
       setProfesseurs(results);
     } catch (error) {
       toast.error("Erreur lors du chargement des professeurs");
@@ -78,8 +72,7 @@ const Professeur = () => {
   };
 
   const fetchMatieres = async () => {
-    const { NumEtabli } = await getEtablissement();
-    const result = await MatiereService.getAllMatieres(NumEtabli);
+    const result = await MatiereService.getAllMatieres();
     setMatieres(result);
   };
 
@@ -88,7 +81,6 @@ const Professeur = () => {
     setOpenProfInfoModal(false);
     setProfesseur({
       ...initialValues,
-      NumEtabli: professeur.NumEtabli,
     });
   };
 
@@ -100,10 +92,6 @@ const Professeur = () => {
       let result;
       if (!professeur.NumProf) {
         //creation du professeur
-        if (!professeur.NumEtabli) {
-          const { NumEtabli } = await getEtablissement();
-          professeur.NumEtabli = NumEtabli;
-        }
         result = await ProfesseurService.createProfesseur(professeur);
       } else {
         result = await ProfesseurService.updateProfesseur(professeur);
@@ -112,8 +100,11 @@ const Professeur = () => {
       if (result.success) {
         //associer les matieres aux professeurs
         if (!professeur.NumProf) {
+          //on a besoin de l'id du dernier prof inscrit afin de l'enregitrer dans la table profmatieres
+          const lastProfInserted =
+            await ProfesseurService.getLastInsertedProf();
           await profMatieresService.defineMatieresForProf(
-            result.data.lastID,
+            lastProfInserted.NumProf,
             professeur.matieres ?? []
           );
         } else {
@@ -204,7 +195,7 @@ const Professeur = () => {
   return (
     <>
       <div>
-        <main className="container pt-8">
+        <main className="pt-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <BookOpen className="h-8 w-8 text-primary" />
@@ -217,13 +208,13 @@ const Professeur = () => {
           </div>
 
           <div className="grid gap-6">
-            <Card className="m-auto min-w-[800px]">
+            <Card className="m-auto w-full">
               <CardHeader>
                 <CardTitle>Liste des Professeurs</CardTitle>
                 <CardDescription>Gérez les professeurs</CardDescription>
               </CardHeader>
               <CardContent className="overflow-auto">
-                <Table className="[&_td]:text-left">
+                <Table>
                   <TableHeader>
                     <TableRow>
                       {tableHeadFields.map((field) => (
@@ -328,7 +319,7 @@ const Professeur = () => {
                 return (
                   <TableRow key={index}>
                     <TableHead> {field.label} </TableHead>
-                    <TableCell> {professeur[field.name]} </TableCell>
+                    <TableCell> {professeur[field.name] || "---"} </TableCell>
                   </TableRow>
                 );
               }

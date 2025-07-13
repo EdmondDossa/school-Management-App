@@ -36,6 +36,7 @@ import { Tooltip } from "react-tooltip";
 import EleveService from "../../../services/EleveService.js";
 import InscriptionService from "../../../services/InscriptionService.js";
 import { getAnneeScolaire } from "../../utils/index.js";
+import { HiLightBulb } from "react-icons/hi";
 
 const classFields = [
   { name: "NomClass", label: "Nom de la Classe", type: "text" },
@@ -59,11 +60,11 @@ const ClassesList = () => {
   const navigate = useNavigate();
 
   const [classes, setClasses] = useState([]);
+  const [effectifsParClasse, setEffectifsParClasse] = useState({});
   const [classe, setClasse] = useState({
     NumClass: null,
     NomClass: "",
     Promotion: "6",
-    NumEtabli: null,
   });
 
   const [anneesScolaires, setAnneesScolaires] = useState([]);
@@ -72,9 +73,8 @@ const ClassesList = () => {
 
   const fetchClasses = async () => {
     try {
-      const etablissement = await window.electronAPI.store.get("etablissement");
-      setClasse({ ...classe, NumEtabli: etablissement.NumEtabli });
-      const result = await ClasseService.getAllClasses(etablissement.NumEtabli);
+      setClasse({ ...classe });
+      const result = await ClasseService.getAllClasses();
       setClasses(result);
     } catch (error) {
       console.error(error);
@@ -82,6 +82,17 @@ const ClassesList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchEffectifsParClasse = async () => {
+    const { Annee } = await getAnneeScolaire();
+    const rawResult = await InscriptionService.getEffectifsByClasse(Annee);
+    //on transforme le resulat sous forme d'un objet clé:NumClass/valeur:effectif afin de faciliter son acces dans le composant jsx
+    let result = {};
+    rawResult.forEach((element) => {
+      result = { ...result, ...element };
+    });
+    setEffectifsParClasse(result);
   };
 
   const fetchAllAnneesScolaires = async () => {
@@ -150,34 +161,46 @@ const ClassesList = () => {
   };
 
   const handleExtraction = async (eleves, numclass) => {
-    console.log(numclass,eleves);
-
     try {
+      //récupérer le nombre d'élèves déjà enrégistrés afin de pouvoir constatés les changements
+      const totalAvant = await EleveService.getTotalEleves();
       //on enrégistre les élèves s'ils n'existaient pas
       let result = await EleveService.insertManyEleves(eleves);
+      const totalApres = await EleveService.getTotalEleves();
       if (result.success) {
         toast.success(
-          `Import de ${result.data.changes} / ${eleves.length} élèves de la liste
+          `Import de ${+totalApres - +totalAvant} / ${
+            eleves.length
+          } élèves de la liste
           `,
           { duration: 5000 }
         );
+
         //on fait l'inscription des élèves dans la classe
         const lastInsertedMatricules = eleves.map((e) => e.Matricule);
         const { Annee } = await getAnneeScolaire();
 
+        const totalInscritsAvant = await InscriptionService.getTotalInscrits();
         result = await InscriptionService.insertManyInClass(
           lastInsertedMatricules,
           numclass,
           Annee
         );
+        const totalInscritsApres = await InscriptionService.getTotalInscrits();
+
+        if (result.success) {
+          toast.success(
+            `${
+              +totalInscritsApres - +totalInscritsAvant
+            } nouvelles inscriptions`,
+            {
+              duration: 5000,
+            }
+          );
+        } else toast.error("Une erreur est survenue lors de l'import");
       }
-      if (result.success) {
-        toast.success(`${result.data.changes} nouvelles inscriptions`, {
-          duration: 5000,
-        });
-      } else toast.error("Une erreur est survenue lors de l'import");
     } catch (error) {
-      console.log(err);
+      console.log(error);
       toast.error("Une erreur est survenue lors de l'import");
     }
   };
@@ -185,6 +208,7 @@ const ClassesList = () => {
   useEffect(() => {
     fetchClasses();
     fetchAllAnneesScolaires();
+    fetchEffectifsParClasse();
   }, []);
 
   if (loading) {
@@ -194,20 +218,20 @@ const ClassesList = () => {
   return (
     <>
       <div>
-        <main className='container pt-8'>
-          <div className='flex items-center justify-between mb-8'>
-            <div className='flex items-center gap-4'>
-              <Users className='h-8 w-8 text-primary' />
-              <h1 className='text-3xl font-bold'>Gestion des Classes</h1>
+        <main className=" pt-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <Users className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Gestion des Classes</h1>
             </div>
             <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className='mr-2 h-4 w-4' />
+              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
               Ajouter une classe
             </Button>
           </div>
 
-          <div className='grid gap-6'>
-            <Card className='m-auto min-w-[800px]'>
+          <div className="grid gap-6">
+            <Card className="m-auto w-full">
               <CardHeader>
                 <CardTitle>Liste des Classes</CardTitle>
                 <CardDescription>
@@ -229,98 +253,117 @@ const ClassesList = () => {
                       <TableRow>
                         <TableCell
                           colSpan={4}
-                          className='text-gray-400 text-md text-center p-10'
+                          className="text-gray-400 text-md text-center p-10"
                         >
                           {" "}
                           Aucune classe enregistrée pour le moment{" "}
                         </TableCell>
                       </TableRow>
                     )}
-                    {classes.map((classe,index) => (
+                    {classes.map((classe, index) => (
                       <TableRow key={classe.NumClass}>
                         <TableCell>{classe.NomClass}</TableCell>
                         <TableCell>{classe.Promotion}</TableCell>
-                        <TableCell>0</TableCell>
                         <TableCell>
-                          <div className='flex gap-2'>
+                          {" "}
+                          {effectifsParClasse[classe.NumClass]}{" "}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
                             <div>
                               <Button
-                                variant='outline'
+                                variant="outline"
                                 id={`matieres-${index}`}
-                                size='sm'
+                                size="sm"
                                 onClick={() =>
                                   navigate(
                                     `/classes/config-class/${classe.NumClass}`
                                   )
                                 }
                               >
-                                <BookOpen className='h-4 w-4' />
+                                <BookOpen className="h-4 w-4" />
                               </Button>
                               <Tooltip
-                                className='opacity-100'
+                                className="opacity-100"
                                 anchorSelect={`#matieres-${index}`}
-                                content='Affecter les matières aux classes'
+                                content="Affecter les matières aux classes"
                               />
                             </div>
                             <div>
                               <Button
-                                variant='outline'
-                                className='px-3'
+                                variant="outline"
+                                className="px-3"
                                 id={`editer-${index}`}
-                                size='sm'
+                                size="sm"
                                 onClick={() => handleEdit(classe.NumClass)}
                               >
-                                <Edit className='h-4 w-4' />
+                                <Edit className="h-4 w-4" />
                               </Button>
                               <Tooltip
-                                className='opacity-100'
+                                className="opacity-100"
                                 anchorSelect={`#editer-${index}`}
-                                content='Modifier les informations'
+                                content="Modifier les informations"
                               />
                             </div>
                             <div id={`more-${index}`}>
-                              <Button variant='outline' size='sm' id='more' title="Plus d'options">
-                                <EllipsisVertical className='h-4 w-4'   />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                id="more"
+                                title="Plus d'options"
+                              >
+                                <EllipsisVertical className="h-4 w-4" />
                               </Button>
                             </div>
                             <div>
                               <Tooltip
                                 anchorSelect={`#more-${index}`}
                                 clickable
-                                className='w-[190px] opacity-100 card shadow-lg px-0  gap-2 bg-white z-20 '
+                                className="w-[190px] opacity-100 card shadow-lg p-0 bg-white z-20 border-[1px] border-gray-300"
                                 openOnClick
-                                place='right-left'
+                                place="right-left"
                                 noArrow
                                 delayHide={0}
-                                positionStrategy='fixed'
+                                positionStrategy="fixed"
                               >
                                 <div>
-                                  <h2 className='text-gray-500 text-[16px] mb-3 '>
+                                  <h2 className="text-white font-bold text-sm border-t-2 border-gray-300 py-2 bg-gray-500">
                                     Options
                                   </h2>
                                 </div>
-                                <hr />
-                                <div className='my-2'>
+                                <div className="border-y-2  border-gray-300">
                                   <Button
-                                    variant='secondary'
-                                    size='sm'
-                                    className='mb-2 hover:text-white hover:bg-red-500 py-4'
+                                    variant="secondary"
+                                    size="sm"
+                                    className="w-full rounded-none bg-white  hover:text-white hover:bg-red-500 py-5"
                                     onClick={() =>
                                       handleDelete(classe.NumClass)
                                     }
                                   >
-                                    <Delete className='h-4 w-4 mr-2 text-red-800' />
+                                    <Delete className="h-4 w-4 mr-2 text-red-800" />
                                     Supprimer classe
                                   </Button>
                                 </div>
-                                <div className='mt-2'>
-                                  <hr />
+                                <div className="border-b-2  border-gray-300">
                                   <ExtractElevesButton
-                                    className='mt-2 hover:text-white hover:bg-emerald-600'
-                                    buttonText='Importer les élèves '
-                                    onExtract={(eleves) => handleExtraction(eleves, classe.NumClass) }
+                                    className="w-full rounded-none bg-white py-0 hover:text-white hover:bg-emerald-600"
+                                    buttonText="Importer les élèves "
+                                    onExtract={(eleves) =>
+                                      handleExtraction(eleves, classe.NumClass)
+                                    }
                                     onError={(err) => toast.error(err.message)}
                                   />
+                                </div>
+                                <div className="border-gray-300">
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="w-full rounded-none bg-white  hover:text-white transition hover:bg-blue-500 py-5"
+                                    onClick={() => {}}
+                                  >
+                                    <HiLightBulb className="h-4 w-4 mr-2 text-blue-300" />
+                                    Notes/Inscriptions
+                                  </Button>
                                 </div>
                               </Tooltip>
                             </div>
@@ -338,7 +381,7 @@ const ClassesList = () => {
       <Modal
         isOpen={openModal}
         onClose={handleModalClose}
-        title='Ajouter une classe'
+        title="Ajouter une classe"
       >
         <Form
           fields={classFields}

@@ -1,9 +1,9 @@
 import AnneeScolaire from "../models/AnneeScolaire.js";
 
 class AnneeScolaireService {
-  static async getAllAnneesScolaires(Num_Etabli) {
-    const sql = "SELECT * FROM annees_scolaires WHERE NumEtabli = ?";
-    const result = await window.electronAPI.db.query(sql, [Num_Etabli]);
+  static async getAllAnneesScolaires() {
+    const sql = "SELECT * FROM annees_scolaires";
+    const result = await window.electronAPI.db.query(sql);
         
     if (result.success) {
       const data = result.data.map(
@@ -13,7 +13,6 @@ class AnneeScolaireService {
             an.DateDebut,
             an.DateFin,
             an.Periodicite,
-            an.NumEtabli,
             an.id,
           )
       );
@@ -40,21 +39,19 @@ class AnneeScolaireService {
         row.Annee,
         row.DateDebut,
         row.DateFin,
-        row.Periodicite,
-        row.NumEtabli
+        row.Periodicite
       );
     }
   }
 
   static async createAnneeScolaire(anneeScolaire) {
     const sql =
-      "INSERT INTO annees_scolaires (Annee, DateDebut, DateFin, Periodicite, NumEtabli) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO annees_scolaires (Annee, DateDebut, DateFin, Periodicite) VALUES (?, ?, ?, ?)";
     const result = await window.electronAPI.db.query(sql, [
       anneeScolaire.Annee,
       anneeScolaire.DateDebut,
       anneeScolaire.DateFin,
-      anneeScolaire.Periodicite,
-      anneeScolaire.NumEtabli,
+      anneeScolaire.Periodicite
     ]);
     return result;
   }

@@ -7,11 +7,7 @@ import { SettingsIcon, Delete, Edit } from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import ButtonBack from "../../components/ButtonBack.jsx";
 
-import {
-  getEtablissement,
-  getAnneeScolaire,
-  electronConfirm,
-} from "../../utils/";
+import { getAnneeScolaire, electronConfirm } from "../../utils/";
 
 import {
   EnseignerService,
@@ -49,7 +45,6 @@ const ClasseConfiguration = () => {
   const { id: NumClass } = useParams();
 
   const [InfoScolaire, setInfoScolaire] = useState({
-    NumEtabli: "",
     Annee: "",
   });
   const ref = useRef();
@@ -68,9 +63,8 @@ const ClasseConfiguration = () => {
   const [cours, setCours] = useState(initialValues);
 
   async function fetchInfoScolaire() {
-    const { NumEtabli } = await getEtablissement();
     const { Annee } = await getAnneeScolaire();
-    setInfoScolaire({ NumEtabli, Annee });
+    setInfoScolaire({ Annee });
     setLoading(false);
   }
 
@@ -124,7 +118,6 @@ const ClasseConfiguration = () => {
     try {
       const enseignement = {
         ...cours,
-        NumEtabli: InfoScolaire.NumEtabli,
         Annee: InfoScolaire.Annee,
         NumClass,
       };
@@ -133,7 +126,6 @@ const ClasseConfiguration = () => {
         Coef: cours.Coef,
         NumClass,
         Annee: InfoScolaire.Annee,
-        NumEtabli: InfoScolaire.NumEtabli,
       };
 
       if (!cours.id) {
@@ -245,7 +237,7 @@ const ClasseConfiguration = () => {
         <div>
           <ButtonBack />
         </div>
-        <main className="container pt-8">
+        <main className="pt-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <SettingsIcon className="h-8 w-8 text-primary" />
@@ -259,7 +251,7 @@ const ClasseConfiguration = () => {
             </Button>
           </div>
           <div className="grid gap-6">
-            <Card className="m-auto min-w-[800px]">
+            <Card className="m-auto w-full">
               <CardHeader>
                 <CardTitle>Liste des cours</CardTitle>
               </CardHeader>

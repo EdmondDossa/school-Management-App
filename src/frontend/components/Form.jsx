@@ -35,7 +35,7 @@ const Form = ({
               htmlFor={field.name}
               className="block text-sm font-medium text-gray-700"
             >
-              {field.label}
+              {field.label} {field.required ? <span className="text-red-600 font-bold">*</span>:""}
             </label>
 
             {/* Gestion des types de champs */}

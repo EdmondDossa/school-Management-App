@@ -104,7 +104,7 @@ export function ExtractElevesButton({
           Nom: m[3].trim(),
           Prenoms: m[4].trim(),
           Sexe: m[5],
-          DateNaissance: m[6],
+          DateNaissance: m[6].split("/").reverse().join("-"),//le format de date venant de EDUCMaster est different du format ici ie dd/mm/yyyy contre yyyy-mm-dd
           LieuNaissance: m[7],
         }));
 

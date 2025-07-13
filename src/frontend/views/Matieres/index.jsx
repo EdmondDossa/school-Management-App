@@ -6,11 +6,7 @@ import { DuplicateIcon } from "../../assets/icons/index.jsx";
 import { BookOpen, Delete, Edit } from "lucide-react";
 import { classFields } from "../../utils/form-fields.js";
 
-import {
-  electronConfirm,
-  getAnneeScolaire,
-  getEtablissement,
-} from "../../utils/index.js";
+import { electronConfirm, getAnneeScolaire } from "../../utils/index.js";
 
 import { MatiereService, EnseignerService } from "../../../services/";
 
@@ -35,7 +31,6 @@ const MatieresList = () => {
   const [Matieres, setMatieres] = useState([]);
   const [matiere, setMatiere] = useState({
     CodMat: null,
-    NumEtabli: null,
     NomMat: "",
   });
   const [loading, setLoading] = useState(true);
@@ -43,11 +38,7 @@ const MatieresList = () => {
 
   const fetchMatieres = async () => {
     try {
-      const etablissement = await getEtablissement();
-      setMatiere({ ...matiere, NumEtabli: etablissement.NumEtabli });
-      const results = await MatiereService.getAllMatieres(
-        etablissement.NumEtabli
-      );
+      const results = await MatiereService.getAllMatieres();
       setMatieres(results);
     } catch (error) {
       console.error(error);
@@ -139,7 +130,7 @@ const MatieresList = () => {
   return (
     <>
       <div>
-        <main className="container pt-8">
+        <main className=" pt-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <BookOpen className="h-8 w-8 text-primary" />
@@ -153,7 +144,7 @@ const MatieresList = () => {
         </main>
 
         <div className="grid gap-6">
-          <Card className="m-auto min-w-[800px]">
+          <Card className="m-auto w-full">
             <CardHeader>
               <CardTitle>Liste des Matières</CardTitle>
               <CardDescription>Gérez les matières</CardDescription>

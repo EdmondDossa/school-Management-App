@@ -45,8 +45,8 @@ class EnseignerService {
     }
 
     static async createEnseignement(enseignement) {
-        const sql = "INSERT INTO enseigner (NumProf, NumClass, CodMat, NumEtabli, Annee) VALUES (?, ?, ?, ?, ?)";
-        const result = await window.electronAPI.db.query(sql, [enseignement.NumProf,enseignement.NumClass, enseignement.CodMat ,enseignement.NumEtabli, enseignement.Annee]);
+        const sql = "INSERT INTO enseigner (NumProf, NumClass, CodMat, Annee) VALUES (?, ?, ?, ?)";
+        const result = await window.electronAPI.db.query(sql, [enseignement.NumProf,enseignement.NumClass, enseignement.CodMat, enseignement.Annee]);
         return result;
     }
 

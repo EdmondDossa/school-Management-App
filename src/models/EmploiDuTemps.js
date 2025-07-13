@@ -1,8 +1,7 @@
 class EmploiDuTemps {
-    constructor(numEmploi, numClass, numEtabli, annee) {
+    constructor(numEmploi, numClass, annee) {
         this.numEmploi = numEmploi;
         this.numClass = numClass;
-        this.numEtabli = numEtabli;
         this.annee = annee;
     }
 }

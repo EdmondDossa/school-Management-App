@@ -1,8 +1,7 @@
 class Matiere {
-    constructor(CodMat, NomMat, NumEtabli) {
+    constructor(CodMat, NomMat) {
         this.CodMat = CodMat;
         this.NomMat = NomMat;
-        this.NumEtabli = NumEtabli;
     }
 }
 

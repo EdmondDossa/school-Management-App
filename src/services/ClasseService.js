@@ -1,13 +1,13 @@
 import Classe from "../models/Classe.js";
 
 class ClasseService {
-  static async getAllClasses(NumEtabli) {
-    const sql = "SELECT * FROM classes WHERE NumEtabli = ?";
-    const result = await window.electronAPI.db.query(sql, [NumEtabli]);
+  static async getAllClasses() {
+    const sql = "SELECT * FROM classes";
+    const result = await window.electronAPI.db.query(sql);
     if (result.success) {
       return result.data.map(
         (row) =>
-          new Classe(row.NumClass, row.NomClass, row.Promotion, row.NumEtabli)
+          new Classe(row.NumClass, row.NomClass, row.Promotion)
       );
     } else {
       return [];
@@ -23,30 +23,27 @@ class ClasseService {
       return new Classe(
         row.NumClass,
         row.NomClass,
-        row.Promotion,
-        row.NumEtabli
+        row.Promotion
       );
     }
   }
 
   static async createClasse(classe) {
     const sql =
-      "INSERT INTO classes (NomClass, Promotion, NumEtabli) VALUES (?, ?, ?)";
+      "INSERT INTO classes (NomClass, Promotion) VALUES (?, ?)";
     const result = await window.electronAPI.db.query(sql, [
       classe.NomClass,
-      classe.Promotion,
-      classe.NumEtabli,
+      classe.Promotion
     ]);
     return result;
   }
 
   static async updateClasse(classe) {
     const sql =
-      "UPDATE classes SET NomClass = ?, Promotion = ?, NumEtabli = ? WHERE NumClass = ?";
+      "UPDATE classes SET NomClass = ?, Promotion = ? WHERE NumClass = ?";
     const result = await window.electronAPI.db.query(sql, [
       classe.NomClass,
       classe.Promotion,
-      classe.NumEtabli,
       classe.NumClass,
     ]);
     return result;
