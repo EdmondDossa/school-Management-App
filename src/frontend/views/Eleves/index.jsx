@@ -222,7 +222,7 @@ const ElevesList = () => {
             </div>
           </div>
         </div>
-        <div className="grid gap-6 h-[150px]">
+        <div className="grid gap-6 relative">
           <Card className="m-auto min-w-[800px]">
             <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white">
               <CardTitle>Liste des Élèves</CardTitle>
@@ -230,7 +230,7 @@ const ElevesList = () => {
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0">
                   <TableRow>
                     {tableHeadFields.map((field) => (
                       <TableHead key={field}> {field} </TableHead>
