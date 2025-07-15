@@ -71,7 +71,6 @@ const ElevesList = () => {
           currentPage,
           MAX_ELEVE_BY_PAGE
         );
-        console.log(result);
 
         setEleves(result.eleves);
         setPagination({ currentPage: result.currentPage, total: result.total });
@@ -267,47 +266,49 @@ const ElevesList = () => {
 
   return (
     <section>
-      <div className="flex flex-wrap justify-between content-center gap-3 items-center">
-        <div className="flex items-center content-center space-x-2 relative w-[300px]">
-          <Input
-            type="search"
-            className="px-[30px]"
-            value={searchEleve}
-            placeholder="Rechercher un eleve..."
-            onChange={handleSearchBoxChange}
-          />
-          <Search className="absolute right-[10px] top-1/2 transform -translate-y-1/2" />
-        </div>
-      </div>
       <main className="pt-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Users className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Gestion des Élèves</h1>
           </div>
-          <div className="flex items-center">
-            <div className="place-content-center">
-              <Info
-                className="text-emerald-600 cursor-pointer w-6 h-6"
-                onClick={() => setOpenInfoModal(true)}
-              />
-            </div>
-            <div className="ms-4">
-              <Button onClick={() => setOpenFormModal(true)}>
-                <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
-                Ajouter un élève
-              </Button>
-            </div>
-          </div>
         </div>
         <div className="grid gap-6 relative">
           <Card className="m-auto w-full">
-            <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white">
-              <CardTitle>Liste des Élèves</CardTitle>
-              <CardDescription>
-                Gérez les élèves
-                {isSearchMode && ` - ${eleves.length} résultat(s) trouvé(s)`}
-              </CardDescription>
+            <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white flex flex-row items-center justify-between">
+              <div className="">
+                <CardTitle>Liste des Élèves</CardTitle>
+                <CardDescription>
+                  Gérez les élèves
+                  {isSearchMode && ` - ${eleves.length} résultat(s) trouvé(s)`}
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center content-center space-x-2 relative w-[300px]">
+                  <Input
+                    type="search"
+                    className="px-[30px]"
+                    value={searchEleve}
+                    placeholder="Rechercher un eleve..."
+                    onChange={handleSearchBoxChange}
+                  />
+                  <Search className="absolute right-[10px] top-1/2 transform -translate-y-1/2" />
+                </div>
+                <div className="flex items-center">
+                  <div className="place-content-center">
+                    <Info
+                      className="text-emerald-600 cursor-pointer w-6 h-6"
+                      onClick={() => setOpenInfoModal(true)}
+                    />
+                  </div>
+                  <div className="ms-4">
+                    <Button onClick={() => setOpenFormModal(true)}>
+                      <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+                      Ajouter un élève
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>

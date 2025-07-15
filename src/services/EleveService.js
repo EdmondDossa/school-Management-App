@@ -48,7 +48,6 @@ class EleveService {
   }
 
   static async createEleve(eleve) {
-    console.log(eleve);
     const sql = `
       INSERT INTO eleves
         (Matricule, Nom, Prenoms, Sexe, DateNaissance, LieuNaissance, Nationalite, ContactParent)

@@ -1,37 +1,96 @@
-import Cours from '../models/Cours.js';
+import Cours from "../models/Cours.js";
 
 class CoursService {
-    static async getAllCours() {
-        const sql = "SELECT * FROM emploi_du_temps";
-        const rows = await window.electronAPI.db.query(sql);
-        return rows.map(row => new Cours(row.Num_Emploi, row.Num_Class, row.Annee, row.Num_Prof));
-    }
+  static async getAllCours() {
+    const sql = "SELECT * FROM cours";
+    const rows = await window.electronAPI.db.query(sql);
+    return rows.map(
+      (row) =>
+        new Cours(
+          row.NumCours,
+          row.HDebut,
+          row.NBHeures,
+          row.Jour,
+          row.CodMat,
+          row.NumClass,
+          row.Annee
+        )
+    );
+  }
 
-    static async getCoursByNumEmploi(numEmploi) {
-        const sql = "SELECT * FROM emploi_du_temps WHERE Num_Emploi = ?";
-        const rows = await window.electronAPI.db.query(sql, [numEmploi]);
-        if (rows.length === 0) return null;
-        const row = rows[0];
-        return new Cours(row.Num_Emploi, row.Num_Class, row.Annee, row.Num_Prof);
-    }
+  static async getCoursByNumCours(numCours) {
+    const sql = "SELECT * FROM cours WHERE NumCours = ?";
+    const rows = await window.electronAPI.db.query(sql, [numCours]);
+    if (rows.length === 0) return null;
+    const row = rows[0];
+    return new Cours(
+      row.NumCours,
+      row.HDebut,
+      row.NBHeures,
+      row.Jour,
+      row.CodMat,
+      row.NumClass,
+      row.Annee
+    );
+  }
 
-    static async createCours(cours) {
-        const sql = "INSERT INTO emploi_du_temps (Num_Emploi, Num_Class, Annee, Num_Prof) VALUES (?, ?, ?, ?)";
-        const result = await window.electronAPI.db.query(sql, [cours.numEmploi, cours.numClass, cours.annee, cours.numProf]);
-        return result;
+  static async getCoursByClasseAndAnnee(numClass, annee) {
+    const sql = `
+            SELECT 
+                c.*, 
+                m.NomMat, 
+                m.Couleur,
+                cl.Salle,
+                p.NomProf, 
+                p.PrenomsProf 
+            FROM cours c 
+            JOIN matieres m ON c.CodMat = m.CodMat 
+            JOIN classes cl ON c.NumClass = cl.NumClass
+            LEFT JOIN enseigner e ON c.NumClass = e.NumClass AND c.CodMat = e.CodMat AND c.Annee = e.Annee
+            LEFT JOIN professeurs p ON e.NumProf = p.NumProf 
+            WHERE c.NumClass = ? AND c.Annee = ?
+        `;
+    const result = await window.electronAPI.db.query(sql, [numClass, annee]);
+    if (result.success) {
+      return result.data;
     }
+    return [];
+  }
 
-    static async updateCours(cours) {
-        const sql = "UPDATE emploi_du_temps SET Num_Class = ?, Annee = ?, Num_Prof = ? WHERE Num_Emploi = ?";
-        const result = await window.electronAPI.db.query(sql, [cours.numClass, cours.annee, cours.numProf, cours.numEmploi]);
-        return result;
-    }
+  static async createCours(cours) {
+    const sql =
+      "INSERT INTO cours (HDebut, NBHeures, Jour, CodMat, NumClass, Annee) VALUES (?, ?, ?, ?, ?, ?)";
+    const result = await window.electronAPI.db.query(sql, [
+      cours.HDebut,
+      cours.NBHeures,
+      cours.Jour,
+      cours.Cod_Mat,
+      cours.Num_Class,
+      cours.Annee,
+    ]);
+    return result;
+  }
 
-    static async deleteCours(numEmploi) {
-        const sql = "DELETE FROM emploi_du_temps WHERE Num_Emploi = ?";
-        const result = await window.electronAPI.db.query(sql, [numEmploi]);
-        return result;
-    }
+  static async updateCours(cours) {
+    const sql =
+      "UPDATE cours SET HDebut = ?, NBHeures = ?, Jour = ?, CodMat = ?, NumClass = ?, Annee = ? WHERE NumCours = ?";
+    const result = await window.electronAPI.db.query(sql, [
+      cours.HDebut,
+      cours.NBHeures,
+      cours.Jour,
+      cours.Cod_Mat,
+      cours.Num_Class,
+      cours.Annee,
+      cours.Num_Cours,
+    ]);
+    return result;
+  }
+
+  static async deleteCours(numCours) {
+    const sql = "DELETE FROM cours WHERE NumCours = ?";
+    const result = await window.electronAPI.db.query(sql, [numCours]);
+    return result;
+  }
 }
 
 export default CoursService;

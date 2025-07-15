@@ -5,7 +5,7 @@ import Dashboard from "../views/Dashboard";
 import Etablissement from "../views/Etablissement";
 import ElevesList from "../views/Eleves";
 import ClassesList from "../views/Classes";
-import { EmploiDuTempsList } from "../views/EmploiDuTemps";
+import EmploiDuTemps from "../views/EmploiDuTemps";
 import Matieres from "../views/Matieres";
 import Professeurs from "../views/Professeurs";
 import AnneeScolaire from "../views/Annee-Scolaire";
@@ -54,7 +54,7 @@ export const router = createHashRouter([
       // },
       {
         path: "emplois-du-temps",
-        element: <EmploiDuTempsList />,
+        element: <EmploiDuTemps />,
       },
 
       /* {

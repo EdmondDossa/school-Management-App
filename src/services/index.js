@@ -4,7 +4,6 @@ import CoefficientService from "./CoefficientService";
 import ComposerService from "./ComposerSrvice";
 import CoursService from "./CoursService";
 import EleveService from "./EleveService";
-import EmploiDuTempsService from "./EmploiDuTempsService";
 import EnseignerService from "./EnseignerService";
 import EtablissementService from "./EtablissementService";
 import InscriptionService from "./InscriptionService";
@@ -19,7 +18,6 @@ export {
   ComposerService,
   CoursService,
   EleveService,
-  EmploiDuTempsService,
   EnseignerService,
   EtablissementService,
   InscriptionService,

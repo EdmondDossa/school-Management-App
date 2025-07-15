@@ -82,7 +82,6 @@ const AnneeScolaire = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    console.log(AnneeScolaire);
     if (!["Semestre", "Trimestre"].includes(AnneeScolaire.Periodicite)) {
       return toast.error(
         `${AnneeScolaire.Periodicite} n'est pas une période valide!`

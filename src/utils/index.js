@@ -55,7 +55,6 @@ const handleUploadFile = async (file, targetFolder) => {
 
 const getResourcesPath = async () => {
   const path = await window.electronAPI.getAppPath();
-  console.log("Chemin vers le dossier des ressources :", path);
   return path;
 };
 

@@ -54,6 +54,7 @@ const classFields = [
       { label: "Terminale", value: "tle" },
     ],
   },
+  { name: "Salle", label: "Salle", type: "text" },
 ];
 
 const ClassesList = () => {
@@ -65,6 +66,7 @@ const ClassesList = () => {
     NumClass: null,
     NomClass: "",
     Promotion: "6",
+    Salle: "",
   });
 
   const [anneesScolaires, setAnneesScolaires] = useState([]);
@@ -262,13 +264,17 @@ const ClassesList = () => {
                     )}
                     {classes.map((classe, index) => (
                       <TableRow key={classe.NumClass}>
-                        <TableCell>{classe.NomClass}</TableCell>
-                        <TableCell>{classe.Promotion}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-start">
+                          {classe.NomClass}
+                        </TableCell>
+                        <TableCell className="text-start">
+                          {classe.Promotion}
+                        </TableCell>
+                        <TableCell className="text-start">
                           {" "}
                           {effectifsParClasse[classe.NumClass]}{" "}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-start">
                           <div className="flex gap-2">
                             <div>
                               <Button
