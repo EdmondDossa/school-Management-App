@@ -1,9 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Calendar, Plus, Edit2, Trash2, Save, X, BookOpen } from "lucide-react";
+import {
+  Calendar,
+  Plus,
+  Edit2,
+  Trash2,
+  Save,
+  X,
+  BookOpen,
+  FileText,
+  Loader,
+} from "lucide-react"; // Import FileText for the export icon
 import AnneeScolaireService from "../../../services/AnneeScolaireService";
 import ClasseService from "../../../services/ClasseService";
 import CoursService from "../../../services/CoursService";
 import MatiereService from "../../../services/MatiereService";
+import jsPDF from "jspdf"; // Import jsPDF
+import html2canvas from "html2canvas"; // Import html2canvas
 
 // These are constants, so they can be defined outside the component
 // to prevent re-creation on every render.
@@ -32,6 +44,7 @@ const EmploiDuTemps = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSlot, setEditingSlot] = useState(null);
   const [scheduleGrid, setScheduleGrid] = useState([]);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [newSlot, setNewSlot] = useState({
     day: "",
@@ -183,18 +196,80 @@ const EmploiDuTemps = () => {
     (c) => c.NumClass === parseInt(selectedClass)
   );
 
+  // New function to handle PDF export
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    const input = document.getElementById("schedule-table-container");
+    if (!input) {
+      console.error("Element with ID 'schedule-table-container' not found.");
+      return;
+    }
+
+    const actionButtons = input.querySelectorAll(".group-hover\\:opacity-100");
+    actionButtons.forEach((btn) => (btn.style.visibility = "hidden"));
+
+    try {
+      const scheduleCanvas = await html2canvas(input, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight,
+      });
+      const pdf = new jsPDF("landscape", "mm", "a3");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const imgData = scheduleCanvas.toDataURL("image/png");
+      const imgWidth = scheduleCanvas.width;
+      const imgHeight = scheduleCanvas.height;
+
+      const ratio = pdfWidth / imgWidth;
+      const imgHeightScaled = imgHeight * ratio;
+
+      if (imgHeightScaled <= pdfHeight) {
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeightScaled);
+      } else {
+        let heightLeft = imgHeightScaled;
+        let position = 0;
+
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeightScaled);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeightScaled;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeightScaled);
+          heightLeft -= pdfHeight;
+        }
+      }
+
+      pdf.save(
+        `Emploi_du_temps_${selectedClassInfo?.NomClass}_${selectedSchoolYear}.pdf`
+      );
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Une erreur est survenue lors de la génération du PDF.");
+    } finally {
+      actionButtons.forEach((btn) => (btn.style.visibility = "visible"));
+    }
+    setIsExporting(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="sticky -top-5 z-40 bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <Calendar className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">
                 Emplois du Temps
               </h1>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 xl:w-2/3">
               <select
                 id="schoolYear"
                 value={selectedSchoolYear}
@@ -219,11 +294,25 @@ const EmploiDuTemps = () => {
                   </option>
                 ))}
               </select>
+              {/* Export PDF Button */}
+              <button
+                disabled={isExporting}
+                onClick={handleExportPdf}
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md w-fit hover:bg-green-700 transition-colors duration-200"
+              >
+                {!isExporting && <FileText className="w-4 h-4" />}
+                {isExporting && <Loader className="w-4 h-4" />}
+
+                <p style={{ inlineSize: "max-content" }}>Exporter PDF</p>
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div
+          id="legend-section"
+          className="bg-white rounded-lg shadow-sm p-4 mb-6"
+        >
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
             <BookOpen className="w-5 h-5 text-gray-500" />
             <span>Légende des matières pour {selectedClassInfo?.NomClass}</span>
@@ -251,7 +340,10 @@ const EmploiDuTemps = () => {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div
+          id="schedule-table-container"
+          className="bg-white rounded-lg shadow-sm overflow-hidden"
+        >
           <div className="p-4 border-b bg-gray-50 sticky -top-5 z-20">
             <h3 className="text-lg font-semibold text-gray-900">
               Emploi du temps - {selectedClassInfo?.NomClass}
