@@ -139,13 +139,17 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
           <TableCell
             onClick={setFocus}
             key={field}
-            title={!CodMat ? "Sélectionner d'abord une matière" : ""}
-            className={`border-2 group ${colorPalettes(
+            title={
+              !CodMat && !["MI", "MT"].includes(field)
+                ? "Sélectionner d'abord une matière"
+                : ""
+            }
+            className={`border-2  ${colorPalettes(
               field
             )} transition border border-gray-300 ${
-              ["MI", "MT"].includes(field) || !CodMat
-                ? "group cursor-not-allowed"
-                : "cursor-pointer"
+              !CodMat && !["MI", "MT"].includes(field)
+                ? "cursor-not-allowed"
+                : ""
             }`}
           >
             <input
@@ -156,12 +160,8 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
               onChange={handleChange}
               onBlur={handleNoteEdit}
               id={`${field}-${eleve.NumIns}`}
-              readOnly={["MI", "MT"].includes(field) || !CodMat}
-              className={`${
-                ["MI", "MT"].includes(field) || !CodMat
-                  ? "group-hover:cursor-not-allowed"
-                  : ""
-              } bg-inherit transition  border-none outline-none focus:border-none focus:outline-none h-full w-full block `}
+              disabled={["MI", "MT"].includes(field) || !CodMat}
+              className={`group-hover:bg-gray-100 bg-inherit transition border-none outline-none focus:border-none focus:outline-none h-full w-full block `}
             />
           </TableCell>
         ))}

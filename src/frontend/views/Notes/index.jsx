@@ -202,7 +202,7 @@ const NotesPanel = () => {
                       Numéro
                     </TableHead>
                     <TableHead
-                      className="w-[280px] border-r-2 border-gray-100"
+                      className="w-[300px] border-r-2 border-gray-100"
                       rowSpan="2"
                     >
                       Nom Prénom
