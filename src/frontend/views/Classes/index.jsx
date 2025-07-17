@@ -247,6 +247,7 @@ const ClassesList = () => {
                     <TableRow>
                       <TableHead>Nom de la classe</TableHead>
                       <TableHead>Promotion</TableHead>
+                      <TableHead>Salle</TableHead>
                       <TableHead>Nombre d'élèves</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -255,7 +256,7 @@ const ClassesList = () => {
                     {classes.length === 0 && (
                       <TableRow>
                         <TableCell
-                          colSpan={4}
+                          colSpan={5}
                           className="text-gray-400 text-md text-center p-10"
                         >
                           {" "}
@@ -270,6 +271,9 @@ const ClassesList = () => {
                         </TableCell>
                         <TableCell className="text-start">
                           {classe.Promotion}
+                        </TableCell>
+                        <TableCell className="text-start">
+                          {classe.Salle}
                         </TableCell>
                         <TableCell className="text-start">
                           {" "}
