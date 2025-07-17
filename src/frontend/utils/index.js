@@ -75,12 +75,11 @@ function displayAnneeAnterieureToast(annee){
     },
   });
 }
-
 export {
    capitalize ,
    getEtablissement ,
    electronConfirm,
    getAnneeScolaire,
    checkAnneeScolaireValidity,
-   displayAnneeAnterieureToast
+   displayAnneeAnterieureToast,
   };

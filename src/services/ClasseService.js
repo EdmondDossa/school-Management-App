@@ -43,7 +43,7 @@ class ClasseService {
 
   static async createClasse(classe) {
     const sql =
-      "INSERT INTO classes (NomClass, Promotion, Salle) VALUES (?, ?)";
+      "INSERT INTO classes (NomClass, Promotion, Salle) VALUES (?, ?, ?)";
     const result = await window.electronAPI.db.query(sql, [
       classe.NomClass,
       classe.Promotion,

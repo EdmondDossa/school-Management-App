@@ -9,7 +9,7 @@ const ButtonBack = () => {
 
   return (
     <button
-    className='flex items-center px-4 py-2  bg-gray-200 rounded-md border-2  hover:bg-gray-100 transition-all ease-linear text-blue-500 border-blue-500'
+    className='flex items-center px-2 py-1 mb-2  bg-gray-200 rounded-md border-2  hover:bg-gray-100 transition-all ease-linear text-blue-500 border-blue-500'
       onClick={() => navigate(-1)}
   >
     <MoveLeft />

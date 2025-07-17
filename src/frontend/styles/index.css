@@ -102,3 +102,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #5e5b5b; /* Hover effect */
 }
+
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

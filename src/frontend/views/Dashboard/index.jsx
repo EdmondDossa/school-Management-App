@@ -80,21 +80,27 @@ const Dashboard = () => {
         displayAnneeAnterieureToast(localAnneeScolaire.Annee);
       }
 
-      const nombreInscriptionsEnCours = await InscriptionService.getTotalInscrits(localAnneeScolaire?.AnneeScolaire);
+      const nombreInscriptionsEnCours =
+        await InscriptionService.getTotalInscrits(
+          localAnneeScolaire?.AnneeScolaire
+        );
       setNombreEleves(nombreInscriptionsEnCours || 0);
 
       await window.electronAPI.store.set("anneeScolaires", anneeScolaires);
-      const periode = await detectPeriodeActuelle();
-      if (
-        [
-          "1er Semestre",
-          "2ème Semestre",
-          "1er Trimestre",
-          "2ème Trimestre",
-          "3ème Trimestre",
-        ].includes(periode)
-      ) {
-        await window.electronAPI.store.set("periodeEncours", periode);
+      const localPeriode = window.electronAPI.store.get("periodeEncours");
+      if (!localPeriode) {
+        const periode = await detectPeriodeActuelle();
+        if (
+          [
+            "1er Semestre",
+            "2ème Semestre",
+            "1er Trimestre",
+            "2ème Trimestre",
+            "3ème Trimestre",
+          ].includes(periode)
+        ) {
+          await window.electronAPI.store.set("periodeEncours", periode);
+        }
       }
     } else {
       await window.electronAPI.store.set("anneeScolaireEncours", {
@@ -103,7 +109,7 @@ const Dashboard = () => {
         DateFin: null,
         Periodicite: null,
       });
-      await window.electronAPI.store.set("periodeEncours", {});
+      await window.electronAPI.store.set("periodeEncours", "");
       await window.electronAPI.store.set("anneeScolaires", []);
     }
   };

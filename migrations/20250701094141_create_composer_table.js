@@ -6,14 +6,24 @@ exports.up = function (knex) {
   return knex.schema.createTableIfNotExists("composer", function (table) {
     table.integer("NumIns");
     table.integer("CodMat");
-    table.string("DateCompo");
+    table.timestamp("DateCompo").defaultTo(knex.fn.now());
     table.float("Note");
-    table.string("Type").notNullable();
-    table.integer("NumPeriode");
-    table.primary(["NumIns", "CodMat", "DateCompo"]);
+    table
+      .string("Type")
+      .notNullable()
+      .checkIn(["I1", "I2", "I3", "D1", "D2", "D3"]);
+    table
+      .string("Periode")
+      .checkIn([
+        "1er Trimestre",
+        "2ème Trimestre",
+        "3ème Trimestre",
+        "1er Semestre",
+        "2ème Semestre",
+      ]);
+    table.primary(["NumIns", "CodMat", "Periode", "Type"]);
     table.foreign("NumIns").references("NumIns").inTable("inscriptions");
     table.foreign("CodMat").references("CodMat").inTable("matieres");
-    table.foreign("NumPeriode").references("NumPeriode").inTable("periodes");
   });
 };
 

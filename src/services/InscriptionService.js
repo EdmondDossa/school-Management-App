@@ -101,9 +101,18 @@ class InscriptionService {
           row.Statut,
           row.Matricule,
           row.Num_Class,
-          row.Annee_Scolaire
+          row.AnneeScolaire
         )
     );
+  }
+
+  static async getElevesByAnneeScolaireAndClasse(anneeScolaire,numClass) {
+    const sql = "SELECT e.*,i.NumIns FROM eleves e JOIN inscriptions i ON i.Matricule = e.Matricule WHERE i.AnneeScolaire = ? AND i.NumClass = ?";
+    const { data: rows } = await window.electronAPI.db.query(sql, [
+      anneeScolaire,
+      numClass
+    ]);
+    return rows;
   }
 
   static async createInscription(inscription) {
@@ -163,6 +172,8 @@ class InscriptionService {
     ]);
     return result;
   }
+
+  
 
   static async deleteInscription(numIns) {
     const sql = "DELETE FROM inscriptions WHERE Num_Ins = ?";

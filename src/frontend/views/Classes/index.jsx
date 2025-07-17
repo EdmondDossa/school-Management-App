@@ -199,6 +199,7 @@ const ClassesList = () => {
               duration: 5000,
             }
           );
+          await fetchEffectifsParClasse();
         } else toast.error("Une erreur est survenue lors de l'import");
       }
     } catch (error) {
@@ -272,7 +273,7 @@ const ClassesList = () => {
                         </TableCell>
                         <TableCell className="text-start">
                           {" "}
-                          {effectifsParClasse[classe.NumClass]}{" "}
+                          {effectifsParClasse[classe.NumClass] ?? 0}{" "}
                         </TableCell>
                         <TableCell className="text-start">
                           <div className="flex gap-2">
@@ -333,7 +334,7 @@ const ClassesList = () => {
                                 positionStrategy="fixed"
                               >
                                 <div>
-                                  <h2 className="text-white font-bold text-sm border-t-2 border-gray-300 py-2 bg-gray-500">
+                                  <h2 className="text-white text-center font-bold text-sm border-t-2 border-gray-300 py-2 bg-gray-500">
                                     Options
                                   </h2>
                                 </div>
@@ -365,7 +366,7 @@ const ClassesList = () => {
                                     variant="secondary"
                                     size="sm"
                                     className="w-full rounded-none bg-white  hover:text-white transition hover:bg-blue-500 py-5"
-                                    onClick={() => {}}
+                                    onClick={() => { navigate(`/classes/notes/${classe.NumClass}`) }}
                                   >
                                     <HiLightBulb className="h-4 w-4 mr-2 text-blue-300" />
                                     Notes/Inscriptions
