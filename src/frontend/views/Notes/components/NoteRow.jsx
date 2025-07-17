@@ -106,16 +106,16 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
     if (["MI", "MT"].includes(field)) {
       const note = Number(notes[field]) || 0;
       if (note < 10) {
-        return "bg-red-400 font-font-regular";
+        return "bg-red-100 text-red-500 font-semibold font-font-regular";
       }
       if (note < 13) {
-        return "bg-orange-500 font-font-regular";
+        return "bg-orange-100 font-semibold text-orange-500 font-font-regular";
       }
       if (note < 16) {
-        return "bg-emerald-500  font-font-regular";
+        return "bg-emerald-50 font-semibold text-emerald-700 font-font-regular";
       }
 
-      return "bg-emerald-600  font-font-regular";
+      return "bg-emerald-200 font-semibold  text-emerald-800 font-font-regular";
     } else {
       return "bg-gray-50";
     }
