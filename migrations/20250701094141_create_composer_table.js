@@ -6,7 +6,6 @@ exports.up = function (knex) {
   return knex.schema.createTableIfNotExists("composer", function (table) {
     table.integer("NumIns");
     table.integer("CodMat");
-    table.timestamp("DateCompo").defaultTo(knex.fn.now());
     table.float("Note");
     table
       .string("Type")
@@ -21,6 +20,7 @@ exports.up = function (knex) {
         "1er Semestre",
         "2ème Semestre",
       ]);
+    table.timestamp("enregistree_le").defaultTo(knex.fn.now());
     table.primary(["NumIns", "CodMat", "Periode", "Type"]);
     table.foreign("NumIns").references("NumIns").inTable("inscriptions");
     table.foreign("CodMat").references("CodMat").inTable("matieres");

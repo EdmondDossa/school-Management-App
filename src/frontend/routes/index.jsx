@@ -11,6 +11,7 @@ import Professeurs from "../views/Professeurs";
 import AnneeScolaire from "../views/Annee-Scolaire";
 import ClasseConfiguration from "../views/Classes/classe-configuration";
 import NotesPanel from "../views/Notes";
+import Bulletins from "../views/Bulletins";
 
 export const router = createHashRouter([
   {
@@ -44,6 +45,10 @@ export const router = createHashRouter([
       {
         path: 'classes/notes/:numClass',
         element: <NotesPanel />,
+      },
+      {
+        path: 'classes/bulletins/:NumIns',
+        element: <Bulletins />,
       },
       {
         path: "matieres",

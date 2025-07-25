@@ -1,8 +1,8 @@
 class Compose {
-    constructor(numIns, codMat, dateCompo, note, type, periode) {
+    constructor(numIns, codMat, enregistree_le, note, type, periode) {
         this.numIns = numIns;
         this.codMat = codMat;
-        this.dateCompo = dateCompo;
+        this.enregistree_le = enregistree_le;
         this.note = note;
         this.type = type;
         this.periode = periode;

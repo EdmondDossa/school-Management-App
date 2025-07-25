@@ -9,7 +9,7 @@ class ComposerService {
         new Composer(
           row.Num_Ins,
           row.Cod_Mat,
-          row.Date_Compo,
+          row.enregistree_le,
           row.Note,
           row.Type,
           row.Periode
@@ -51,7 +51,7 @@ class ComposerService {
     return new Composer(
       row.Num_Ins,
       row.Cod_Mat,
-      row.Date_Compo,
+      row.enregistree_le,
       row.Note,
       row.Type,
       row.numPeriode
@@ -60,7 +60,7 @@ class ComposerService {
 
   static async create(composer) {
     const sql =
-      "INSERT INTO composer (NumIns, CodMat, DateCompo, Note, Type, numPeriode) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO composer (NumIns, CodMat, enregistree_le, Note, Type, numPeriode) VALUES (?, ?, ?, ?, ?)";
     const result = await window.electronAPI.db.query(sql, [
       composer.NumIns,
       composer.CodMat,
@@ -96,14 +96,14 @@ class ComposerService {
 
   static async updateComposer(composer) {
     const sql =
-      "UPDATE composer SET Note = ?, Type = ?, numPeriode = ? WHERE Num_Ins = ? AND Cod_Mat = ? AND Date_Compo = ?";
+      "UPDATE composer SET Note = ?, Type = ?, numPeriode = ? WHERE Num_Ins = ? AND Cod_Mat = ? AND enregistree_le = ?";
     const result = await window.electronAPI.db.query(sql, [
       composer.note,
       composer.type,
       composer.numPeriode,
       composer.numIns,
       composer.codMat,
-      composer.dateCompo,
+      composer.enregistree_le,
     ]);
     return result;
   }

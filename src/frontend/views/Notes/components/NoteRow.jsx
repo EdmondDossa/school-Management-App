@@ -2,10 +2,13 @@ import React, { useEffect, useState } from "react";
 import { TableRow, TableCell } from "../../../components/CTable";
 import { ComposerService } from "../../../../services";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const fieldsNotes = ["I1", "I2", "I3", "D1", "D2", "D3", "MI", "MT"];
 
 const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
+  const navigate = useNavigate();
+
   const [notes, setNotes] = useState({});
 
   const setFocus = (e) => {
@@ -130,7 +133,15 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
     <>
       <TableRow>
         <TableCell className="border-r-2 border-gray-100">{index}</TableCell>
-        <TableCell className="font-semibold text-gray-800 text-left max-w-[40px] ">
+        <TableCell
+          title="Cliquer pour voir le bulletin"
+          onClick={() =>
+            navigate(
+              `/classes/bulletins/${eleve.NumIns}?numClass=${NumClass}&matricule=${eleve.Matricule}`
+            )
+          }
+          className="cursor-pointer font-semibold text-gray-800 text-left max-w-[40px] "
+        >
           {(eleve.Nom + " " + eleve.Prenoms).length > 30
             ? (eleve.Nom + " " + eleve.Prenoms).substring(0, 27) + "..."
             : eleve.Nom + " " + eleve.Prenoms}
