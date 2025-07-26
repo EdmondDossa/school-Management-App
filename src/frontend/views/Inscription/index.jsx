@@ -20,10 +20,10 @@ function Inscription() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <AppBar />
       <div className="flex-grow flex items-center justify-center">
-        <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <div className="w-full max-w-md p-8 space-y-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl text-center transition-all duration-500">
           <img src={Logo} alt="Logo" className="w-20 h-20 mx-auto" />
           <h1 className="text-2xl font-bold text-center">Bienvenue !</h1>
           <p className="text-center text-gray-600">
