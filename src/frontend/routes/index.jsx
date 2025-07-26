@@ -10,61 +10,82 @@ import Matieres from "../views/Matieres";
 import Professeurs from "../views/Professeurs";
 import AnneeScolaire from "../views/Annee-Scolaire";
 import ClasseConfiguration from "../views/Classes/classe-configuration";
+import Connexion from "../views/Connexion";
+import Inscription from "../views/Inscription";
+import ProtectedRoute from "./ProtectedRoute";
+import ChangePassword from "../views/User/ChangePassword";
 
 export const router = createHashRouter([
+  {
+    path: "/connexion",
+    element: <Connexion />,
+  },
+  {
+    path: "/inscription",
+    element: <Inscription />,
+  },
+  {
+    path: "/settings/change-password",
+    element: <ChangePassword />,
+  },
   {
     path: "/",
     element: <RootLayout />,
     children: [
       {
-        index: true,
-        element: <Dashboard />,
-      },
-      {
-        path: "etablissements",
-        element: <Etablissement />,
-      },
-      {
-        path: "annees-scolaires",
-        element: <AnneeScolaire />,
-      },
-      {
-        path: "eleves",
-        element: <ElevesList />,
-      },
-      {
-        path: "classes",
-        element: <ClassesList />,
-      },
-      {
-        path: "classes/config-class/:id",
-        element: <ClasseConfiguration />,
-      },
-      {
-        path: "matieres",
-        element: <Matieres />,
-      },
-      {
-        path: "professeurs",
-        element: <Professeurs />,
-      },
-      // {
-      //   path: "professeurs/:id",
-      //   element: <ClassesTenuesParProfesseur />,
-      // },
-      {
-        path: "emplois-du-temps",
-        element: <EmploiDuTempsList />,
-      },
+        element: <ProtectedRoute />,
+        children: [
+          {
+            index: true,
+            element: <Dashboard />,
+          },
+          {
+            path: "etablissements",
+            element: <Etablissement />,
+          },
+          {
+            path: "annees-scolaires",
+            element: <AnneeScolaire />,
+          },
+          {
+            path: "eleves",
+            element: <ElevesList />,
+          },
+          {
+            path: "classes",
+            element: <ClassesList />,
+          },
+          {
+            path: "classes/config-class/:id",
+            element: <ClasseConfiguration />,
+          },
+          {
+            path: "matieres",
+            element: <Matieres />,
+          },
+          {
+            path: "professeurs",
+            element: <Professeurs />,
+          },
+          // {
+          //   path: "professeurs/:id",
+          //   element: <ClassesTenuesParProfesseur />,
+          // },
+          {
+            path: "emplois-du-temps",
+            element: <EmploiDuTempsList />,
+          },
 
-      /* {
-        path: 'notes',
-        element: <NotesList />,
+          /* {
+            path: 'notes',
+            element: <NotesList />,
+          },
+          {
+            path: 'bulletin',
+            element: <BulletinList />,
+          }, */
+        ],
       },
-      {
-        path: 'bulletin',
-        element: <BulletinList />,
-      }, */
     ],
   },
 ]);

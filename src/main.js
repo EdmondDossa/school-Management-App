@@ -1,13 +1,16 @@
-import { app, protocol, BrowserWindow, ipcMain, dialog } from "electron";
+const { app, protocol, BrowserWindow, ipcMain, dialog } = require("electron");
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import Store from "electron-store";
 const store = new Store();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const log = require("electron-log");
 import path from "node:path";
 import fs from "node:fs";
 import started from "electron-squirrel-startup";
 import { db as Database, initializeDatabase } from "./database.js";
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
@@ -259,6 +262,84 @@ ipcMain.handle("electron-store-delete", (event, key) => {
   return store.delete(key);
 });
 
+// Auth handlers
+ipcMain.handle('auth-create-user', async (event, { username, password }) => {
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  return Database('utilisateurs').insert({ username, password: hashedPassword, role: 'admin' });
+});
+
+ipcMain.handle('auth-verify-user', async (event, { username, password }) => {
+  const user = await Database('utilisateurs').where({ username }).first();
+  if (!user) {
+    return { success: false, message: 'Mot de passe incorrect.' };
+  }
+
+  const failedAttemptsKey = `failed_attempts_${username}`;
+  const lockoutUntilKey = `lockout_until_${username}`;
+  const systemPasswordRequiredKey = `system_password_required_${username}`;
+
+  let failedAttempts = store.get(failedAttemptsKey, 0);
+  let lockoutUntil = store.get(lockoutUntilKey, 0);
+  let systemPasswordRequired = store.get(systemPasswordRequiredKey, false);
+
+  const now = Date.now();
+
+  // Si le mot de passe système est requis, on ne vérifie plus le mot de passe normal
+  if (systemPasswordRequired) {
+    return { success: false, systemPasswordRequired: true, message: 'Veuillez utiliser le mot de passe système.' };
+  }
+
+  // Vérifier si l'utilisateur est actuellement verrouillé
+  if (lockoutUntil > now) {
+    return { success: false, isLockedOut: true, lockoutEndsAt: lockoutUntil, message: 'Trop de tentatives. Veuillez réessayer plus tard.' };
+  }
+
+  const passwordMatch = await bcrypt.compare(password, user.password);
+
+  if (passwordMatch) {
+    // Connexion réussie : réinitialiser les compteurs
+    store.set(failedAttemptsKey, 0);
+    store.set(lockoutUntilKey, 0);
+    return { success: true };
+  } else {
+    // Mot de passe incorrect : incrémenter les tentatives échouées
+    failedAttempts++;
+    store.set(failedAttemptsKey, failedAttempts);
+
+    if (failedAttempts >= 3) {
+      // Si 3 tentatives échouées, verrouiller pour 5 minutes
+      const newLockoutUntil = now + 5 * 60 * 1000; // 5 minutes en ms
+      store.set(lockoutUntilKey, newLockoutUntil);
+      // Réinitialiser les tentatives après un verrouillage pour le prochain cycle
+      store.set(failedAttemptsKey, 0);
+
+      // Si c'est le 3ème verrouillage (3 * 3 = 9 tentatives échouées au total)
+      if (failedAttempts % 3 === 0 && failedAttempts / 3 >= 3) {
+        store.set(systemPasswordRequiredKey, true);
+        return { success: false, systemPasswordRequired: true, message: 'Trop de tentatives. Veuillez utiliser le mot de passe système.' };
+      }
+      return { success: false, isLockedOut: true, lockoutEndsAt: newLockoutUntil, message: 'Trop de tentatives. Veuillez réessayer plus tard.' };
+    }
+    return { success: false, message: 'Mot de passe incorrect.' };
+  }
+});
+
+ipcMain.handle('auth-has-users', async () => {
+  const result = await Database('utilisateurs').count('id as count').first();
+  return result.count > 0;
+});
+
+ipcMain.handle('auth-change-password', async (event, { username, newPassword }) => {
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    await Database('utilisateurs').where({ username }).update({ password: hashedPassword });
+    return { success: true };
+  } catch (error) {
+    console.error("Error changing password:", error);
+    return { success: false, message: error.message };
+  }
+});
+
 /**
  * Handler pour la navigation entre les pages
  */
@@ -280,6 +361,12 @@ process.on("uncaughtException", (error) => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+
+app.on('before-quit', () => {
+  // Effacer le statut de connexion avant de quitter
+  store.delete('loggedIn');
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

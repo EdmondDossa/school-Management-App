@@ -35,7 +35,7 @@ const Input = ({
     }
   };
 
-  if (type === "file")
+  if (type === "file") {
     return (
       <div className="space-y-2">
         <div
@@ -78,7 +78,7 @@ const Input = ({
         )}
       </div>
     );
-
+  }
   return (
     <input
       type={type}
@@ -89,7 +89,7 @@ const Input = ({
       readOnly={readOnly}
       required={required}
       autoFocus={autofocus}
-      className={`w-full p-3 rounded-md bg-[#2871FA1A] text-[#00000099] placeholder-[#00000099] h-[50px] border-[2px] border-gray-500 focus:outline-none focus:ring-0 ${className}`}
+      className={`h-[50px] w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${className}`}
     />
   );
 };

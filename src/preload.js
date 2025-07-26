@@ -8,6 +8,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
     delete: (key) => ipcRenderer.invoke("electron-store-delete", key),
   },
 
+  // Auth
+  auth: {
+    createUser: ({ username, password }) => ipcRenderer.invoke("auth-create-user", { username, password }),
+    verifyUser: ({ username, password }) => ipcRenderer.invoke("auth-verify-user", { username, password }),
+    hasUsers: () => ipcRenderer.invoke("auth-has-users"),
+    changePassword: ({ username, newPassword }) => ipcRenderer.invoke("auth-change-password", { username, newPassword }),
+  },
+
   // API DB
   db: {
     query: (sql, params) => ipcRenderer.invoke("db-query", { sql, params }),
