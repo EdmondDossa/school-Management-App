@@ -16,6 +16,7 @@ class ComposerService {
         )
     );
   }
+
   static async getComposersByAnneeClassMatiere(
     Annee,
     numClass,
@@ -43,9 +44,94 @@ class ComposerService {
     return sortedData;
   }
 
+  static async getComposersByAnneeClass(Annee, numClass, Periode) {
+    const sql =
+      "SELECT c.Note,c.Type,c.NumIns,c.CodMat FROM composer c JOIN inscriptions i ON i.NumIns = c.NumIns WHERE i.AnneeScolaire = ? AND i.NumClass = ? AND Periode = ? GROUP BY c.NumIns,c.CodMat,c.Type,c.Note";
+    const { data: rows } = await window.electronAPI.db.query(sql, [
+      Annee,
+      numClass,
+      Periode,
+    ]);
+
+    //on veut trier les donnees regroupees de sorte d'avoir un tableau dans le format
+    /**
+     * [
+     *  {
+     *      NumIns:'..',
+     *      matieres:{
+     *        CodMat1:{
+     *          interro:[],
+     *          devoirs:[ { type:note } ]
+     *        },
+     *        CodMat2: ....
+     *  }
+     * }
+     * ]
+     *
+     * Ce tri sera utile pour faciliter dans les vues le calcul des moyennes par classe et par matieres
+     * afin de faire le ranking
+     */
+
+    //les donnees provenant de la bdd sont groupees par matricule
+    //c'est à dire que toutes les notes de chaque étudiant sont d'abord listées avant de passer à un
+    //autre étudiant.
+
+    let lastSavedMatricule = ""; //l'étudiant dont les notes sont entrain d'etre traitées
+    let data = {}; // l'ensemble des info sur ses notes
+    const result = []; //le tableau final qui va recevoir data après chaque fin de traitement d'un etudiant
+
+    if (rows.length > 0) {
+      for (let i = 0; i < rows.length; i++) {
+        //on vérifie si on n'est passé à un autre étudiant
+        if (rows[i]?.NumIns === lastSavedMatricule) {
+          //si des notes n'ont pas déjà été enrégistré pour la matiere en cours
+          if (!data.matieres[rows[i].CodMat]) {
+            data.matieres[rows[i].CodMat] = {
+              devoirs: [],
+              interro: [],
+            };
+          }
+
+          //on ranges les notes selon leurs types
+          if (rows[i].Type.startsWith("I")) {
+            data.matieres[rows[i].CodMat].interro = [
+              ...data.matieres[rows[i].CodMat].interro,
+              rows[i].Note,
+            ];
+          } else
+            data.matieres[rows[i].CodMat].devoirs = {
+              ...data.matieres[rows[i].CodMat].devoirs,
+              [rows[i].Type]: rows[i].Note,
+            };
+        } else {
+          //quand on passe à un nouvel étudiant
+          data = {
+            NumIns: rows[i].NumIns,
+            matieres: {
+              [rows[i].CodMat]: {
+                interro: [],
+                devoirs: {},
+              },
+            },
+          };
+
+          if (rows[i].Type.startsWith("I"))
+            data.matieres[rows[i].CodMat].interro.push(rows[i].Note);
+          else
+            data.matieres[rows[i].CodMat].devoirs = {
+              [rows[i].Type]: rows[i].Note,
+            };
+          result.push(data);
+        }
+        lastSavedMatricule = rows[i].NumIns;
+      }
+    }
+    return result;
+  }
+
   static async getComposerByNumIns(numIns) {
-    const sql = "SELECT * FROM composer WHERE Num_Ins = ?";
-    const rows = await window.electronAPI.db.query(sql, [numIns]);
+    const sql = "SELECT * FROM composer WHERE NumIns = ? GROUP BY CodMat";
+    const { data: rows } = await window.electronAPI.db.query(sql, [numIns]);
     if (rows.length === 0) return null;
     const row = rows[0];
     return new Composer(

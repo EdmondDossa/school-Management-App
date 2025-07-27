@@ -79,10 +79,15 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
 
     if (keys.length > 0) {
       keys.map((key) => {
-        if (key.startsWith("I") && currentNotes[key] != "")
-          n.interro.push(+currentNotes[key]);
-        else if (key.startsWith("D") && currentNotes[key] != "")
-          n.devoirs.push(+currentNotes[key]);
+        if (
+          currentNotes[key] !== "" &&
+          currentNotes[key] != null &&
+          currentNotes[key] != undefined
+        ) {
+          if (key.startsWith("I")) n.interro.push(+currentNotes[key]);
+          else if (key.startsWith("D"))
+            n.devoirs.push(+currentNotes[key]);
+        }
       });
 
       let MI,

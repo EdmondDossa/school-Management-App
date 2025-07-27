@@ -88,12 +88,7 @@ const ClassesList = () => {
 
   const fetchEffectifsParClasse = async () => {
     const { Annee } = await getAnneeScolaire();
-    const rawResult = await InscriptionService.getEffectifsByClasse(Annee);
-    //on transforme le resulat sous forme d'un objet clé:NumClass/valeur:effectif afin de faciliter son acces dans le composant jsx
-    let result = {};
-    rawResult.forEach((element) => {
-      result = { ...result, ...element };
-    });
+    const result = await InscriptionService.getEffectifsByClasse(Annee);
     setEffectifsParClasse(result);
   };
 

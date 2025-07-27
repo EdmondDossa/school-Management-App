@@ -30,9 +30,9 @@ class InscriptionService {
     const sql =
       "SELECT NumClass, COUNT(NumIns) as total FROM inscriptions WHERE AnneeScolaire = ? GROUP BY NumClass";
     const rows = await window.electronAPI.db.query(sql, [anneeScolaire]);
-    return rows.data.map((classe) => ({
-        [classe.NumClass]:classe.total
-    }));
+    let result = {};
+    rows.data.forEach((classe) => result = { ...result, [classe.NumClass]:classe.total});
+    return result;
   }
 
   static async getElevesInformations(Matricule,AnneeScolaire){
@@ -42,17 +42,17 @@ class InscriptionService {
   }
 
   static async getInscriptionByNum(numIns) {
-    const sql = "SELECT * FROM inscriptions WHERE Num_Ins = ?";
-    const rows = await window.electronAPI.db.query(sql, [numIns]);
+    const sql = "SELECT * FROM inscriptions WHERE NumIns = ?";
+    const { data:rows } = await window.electronAPI.db.query(sql, [numIns]);
     if (rows.length === 0) return null;
     const row = rows[0];
     return new Inscription(
-      row.Num_Ins,
-      row.Date_Ins,
-      row.Statut,
+      row.NumIns,
+      row.DateIns,
       row.Matricule,
-      row.Num_Class,
-      row.Annee_Scolaire
+      row.Statut,
+      row.NumClass,
+      row.AnneeScolaire
     );
   }
 
