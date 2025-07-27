@@ -54,5 +54,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getAppPath: () => ipcRenderer.invoke("get-app-path"),
   saveFile: (data) => ipcRenderer.invoke("save-file", data),
 
-  confirm: (message) => ipcRenderer.invoke("openDialog",message)
+  confirm: (message) => ipcRenderer.invoke("openDialog",message),
+  alert: (message) => ipcRenderer.invoke("alertDialog",message)
 });

@@ -57,6 +57,10 @@ async function electronConfirm(message){
   return await window.electronAPI.confirm(message);
 }
 
+async function electronAlert(message){
+  return await window.electronAPI.alert(message);
+}
+
 async function getAnneeScolaire(){
   return await window.electronAPI.store.get("anneeScolaireEncours");
 }
@@ -82,4 +86,5 @@ export {
    getAnneeScolaire,
    checkAnneeScolaireValidity,
    displayAnneeAnterieureToast,
+   electronAlert
   };

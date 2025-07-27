@@ -124,6 +124,15 @@ ipcMain.handle("openDialog", async (events, message) => {
   return result.response === 0;
 });
 
+ipcMain.handle("alertDialog", async (events, message) => {
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: "info",
+    message: message,
+    buttons: ["OK,compris."],
+  });
+  return result.response === 0;
+});
+
 ipcMain.handle("app-get-path", (event, args) => {
   return app.getPath(args.path);
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ButtonBack from "../../components/ButtonBack";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import SectionHead from "./components/SectionHead";
 import {
   ClasseService,
   ComposerService,
@@ -8,8 +9,9 @@ import {
   EnseignerService,
   InscriptionService,
 } from "../../../services";
-import { getAnneeScolaire, getEtablissement } from "../../utils";
+import { electronAlert, getAnneeScolaire, getEtablissement } from "../../utils";
 import BulletinRow from "./components/BulletinRow";
+import { convertMoyennesToLetters } from "./helpers";
 
 const tableHeadFields = [
   "DISCIPLINES",
@@ -28,6 +30,8 @@ const tableHeadFields = [
 ];
 
 const Bulletins = () => {
+  const navigate = useNavigate();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const NumClass = searchParams.get("numClass");
   const Matricule = searchParams.get("matricule");
@@ -38,14 +42,11 @@ const Bulletins = () => {
   const [classe, setClasse] = useState({});
   const [Annee, setAnnee] = useState("");
   const [matieres, setMatieres] = useState([]);
-  const [allNotes, setAllNotes] = useState([]);
   const [isLoading, setLoading] = useState(true);
   const [effectif, setEffectif] = useState(0);
   const [InscriptionInfo, setInscriptionInfo] = useState({});
   const [periodeEnCours, setPeriodeEnCours] = useState("");
-  const [allClassesNotes, setAllClassesNotes] = useState("");
   const [currentStudentNotes, setCurrentStudentNotes] = useState({});
-  const [moyennesInterro, setMoyenneInterro] = useState({});
   const [statistiquesMatieres, setStatistiquesMatieres] = useState({});
   const [statistiquesGlobales, setStatistiquesGlobales] = useState({});
 
@@ -90,6 +91,17 @@ const Bulletins = () => {
         NumClass,
         periode
       );
+
+      //si l'eleve n'a aucune note impossible de calculer sa moyenne
+      const userHasNote = elevesNotes.find((eleve) => eleve.NumIns === +NumIns);
+
+      if (!userHasNote) {
+        const ok = await electronAlert(
+          "L'élève sélectionné n'a aucune note enrégistrée pour la période en cours. Pour accéder à son bulletin,veuillez lui  ajouter au moins une note."
+        );
+        if (ok) navigate(-1);
+      }
+
       const codeMatieres = matieres.map((matiere) => matiere.CodMat);
 
       //statistiques relatives aux matieres
@@ -120,6 +132,7 @@ const Bulletins = () => {
           (eleve1, eleve2) =>
             +eleve2.matieres[codemat]["MT"] - +eleve1.matieres[codemat]["MT"]
         );
+
         const moyenneForte = sortedNotes[0].matieres[codemat]["MT"];
         const moyenneFaible = sortedNotes.at(-1).matieres[codemat]["MT"];
         const moyenneSalle =
@@ -170,9 +183,10 @@ const Bulletins = () => {
         sortedMoyennes.findIndex((eleve) => eleve.NumIns === +NumIns) + 1;
       const moyenneForteGenerale = sortedMoyennes[0].moyenneTotale;
       const moyenneFaibleGenerale = sortedMoyennes.at(-1).moyenneTotale;
-      const moyenneClasseGenerale = sortedMoyennes
-        .map((eleve) => +eleve.moyenneTotale)
-        .reduce((acc, val) => acc + val);
+      const moyenneClasseGenerale =
+        sortedMoyennes
+          .map((eleve) => +eleve.moyenneTotale)
+          .reduce((acc, val) => acc + val) / elevesNotes.length;
 
       statistiquesGlobales = {
         moyenneClasseGenerale,
@@ -184,7 +198,7 @@ const Bulletins = () => {
 
       setStatistiquesGlobales(statistiquesGlobales);
 
-      //recuperer la note de l'étudiant dont le bulletin est affiché
+      //recuperer les donnees bulletin de l'étudiant en cours
       const note = elevesNotes?.find((n) => n.NumIns === +NumIns);
       setCurrentStudentNotes(note);
 
@@ -198,11 +212,12 @@ const Bulletins = () => {
     fetchAppData();
   }, []);
 
-  if (isLoading) return <>Chargement...</>;
+  if (isLoading) return <SectionHead />;
+  
   return (
     <>
       <ButtonBack />
-      <section className="w-[940px] h-[872px] mx-auto border border-gray-500">
+      <section className="w-[940px] font-sans h-[950px] mx-auto border border-gray-500">
         {/* Entete pour les info de l'établissement */}
         <div className="flex justify-between items-center content-center text-center border-b border-black px-2">
           <div className="w-24 h-24">
@@ -312,7 +327,8 @@ const Bulletins = () => {
             </thead>
             <tbody>
               {matieres?.map((matiere) => {
-                const item = currentStudentNotes.matieres[matiere.CodMat] ?? {};
+                const item =
+                  currentStudentNotes?.matieres[matiere.CodMat] ?? {};
                 return (
                   <BulletinRow
                     key={matiere.CodMat}
@@ -351,20 +367,108 @@ const Bulletins = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex mt-2 text-sm gap-x-2 justify-between">
-          <div className="h-24  text-md p-2 flex gap-x-4 w-1/2 rounded-md border border-black">
+        <div className="flex mt-2 gap-x-1 justify-between">
+          <div className="h-12 items-center truncate ms-1 text-md p-2 flex gap-x-2 w-1/2 rounded-md ">
             <div className="block items-center">Moyenne:</div>{" "}
-            <div className="bg-gray-500"> 
-              <span className="text-lg font-bold">{currentStudentNotes.moyenneTotale.toFixed(2)} </span>
+            <div className="bg-gray-300 flex items-center">
+              <span className="text-md border-r-2 block p-1 border-white font-bold font-sans">
+                {currentStudentNotes.moyenneTotale.toFixed(2)}{" "}
+              </span>
+              <span className="text-[12px] p-1 block italic">
+                (
+                {convertMoyennesToLetters(
+                  +currentStudentNotes.moyenneTotale.toFixed(2)
+                )}
+                )
+              </span>
+            </div>
+            <div className="text-sm">
+              <span className="font-sans font-semibold">Rang :</span>
+              <span className="inline-block  text-sm  font-bold bg-gray-300 p-1">
+                {" "}
+                {rangToOrdinal(
+                  statistiquesGlobales.rangGeneral,
+                  eleve.Sexe
+                )}{" "}
+              </span>
             </div>
           </div>
-          <div className="border border-black w-[270px]">
-            <h2 className="text-center">Bilan de la classe</h2>
+          <div className="h-[130px] w-[200px]">
+            <h2 className="text-center bg-gray-600 mb-1 p-[2px] text-white">
+              Bilan de la classe
+            </h2>
+            <div className="mt-1 flex justify-between items-center text-sm border border-black">
+              <span className="block">Moy. Faible</span>
+              <strong className="block border-l w-[62px] py-1 ps-4 pe-1 border-black  ">
+                {" "}
+                {statistiquesGlobales.moyenneFaibleGenerale.toFixed(2)}{" "}
+              </strong>
+            </div>
+            <div className="mt-1 flex justify-between items-center text-sm border border-black">
+              <span className="block">Moy. Forte</span>
+              <strong className="block border-l py-1 w-[62px] ps-4 pe-1 border-black  ">
+                {" "}
+                {statistiquesGlobales.moyenneForteGenerale.toFixed(2)}{" "}
+              </strong>
+            </div>
+            <div className="mt-1 flex justify-between items-center text-sm border border-black">
+              <span className="block">Moy. de la classe</span>
+              <strong className="block border-l py-1 w-[62px] ps-4 pe-1 border-black  ">
+                {" "}
+                {statistiquesGlobales.moyenneClasseGenerale.toFixed(2)}{" "}
+              </strong>
+            </div>
           </div>
           <div className="border p-1 border-black">
-            <span className="text-center truncate">
+            <span className="text-center truncate mb-4 underline px-4 text-sm">
+              Apréciations du Professeur Principal
+            </span>
+            <div className="flex items-center ">
+              <div className="w-[200px] py-2">
+                <div className="flex ">
+                  <span className="block translate-y-[3px] me-2 text-sm">
+                    Travail
+                  </span>
+                  <span className="block text-nowrap whitespace-nowrap font-semibold text-sm border-b border-black border-dotted px-10  text-center italic">
+                    {moyenneAppreciations(currentStudentNotes.moyenneTotale)}
+                  </span>
+                </div>
+                <span className="block border-b mt-5 border-black border-dotted w-[200px]"></span>
+                <span className="block border-b mt-5 border-black border-dotted w-[200px]"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="h-32 border border-black mt-1 flex">
+          <div className="w-2/5 border-r border-black p-2">
+            <h5 className="text-sm text-center underline">
+              Récompenses et Sanctions
+            </h5>
+            {[
+              "Félicitations",
+              "Encouragements",
+              "Tableau d'honneur",
+              "Blâme",
+            ].map((critere) => (
+              <div
+                key={critere}
+                className="flex items-center text-sm mt-1 gap-x-3"
+              >
+                <span className="h-5 w-5 border-[3px] border-black"></span>{" "}
+                {critere}
+              </div>
+            ))}
+          </div>
+          <div className="w-3/5">
+            <h5 className="text-sm text-center underline">
+              Appréciations, Signature et Cachet du chef de l'établissement
+            </h5>
+            <span className="block text-center mt-1 italic">
               {" "}
-              Apréciations du Professeur Principal{" "}
+              {moyenneAppreciations(currentStudentNotes.moyenneTotale)}{" "}
+            </span>
+            <span className="block text-center mt-1 font-semibold text-sm">
+              Le Directeur
             </span>
           </div>
         </div>

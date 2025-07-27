@@ -3,13 +3,14 @@ import { TableRow, TableCell } from "../../../components/CTable";
 import { ComposerService } from "../../../../services";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { electronAlert } from "../../../utils";
 
 const fieldsNotes = ["I1", "I2", "I3", "D1", "D2", "D3", "MI", "MT"];
 
 const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
   const navigate = useNavigate();
 
-  const [notes, setNotes] = useState({});
+  const [notes, setNotes] = useState(oldNotes);
 
   const setFocus = (e) => {
     e.currentTarget.childNodes[0].focus();
@@ -85,8 +86,7 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
           currentNotes[key] != undefined
         ) {
           if (key.startsWith("I")) n.interro.push(+currentNotes[key]);
-          else if (key.startsWith("D"))
-            n.devoirs.push(+currentNotes[key]);
+          else if (key.startsWith("D")) n.devoirs.push(+currentNotes[key]);
         }
       });
 
@@ -129,6 +129,19 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
     }
   }
 
+  function showBulletin(eleve) {
+    if (!CodMat) {
+      electronAlert(
+        "Pour consulter les bulletins, vous devez d'abord ajouter au moins une matière à cette classe."
+      );
+      return;
+    }
+
+    navigate(
+      `/classes/bulletins/${eleve.NumIns}?numClass=${NumClass}&matricule=${eleve.Matricule}`
+    );
+  }
+
   useEffect(() => {
     setNotes(oldNotes);
     calculMoyennes(oldNotes); //when notes are changed in the parent components
@@ -140,11 +153,7 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
         <TableCell className="border-r-2 border-gray-100">{index}</TableCell>
         <TableCell
           title="Cliquer pour voir le bulletin"
-          onClick={() =>
-            navigate(
-              `/classes/bulletins/${eleve.NumIns}?numClass=${NumClass}&matricule=${eleve.Matricule}`
-            )
-          }
+          onClick={() => showBulletin(eleve)}
           className="cursor-pointer font-semibold text-gray-800 text-left max-w-[40px] "
         >
           {(eleve.Nom + " " + eleve.Prenoms).length > 30
