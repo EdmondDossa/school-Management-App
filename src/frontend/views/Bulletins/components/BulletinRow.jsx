@@ -10,6 +10,7 @@ const BulletinRow = ({
   rang,
   statistiques,
   appreciations,
+  shouldHaveD3Field,
 }) => {
   const emptyNote = "**.**";
   return (
@@ -17,16 +18,16 @@ const BulletinRow = ({
       <td> {matiere.NomMat} </td>
       <td> {matiere.Coef.toFixed(2)} </td>
       <td> {MI} </td>
-      <td> {D1 ? D1.toFixed(2): emptyNote} </td>
-      <td> {D2 ? D2.toFixed(2): emptyNote} </td>
-      <td> {D3 ? D3.toFixed(2): emptyNote} </td>
+      <td> {D1 ? D1.toFixed(2) : emptyNote} </td>
+      <td> {D2 ? D2.toFixed(2) : emptyNote} </td>
+      {shouldHaveD3Field && <td> {D3 ? D3.toFixed(2) : emptyNote} </td>}
       <td className="font-bold"> {MT} </td>
       <td> {(+MT * +matiere.Coef).toFixed(2)} </td>
       <td> {rang} </td>
       <td> {statistiques["moyenneFaible"]} </td>
       <td> {statistiques["moyenneForte"]} </td>
       <td> {statistiques["moyenneSalle"]} </td>
-      <td> { appreciations } </td>
+      <td> {appreciations} </td>
     </tr>
   );
 };

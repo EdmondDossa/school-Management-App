@@ -240,7 +240,7 @@ const Professeur = () => {
                           {`${professeur.NomProf} ${professeur.PrenomsProf} `}{" "}
                         </TableCell>
                         <TableCell> {professeur.Sexe} </TableCell>
-                        <TableCell>
+                        <TableCell className="max-w-[150px]">
                           {professeur.matieres.length === 0
                             ? "---"
                             : professeur.matieres

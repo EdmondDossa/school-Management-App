@@ -100,4 +100,4 @@ vite.preload.config.mjs.*
 resources/db/
 
 # Resources images
-resources/images/
+resources/images/etablissements
