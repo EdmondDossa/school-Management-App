@@ -56,6 +56,13 @@ class InscriptionService {
     );
   }
 
+  static async getEleveByNumIns(numIns) {
+    const sql = "SELECT e.*,i.* FROM eleves e,inscriptions i WHERE i.Matricule = e.Matricule AND i.NumIns = ?";
+    const { data:rows } = await window.electronAPI.db.query(sql, [numIns]);
+    if (rows.length === 0) return null;
+    return rows[0];
+  }
+
   static async getInscriptionByMatricule(matricule) {
     const sql = "SELECT * FROM inscriptions WHERE Matricule = ?";
     const rows = await window.electronAPI.db.query(sql, [matricule]);
