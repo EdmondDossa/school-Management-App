@@ -106,6 +106,8 @@ const AnneeScolaire = () => {
     });
     toast.dismiss();
     toast.success("Annee Scolaire Créee!");
+    const initialPeriode = AnneeScolaire.Periodicite === "Trimestre" ? "1er Trimestre":"1er Semestre";
+    await window.electronAPI.store.set("periodeEncours", initialPeriode);
     fetchAnneeScolaireEnCours();
     setAnneeScolaire(initialValues);
     setAnneeUpdate((prev) => !prev);

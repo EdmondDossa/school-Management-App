@@ -64,8 +64,8 @@ class ComposerService {
      *          devoirs:[ { type:note } ]
      *        },
      *        CodMat2: ....
+     *      }
      *  }
-     * }
      * ]
      *
      * Ce tri sera utile pour faciliter dans les vues le calcul des moyennes par classe et par matieres

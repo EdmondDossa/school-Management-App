@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
 import ButtonBack from "../../components/ButtonBack";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import SectionHead from "./components/SectionHead";
-import {  getAnneeScolaire, getEtablissement } from "../../utils";
+import { electronAlert, getAnneeScolaire, getEtablissement } from "../../utils";
 import SingleBulletin from "./components/SingleBulletin";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-import {
-  calculerMoyenneInterro,
-  calculerMoyenneTotal,
-} from "./helpers";
+import { calculerMoyenneInterro, calculerMoyenneTotal } from "./helpers";
 
 import {
   ClasseService,
@@ -19,8 +16,8 @@ import {
   InscriptionService,
 } from "../../../services";
 
-
 const Bulletins = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const NumClass = searchParams.get("numClass");
   const { NumIns } = useParams();
@@ -34,13 +31,15 @@ const Bulletins = () => {
   const [elevesNotes, setElevesNotes] = useState(null);
   const [periodeEnCours, setPeriodeEnCours] = useState("");
   const [statistiquesGlobales, setStatistiquesGlobales] = useState({});
-  const [shouldHaveD3Field, setShouldHaveD3Field] = useState(true); 
+  const [shouldHaveD3Field, setShouldHaveD3Field] = useState(true);
   const [sortedElevesByMoyenneMatieres, setSortedElevesByMoyenneMatieres] =
     useState({});
   const [sortedElevesByMoyenneGenerale, setSortedElevesByMoyenneGenerale] =
     useState([]);
 
   const [isExporting, setIsExporting] = useState(false);
+  const [showAllBulletins, setShowAllBUlletins] = useState(false);
+  const [listBulletinsOnDisplay, setListBulletinsOnDisplay] = useState([]);
 
   async function fetchAppData() {
     try {
@@ -172,76 +171,114 @@ const Bulletins = () => {
         totalCoeff,
       };
       setStatistiquesGlobales(statistiquesGlobales);
+      setListBulletinsOnDisplay([NumIns]); //the bulletin that is being displayed
       setLoading(false);
     } catch (error) {
       console.log(error);
     }
   }
 
+  function previewAllBulletins() {
+    setShowAllBUlletins(true);
+    const numInscriptions = elevesNotes.map((eleve) => eleve.NumIns);
+    setListBulletinsOnDisplay(numInscriptions);
+  }
+
   useEffect(() => {
     fetchAppData();
   }, []);
 
+  useEffect(() => {
+    async function checkCanSeeBulletin() {
+      if (elevesNotes) {
+        if (elevesNotes.length === 0) {
+          const ok = await electronAlert(
+            "Aucune note encore enrégistrée pour la période en cours. Pour accéder aux bulletins,veuillez ajouter au moins une note."
+          );
+          if (ok) navigate(-1);
+        }
+      }
+    }
+    checkCanSeeBulletin();
+  }, [elevesNotes]);
+
   if (isLoading) return <SectionHead />;
 
-  // New function to handle PDF export
   const handleExportPdf = async () => {
     setIsExporting(true);
-    const input = document.getElementById("bulletin-container");
-    if (!input) {
-      console.error("Element with ID 'bulletin-container' not found.");
+    const bulletins = document.querySelectorAll(".bulletin-container");
+
+    if (bulletins.length === 0) {
+      console.error("No elements with class 'bulletin-container' .");
       return;
     }
 
-    const flagSpans = document.querySelectorAll(".benin-flag");
-    flagSpans.forEach((flag) => (flag.style.top = "7px"));
+    const pdf = new jsPDF("p", "px");
 
-    try {
-      const scheduleCanvas = await html2canvas(input, {
-        scale: 1,
-        logging: false,
-        useCORS: true,
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: document.documentElement.offsetWidth,
-        windowHeight: document.documentElement.offsetHeight,
-      });
-      const pdf = new jsPDF("p", "px");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
+    bulletins.forEach(async (bulletin, index) => {
+      const flagSpans = bulletin.querySelectorAll(".benin-flag");
+      flagSpans.forEach((flag) => (flag.style.top = "7px"));
 
-      const imgData = scheduleCanvas.toDataURL("image/png");
-      const imgWidth = scheduleCanvas.width;
-      const imgHeight = scheduleCanvas.height;
+      try {
+       
+        const bulletinCanvas = await html2canvas(bulletin, {
+          scale: 4,
+          logging: false,
+          useCORS: true,
+          scrollX: 0,
+          scrollY: -window.scrollY,
+          windowWidth: document.documentElement.offsetWidth,
+          windowHeight: document.documentElement.offsetHeight,
+        });
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      const ratio = pdfWidth / imgWidth;
-      const imgHeightScaled = imgHeight * ratio;
+        const imgData = bulletinCanvas.toDataURL("image/png");
+        const imgWidth = bulletinCanvas.width;
+        const imgHeight = bulletinCanvas.height;
 
-      if (imgHeightScaled <= pdfHeight) {
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeightScaled);
-      } else {
-        let heightLeft = imgHeightScaled;
-        let position = 0;
+        const ratio = pdfWidth / imgWidth;
+        const imgHeightScaled = imgHeight * ratio;
 
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeightScaled);
-        heightLeft -= pdfHeight;
-
-        while (heightLeft >= 0) {
-          position = heightLeft - imgHeightScaled;
+        if (imgHeightScaled <= pdfHeight) {
+          pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeightScaled);
           pdf.addPage();
+        } else {
+          let heightLeft = imgHeightScaled;
+          let position = 0;
+
           pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeightScaled);
           heightLeft -= pdfHeight;
-        }
-      }
 
-      pdf.save(`bulletin---.pdf`);
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Une erreur est survenue lors de la génération du PDF.");
-    } finally {
-      setIsExporting(false);
-      flagSpans.forEach((flag) => (flag.style.top = "0"));
-    }
+          while (heightLeft >= 0) {
+            position = heightLeft - imgHeightScaled;
+            pdf.addPage();
+            pdf.addImage(
+              imgData,
+              "PNG",
+              0,
+              position,
+              pdfWidth,
+              imgHeightScaled
+            );
+            heightLeft -= pdfHeight;
+          }
+        }
+        if (index + 1 === bulletins.length) {
+          
+          const fileName = showAllBulletins
+            ? `bulletins_${classe.NomClass}_${periodeEnCours}_${Annee}.pdf`
+            : `bulletin_${classe.NomClass}_${periodeEnCours}_eleve_${NumIns}_${Annee}.pdf`;
+          pdf.save(fileName);
+        }
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Une erreur est survenue lors de la génération du PDF.");
+      } finally {
+        setIsExporting(false);
+        flagSpans.forEach((flag) => (flag.style.top = "0"));
+      }
+    });
   };
 
   return (
@@ -249,22 +286,28 @@ const Bulletins = () => {
       <ButtonBack />
       <SectionHead
         isExporting={isExporting}
+        previewAllBulletins={previewAllBulletins}
+        showAllBulletins={showAllBulletins}
+        NomClasse={classe.NomClass}
         handleExportPdf={handleExportPdf}
       />
-      <SingleBulletin
-        etablissement={etablissement}
-        NumIns={NumIns}
-        classe={classe}
-        effectif={effectif}
-        Annee={Annee}
-        periodeEnCours={periodeEnCours}
-        shouldHaveD3Field={shouldHaveD3Field}
-        matieres={matieres}
-        statistiquesGlobales={statistiquesGlobales}
-        elevesNotes={elevesNotes}
-        sortedElevesByMoyenneGenerale={sortedElevesByMoyenneGenerale}
-        sortedElevesByMoyenneMatieres={sortedElevesByMoyenneMatieres}
-      />
+      {listBulletinsOnDisplay.map((NumIns) => (
+        <SingleBulletin
+          key={NumIns}
+          etablissement={etablissement}
+          NumIns={NumIns}
+          classe={classe}
+          effectif={effectif}
+          Annee={Annee}
+          periodeEnCours={periodeEnCours}
+          shouldHaveD3Field={shouldHaveD3Field}
+          matieres={matieres}
+          statistiquesGlobales={statistiquesGlobales}
+          elevesNotes={elevesNotes}
+          sortedElevesByMoyenneGenerale={sortedElevesByMoyenneGenerale}
+          sortedElevesByMoyenneMatieres={sortedElevesByMoyenneMatieres}
+        />
+      ))}
     </>
   );
 };
