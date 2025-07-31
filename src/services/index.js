@@ -10,9 +10,10 @@ import InscriptionService from "./InscriptionService";
 import MatiereService from "./MatiereService";
 import ProfesseurService from "./ProfesseurService";
 import profMatieresService from "./profMatieresService";
-
+import AuthService from "./AuthService";
 export {
   AnneeScolaireService,
+  AuthService,
   ClasseService,
   CoefficientService,
   ComposerService,

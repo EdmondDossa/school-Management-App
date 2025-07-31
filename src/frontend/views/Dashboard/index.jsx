@@ -174,7 +174,7 @@ const Dashboard = () => {
 
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Actions rapides</h2>
-        <div className="flex flex-wrap gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Link to="/etablissements">
             <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
               <CardHeader className="flex flex-row items-center gap-4">

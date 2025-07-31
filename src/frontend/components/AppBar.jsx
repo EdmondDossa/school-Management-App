@@ -7,7 +7,7 @@ import React from "react";
 import { SchoolManager } from "../assets/icons";
 const AppBar = () => {
   return (
-    <div className="text-white z-50 h-[50px] text-center opacity-[1] bg-[#131313] flex justify-between items-center text-[calc(10px + 2vmin)] text-black shadow-lg shadow-[#000000]">
+    <div className="text-white z-50 h-[50px] text-center opacity-[1] bg-[#131313] flex justify-between items-center text-[calc(10px + 2vmin)] text-black">
       <div className="px-8">
         <img src={SchoolManager} className="h-[40px]"/>
       </div>

@@ -175,7 +175,7 @@ const Select = ({
         {/* Dropdown */}
         {isOpen && (
           <div
-            className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50"
+            className="absolute overflow-auto top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50"
             style={{ maxHeight }}
           >
             {/* Barre de recherche */}
@@ -194,10 +194,7 @@ const Select = ({
             )}
 
             {/* Options */}
-            <div
-              className="overflow-auto"
-              style={{ maxHeight: "calc(100% - 60px)" }}
-            >
+            <div style={{ maxHeight: "calc(100% - 60px)" }}>
               {filteredOptions.length === 0 ? (
                 <div className="px-3 py-2 text-gray-500 text-sm">
                   {searchable && searchTerm

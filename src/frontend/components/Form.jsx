@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MultiSelected from "./MultiSelect";
+import Input from "./Input";
+import Select from "./Select";
 
 const Form = ({
   fields,
@@ -26,16 +28,28 @@ const Form = ({
     }));
   };
 
+  const handleChangeSelect = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="overflow-y-auto">
-      <section  className="space-y-6 max-h-[61vh] overflow-auto p-4">
+      <section className="space-y-6 max-h-[61vh] overflow-auto p-4">
         {fields.map((field) => (
           <div key={field.name}>
             <label
               htmlFor={field.name}
               className="block text-sm font-medium text-gray-700"
             >
-              {field.label} {field.required ? <span className="text-red-600 font-bold">*</span>:""}
+              {field.label}{" "}
+              {field.required ? (
+                <span className="text-red-600 font-bold">*</span>
+              ) : (
+                ""
+              )}
             </label>
 
             {/* Gestion des types de champs */}
@@ -51,21 +65,16 @@ const Form = ({
                 rows={4}
               />
             ) : field.type === "select" ? (
-              <select
+              <Select
                 id={field.name}
                 name={field.name}
                 value={formData[field.name] || ""}
                 required={field.required}
                 disabled={field.disabled}
-                onChange={handleChange}
-                className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-              >
-                {field.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                options={field.options}
+                onChange={(op) => handleChangeSelect(field.name, op.value)}
+                triggerClassName="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
             ) : field.type === "checkbox" ? (
               <div className="mt-1 flex items-center">
                 <input
@@ -84,20 +93,21 @@ const Form = ({
                   {field.label}
                 </label>
               </div>
-            ) : field.type === "multiselect" ?(
-              <MultiSelected 
+            ) : field.type === "multiselect" ? (
+              <MultiSelected
                 fieldName={field.name}
                 options={field.options}
                 placeholder={field.placeholder}
-                defaultOptions={()=> formData[field.name].map(m=>({
-                  label:m[field.keys.label],
-                  value:m[field.keys.value]
-                }))}
+                defaultOptions={() =>
+                  formData[field.name].map((m) => ({
+                    label: m[field.keys.label],
+                    value: m[field.keys.value],
+                  }))
+                }
                 noOptionsMessage={field.noOptionsMessage}
                 setFormData={setFormData}
               />
-              )
-            : field.type === "radio" ? (
+            ) : field.type === "radio" ? (
               <div className="mt-1">
                 {field.options.map((option) => (
                   <div key={option.value} className="flex items-center">
@@ -121,23 +131,21 @@ const Form = ({
                 ))}
               </div>
             ) : (
-              <input
+              <Input
                 type={field.type}
                 id={field.name}
                 name={field.name}
                 value={formData[field.name] || ""}
                 required={field.required}
-                min="1"
-                readOnly={field.readOnly}
                 onChange={handleChange}
-                className="mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                readOnly={field.readOnly}
               />
             )}
           </div>
         ))}
       </section>
       {/* Bouton de soumission */}
-      <div className="flex justify-end pt-3">
+      <div className="flex justify-end pt-3 sticky bottom-0">
         <button
           type="submit"
           className="px-4 py-2 focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700"
