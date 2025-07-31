@@ -14,7 +14,7 @@ import NotesPanel from "../views/Notes";
 import Bulletins from "../views/Bulletins";
 import Connexion from "../views/Connexion";
 import Inscription from "../views/Inscription";
-import ChangePassword from "../views/ChangePassword";
+import ChangePassword from "../views/User/ChangePassword";
 import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createHashRouter([
