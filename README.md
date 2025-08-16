@@ -1,75 +1,97 @@
-# 🖥️ Projet Electron Forge avec SQLite
+# 🎓 School Management App
 
-Ce projet est une application **Electron** qui utilise une base de données **SQLite** pour la gestion des élèves d'un collège au Bénin. Il intègre **Vite.js** pour le bundling et **IPC** pour la communication entre le **Main Process** et le **Renderer Process**.
+A comprehensive desktop application designed to streamline school administration and management tasks. Built with Electron, React, and Tailwind CSS, this application provides a user-friendly interface for managing students, teachers, classes, grades, and more.
+
+## ✨ Features
+
+-   **Dashboard:** A central hub for quick access to key information and actions.
+-   **Student Management:** Add, edit, delete, and search for students. View detailed student information.
+-   **Teacher Management:** Manage teacher profiles, including their assigned subjects.
+-   **Class Management:** Create and manage classes, assign subjects and teachers.
+-   **Subject Management:** Maintain a list of subjects offered by the school.
+-   **Enrollment Management:** Enroll students in classes for a specific school year.
+-   **Grading System:** Input and manage student grades for different subjects and periods (semesters/trimesters).
+-   **Report Cards:** Generate and view student report cards.
+-   **Timetable Management:** Create and manage school timetables.
+-   **User Authentication:** Secure login system for administrators.
+-   **Configuration Assistant:** An initial setup wizard to configure the application for the first time.
+
+## 🛠️ Tech Stack
+
+-   **Framework:** [Electron](https://www.electronjs.org/)
+-   **Frontend:** [React](https://reactjs.org/)
+-   **Database:** [SQLite](https://www.sqlite.org/index.html) with [Knex.js](https://knexjs.org/) for query building and migrations.
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+-   **Bundler:** [Vite](https://vitejs.dev/)
+-   **Routing:** [React Router](https://reactrouter.com/)
+-   **State Management:** React Hooks & Context API
+
+## 📂 Project Structure
+
+The project is organized into the following main directories:
+
+-   `src/`: Contains the main source code of the application.
+    -   `main.js`: The entry point for the Electron main process.
+    -   `preload.js`: The script that runs before the web page is loaded in the browser window.
+    -   `frontend/`: Contains the React frontend code.
+        -   `components/`: Reusable UI components.
+        -   `views/`: The main views or pages of the application.
+        -   `services/`: Handles communication with the main process and the database.
+        -   `models/`: Data models for different entities (Student, Teacher, etc.).
+-   `migrations/`: Contains the database migration files managed by Knex.js.
+-   `resources/`: Contains static assets like images and icons.
+
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+-   [Node.js](https://nodejs.org/en/) (v18 or later recommended)
+-   [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+
+### Installation
+
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/EdmondDossa/school-Management-App.git
+    cd school-Management-App
+    ```
+
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    ```
+
+### Running the Application
+
+-   **Development Mode:**
+    To start the application in development mode with hot-reloading, run:
+    ```sh
+    npm run start
+    ```
+
+-   **Production Build:**
+    To build the application for production, run:
+    ```sh
+    npm run make
+    ```
+    This will create a distributable package in the `out` directory.
+
+## 🗄️ Database
+
+The application uses SQLite as its database. The database schema is managed through migrations using Knex.js.
+
+-   **Running Migrations:**
+    To apply the latest database migrations, run the following command:
+    ```sh
+    npx knex migrate:latest
+    ```
+    *Note: Migrations are usually run automatically on application startup.*
+
+## 📝 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
-
-## 📦 Installation
-
-1️⃣ **Cloner le projet**
-
-```sh
-git clone https://github.com/EdmondDossa/school-Management-App.git #depot github
-cd school-Management-App # dossier après clone
-npm install # installation des dépendances
-npm run start # lancer le projet
-npm run build # génére le build
-npm start # lancer le projet après build
-```
-
-## 📂 Structure du projet
-
-src/
-├── services/ # Gestion des requêtes et de la logique métier
-├── frontend/ # Interface utilisateur (React/Vue/Svelte/... si utilisé)
-├── models/ # Modèles de données et ORM
-├── utils/ # Utilitaires et helpers
-│ ├── database.js # Gestion de la base de données SQLite
-│ ├── main.js # Processus principal d'Electron
-│ ├── preload.js # Sécurisation des API IPC
-│ ├── renderer.js # Gestion du Renderer Process
-├── db/
-│ ├── school-management.db # Base de données SQLite
-├── index.html # Page principale de l'application
-├── forge.config.js # Configuration d'Electron Forge
-├── vite.main.config.mjs # Config Vite pour le Main Process
-├── vite.preload.config.mjs # Config Vite pour le Preload
-├── vite.renderer.config.mjs # Config Vite pour le Renderer
-├── tailwind.config.js # Configuration Tailwind CSS (si utilisé)
-├── package.json # Dépendances et scripts
-├── .gitignore # Fichiers à ignorer par Git
-├── README.md # Documentation du projet
-
-# 📋 Fonctionnalités principales
-
-✅ Gestion des élèves, classes et inscriptions avec SQLite
-✅ Communication sécurisée entre Electron et la base via IPC
-✅ Architecture bien séparée avec Preload.js pour la sécurité
-✅ Gestion efficace des transactions SQL
-
-# 🛠 Technologies utilisées
-
-Electron Forge ⚡ (Framework Electron)
-SQLite3 🗄️ (Base de données légère et rapide)
-Node.js 🚀 (Backend JS)
-JavaScript 📜 (Langage principal)
-Vite.js ⚡ (Optimisation du bundling)
-TailwindCSS 🎨 (Stylisation UI, si utilisé)
-
-# 📌 À venir
-
-🚀 Interface utilisateur améliorée
-🚀 Optimisation des performances SQL
-🚀 Support multi-plateforme (Windows, Linux, Mac)
-🚀 Intégration d’une API REST pour la synchronisation des données
-
-# 📝 Licence
-
-Ce projet est sous licence MIT.
-✍️ Fait par Marie Edmond DOSSA HEGNON (ABOKA JR) 🚀
-
----
-
-✅ **Lisible**  
-✅ **Structuré**  
-✅ **Facile à copier et utiliser**
+*Made with ❤️ by Marie Edmond DOSSA HEGNON (ABOKA JR)*
