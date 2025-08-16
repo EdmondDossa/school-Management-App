@@ -1,5 +1,6 @@
 const { app, protocol, BrowserWindow, ipcMain, dialog } = require("electron");
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import { autoUpdater } from "electron-updater";
 import Store from "electron-store";
 const store = new Store();
 const bcrypt = require('bcrypt');
@@ -67,6 +68,30 @@ app.whenReady().then(() => {
 
   app.on("activate", function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+
+  autoUpdater.checkForUpdatesAndNotify();
+
+  autoUpdater.on('update-available', () => {
+    log.info('update-available');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    log.info('update-downloaded');
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'Mise à jour prête',
+      message: 'Une nouvelle version a été téléchargée. Redémarrez l'application pour appliquer la mise à jour.',
+      buttons: ['Redémarrer', 'Plus tard']
+    }).then(buttonIndex => {
+      if (buttonIndex.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  autoUpdater.on('error', (err) => {
+    log.error('Error in auto-updater. ' + err);
   });
 });
 
