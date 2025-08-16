@@ -1,0 +1,22 @@
+# Exclure les répertoires de build
+out/
+dist/
+build/
+electron_builds/
+electons_build/
+
+# Node modules et cache
+node_modules/
+.npm/
+.yarn/
+
+# Fichiers de développement
+.git/
+.vscode/
+.idea/
+
+# Fichiers temporaires
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

@@ -3,7 +3,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { autoUpdater } from "electron-updater";
 import Store from "electron-store";
 const store = new Store();
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
 const log = require("electron-log");
@@ -72,26 +72,29 @@ app.whenReady().then(() => {
 
   autoUpdater.checkForUpdatesAndNotify();
 
-  autoUpdater.on('update-available', () => {
-    log.info('update-available');
+  autoUpdater.on("update-available", () => {
+    log.info("update-available");
   });
 
-  autoUpdater.on('update-downloaded', () => {
-    log.info('update-downloaded');
-    dialog.showMessageBox({
-      type: 'info',
-      title: 'Mise à jour prête',
-      message: 'Une nouvelle version a été téléchargée. Redémarrez l'application pour appliquer la mise à jour.',
-      buttons: ['Redémarrer', 'Plus tard']
-    }).then(buttonIndex => {
-      if (buttonIndex.response === 0) {
-        autoUpdater.quitAndInstall();
-      }
-    });
+  autoUpdater.on("update-downloaded", () => {
+    log.info("update-downloaded");
+    dialog
+      .showMessageBox({
+        type: "info",
+        title: "Mise à jour prête",
+        message:
+          "Une nouvelle version a été téléchargée. Redémarrez l'application pour appliquer la mise à jour.",
+        buttons: ["Redémarrer", "Plus tard"],
+      })
+      .then((buttonIndex) => {
+        if (buttonIndex.response === 0) {
+          autoUpdater.quitAndInstall();
+        }
+      });
   });
 
-  autoUpdater.on('error', (err) => {
-    log.error('Error in auto-updater. ' + err);
+  autoUpdater.on("error", (err) => {
+    log.error("Error in auto-updater. " + err);
   });
 });
 
@@ -297,15 +300,19 @@ ipcMain.handle("electron-store-delete", (event, key) => {
 });
 
 // Auth handlers
-ipcMain.handle('auth-create-user', async (event, { username, password }) => {
+ipcMain.handle("auth-create-user", async (event, { username, password }) => {
   const hashedPassword = await bcrypt.hash(password, saltRounds);
-  return Database('utilisateurs').insert({ username, password: hashedPassword, role: 'admin' });
+  return Database("utilisateurs").insert({
+    username,
+    password: hashedPassword,
+    role: "admin",
+  });
 });
 
-ipcMain.handle('auth-verify-user', async (event, { username, password }) => {
-  const user = await Database('utilisateurs').where({ username }).first();
+ipcMain.handle("auth-verify-user", async (event, { username, password }) => {
+  const user = await Database("utilisateurs").where({ username }).first();
   if (!user) {
-    return { success: false, message: 'Mot de passe incorrect.' };
+    return { success: false, message: "Mot de passe incorrect." };
   }
 
   const failedAttemptsKey = `failed_attempts_${username}`;
@@ -320,12 +327,21 @@ ipcMain.handle('auth-verify-user', async (event, { username, password }) => {
 
   // Si le mot de passe système est requis, on ne vérifie plus le mot de passe normal
   if (systemPasswordRequired) {
-    return { success: false, systemPasswordRequired: true, message: 'Veuillez utiliser le mot de passe système.' };
+    return {
+      success: false,
+      systemPasswordRequired: true,
+      message: "Veuillez utiliser le mot de passe système.",
+    };
   }
 
   // Vérifier si l'utilisateur est actuellement verrouillé
   if (lockoutUntil > now) {
-    return { success: false, isLockedOut: true, lockoutEndsAt: lockoutUntil, message: 'Trop de tentatives. Veuillez réessayer plus tard.' };
+    return {
+      success: false,
+      isLockedOut: true,
+      lockoutEndsAt: lockoutUntil,
+      message: "Trop de tentatives. Veuillez réessayer plus tard.",
+    };
   }
 
   const passwordMatch = await bcrypt.compare(password, user.password);
@@ -350,29 +366,44 @@ ipcMain.handle('auth-verify-user', async (event, { username, password }) => {
       // Si c'est le 3ème verrouillage (3 * 3 = 9 tentatives échouées au total)
       if (failedAttempts % 3 === 0 && failedAttempts / 3 >= 3) {
         store.set(systemPasswordRequiredKey, true);
-        return { success: false, systemPasswordRequired: true, message: 'Trop de tentatives. Veuillez utiliser le mot de passe système.' };
+        return {
+          success: false,
+          systemPasswordRequired: true,
+          message:
+            "Trop de tentatives. Veuillez utiliser le mot de passe système.",
+        };
       }
-      return { success: false, isLockedOut: true, lockoutEndsAt: newLockoutUntil, message: 'Trop de tentatives. Veuillez réessayer plus tard.' };
+      return {
+        success: false,
+        isLockedOut: true,
+        lockoutEndsAt: newLockoutUntil,
+        message: "Trop de tentatives. Veuillez réessayer plus tard.",
+      };
     }
-    return { success: false, message: 'Mot de passe incorrect.' };
+    return { success: false, message: "Mot de passe incorrect." };
   }
 });
 
-ipcMain.handle('auth-has-users', async () => {
-  const result = await Database('utilisateurs').count('id as count').first();
+ipcMain.handle("auth-has-users", async () => {
+  const result = await Database("utilisateurs").count("id as count").first();
   return result.count > 0;
 });
 
-ipcMain.handle('auth-change-password', async (event, { username, newPassword }) => {
-  try {
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-    await Database('utilisateurs').where({ username }).update({ password: hashedPassword });
-    return { success: true };
-  } catch (error) {
-    console.error("Error changing password:", error);
-    return { success: false, message: error.message };
+ipcMain.handle(
+  "auth-change-password",
+  async (event, { username, newPassword }) => {
+    try {
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+      await Database("utilisateurs")
+        .where({ username })
+        .update({ password: hashedPassword });
+      return { success: true };
+    } catch (error) {
+      console.error("Error changing password:", error);
+      return { success: false, message: error.message };
+    }
   }
-});
+);
 
 /**
  * Handler pour la navigation entre les pages
@@ -397,10 +428,9 @@ process.on("uncaughtException", (error) => {
   }
 });
 
-
-app.on('before-quit', () => {
+app.on("before-quit", () => {
   // Effacer le statut de connexion avant de quitter
-  store.delete('loggedIn');
+  store.delete("loggedIn");
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

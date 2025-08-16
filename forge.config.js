@@ -1,55 +1,74 @@
+// forge.config.cjs
 const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
+const path = require("path");
 
+// Changez le répertoire de sortie vers un dossier externe (pas un sous-dossier)
+const OUT_DIR = path.resolve(__dirname, "..", "electron_builds");
+// Ou utilisez un chemin absolu vers un autre disque/répertoire
+// const OUT_DIR = "D:\\electron-builds";
+
+/** @type {import('@electron-forge/shared-types').ForgeConfig} */
 module.exports = {
   packagerConfig: {
     asar: true,
-    //icon: '/images/icon'
+    icon: "./resources/images/icons/icon",
+    tmpdir: false,
+    overwrite: true,
+    out: OUT_DIR,
   },
+
   rebuildConfig: {},
+
   makers: [
     {
       name: "@electron-forge/maker-squirrel",
-      config: {},
+      config: {
+        // .ico requis ici
+        setupIcon: "./resources/images/icons/icon.ico",
+        // Optionnel :
+        // noMsi: true,
+      },
     },
     {
       name: "@electron-forge/maker-zip",
-      platforms: ["darwin"],
+      platforms: ["darwin"], // macOS
     },
     {
       name: "@electron-forge/maker-deb",
-      config: {},
+      config: {
+        options: {
+          icon: "./resources/images/icons/icon.png", // Linux
+        },
+      },
     },
     {
       name: "@electron-forge/maker-rpm",
-      config: {},
+      config: {
+        options: {
+          icon: "./resources/images/icons/icon.png", // Linux
+        },
+      },
     },
   ],
+
   publishers: [
     {
       name: "@electron-forge/publisher-github",
       config: {
-        // The repository owner and name
-        repository: {
-          owner: "EdmondDossa",
-          name: "school-Management-App",
-        },
-        // Whether to release as a draft
+        repository: { owner: "EdmondDossa", name: "school-Management-App" },
         draft: true,
-        // Whether to release as a prerelease
         prerelease: false,
       },
     },
   ],
+
   plugins: [
     {
       name: "@electron-forge/plugin-vite",
       config: {
-        // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-        // If you are familiar with Vite configuration, it will look really familiar.
         build: [
           {
-            // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
             entry: "src/main.js",
             config: "vite.main.config.mjs",
             target: "main",
@@ -60,16 +79,11 @@ module.exports = {
             target: "preload",
           },
         ],
-        renderer: [
-          {
-            name: "main_window",
-            config: "vite.renderer.config.mjs",
-          },
-        ],
+        renderer: [{ name: "main_window", config: "vite.renderer.config.mjs" }],
       },
     },
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
+
+    // Fuses
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,
