@@ -46,6 +46,26 @@ class MatiereService {
     const result = await window.electronAPI.db.query(sql, [CodMat]);
     return result;
   }
+
+  static async searchMatiere(searchTerm) {
+    const sql = `
+      SELECT * FROM matieres
+      WHERE NomMat LIKE ?
+    `;
+    const params = [`%${searchTerm}%`];
+    const { data: rows } = await window.electronAPI.db.query(sql, params);
+    let matieres = [];
+    for(const row of rows){
+      matieres.push(
+          new Matiere(
+            row.CodMat,
+            row.NomMat,
+            row.Couleur
+      )
+    );
+    }
+    return { success: true, data: matieres };
+  }
 }
 
 export default MatiereService;

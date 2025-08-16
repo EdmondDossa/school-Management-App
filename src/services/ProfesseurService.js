@@ -105,6 +105,35 @@ class ProfesseurService {
     const result = await window.electronAPI.db.query(sql, [numProf]);
     return result;
   }
+
+  static async searchProfesseur(searchTerm) {
+    const sql = `
+      SELECT * FROM professeurs
+      WHERE NomProf LIKE ? OR PrenomsProf LIKE ?
+    `;
+    const params = [`%${searchTerm}%`, `%${searchTerm}%`];
+    const { data: rows } = await window.electronAPI.db.query(sql, params);
+    let professeurs = [];
+    for(const row of rows){
+      let matieres = await profMatieresService.getProfMatieres(row.NumProf);
+      professeurs.push(
+          new Professeur(
+            row.NumProf,
+            row.NomProf,
+            row.PrenomsProf,
+            row.Sexe,
+            row.Adresse,
+            row.Telephone,
+            row.Email,
+            row.DateNaissance,
+            row.LieuNaissance,
+            row.Nationalite,
+            matieres
+      )
+    );
+    }
+    return { success: true, data: professeurs };
+  }
 }
 
 export default ProfesseurService;

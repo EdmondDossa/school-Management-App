@@ -69,6 +69,27 @@ class ClasseService {
     const result = await window.electronAPI.db.query(sql, [NumClass]);
     return result;
   }
+
+  static async searchClasse(searchTerm) {
+    const sql = `
+      SELECT * FROM classes
+      WHERE NomClass LIKE ? OR Promotion LIKE ?
+    `;
+    const params = [`%${searchTerm}%`, `%${searchTerm}%`];
+    const { data: rows } = await window.electronAPI.db.query(sql, params);
+    let classes = [];
+    for(const row of rows){
+      classes.push(
+          new Classe(
+            row.NumClass,
+            row.NomClass,
+            row.Promotion,
+            row.Salle
+      )
+    );
+    }
+    return { success: true, data: classes };
+  }
 }
 
 export default ClasseService;

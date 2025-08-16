@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { Modal } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
-import { BookOpen, Trash, Edit, Palette } from "lucide-react";
+import { BookOpen, Trash, Edit, Palette, Search } from "lucide-react";
 import { electronConfirm, getAnneeScolaire } from "../../utils/index.js";
 import { MatiereService, EnseignerService } from "../../../services/";
+import useDebounce from "../../hooks/use-debounce.js";
 import {
   Card,
   CardContent,
@@ -24,6 +25,10 @@ import { Label, Input } from "../../components";
 
 const MatieresList = () => {
   const [matieres, setMatieres] = useState([]);
+  const [searchMatiere, setSearchMatiere] = useState("");
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const optimizedSearchMatiere = useDebounce(searchMatiere, 500);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [currentMatiere, setCurrentMatiere] = useState({
     CodMat: null,
     NomMat: "",
@@ -32,7 +37,7 @@ const MatieresList = () => {
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
-  const fetchMatieres = async () => {
+  const fetchMatieres = useCallback(async () => {
     setLoading(true);
     try {
       const results = await MatiereService.getAllMatieres();
@@ -42,7 +47,54 @@ const MatieresList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const fetchMatiereForSearch = useCallback(
+    async (searchTerm) => {
+      if (!searchTerm || searchTerm.trim() === "") {
+        setIsSearchMode(false);
+        await fetchMatieres();
+        return;
+      }
+
+      setSearchLoading(true);
+      setIsSearchMode(true);
+
+      try {
+        const result = await MatiereService.searchMatiere(searchTerm);
+        if (result.success) {
+          setMatieres(result.data);
+        } else {
+          toast.error("Une erreur est survenue pendant la recherche");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la recherche:", error);
+        toast.error("Une erreur est survenue pendant la recherche");
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [fetchMatieres]
+  );
+
+  const clearSearch = useCallback(() => {
+    setSearchMatiere("");
+    setIsSearchMode(false);
+    fetchMatieres();
+  }, [fetchMatieres]);
+
+  const handleSearchBoxChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchMatiere(value);
+
+      if (value === "") {
+        setIsSearchMode(false);
+        fetchMatieres();
+      }
+    },
+    [fetchMatieres]
+  );
 
   const handleDelete = async (id) => {
     if (
@@ -56,7 +108,11 @@ const MatieresList = () => {
         if (result.success) {
           await EnseignerService.deleteEnseignementByMatiere(id, Annee);
           toast.success("Matière supprimée avec succès.");
-          fetchMatieres();
+          if (isSearchMode && searchMatiere) {
+            await fetchMatiereForSearch(searchMatiere);
+          } else {
+            await fetchMatieres();
+          }
         } else {
           toast.error("Erreur lors de la suppression.");
         }
@@ -97,7 +153,11 @@ const MatieresList = () => {
         toast.success(
           currentMatiere.CodMat ? "Matière modifiée." : "Matière ajoutée."
         );
-        fetchMatieres();
+        if (isSearchMode && searchMatiere) {
+            await fetchMatiereForSearch(searchMatiere);
+        } else {
+            await fetchMatieres();
+        }
       } else {
         toast.error("Une erreur est survenue.");
       }
@@ -110,7 +170,13 @@ const MatieresList = () => {
 
   useEffect(() => {
     fetchMatieres();
-  }, []);
+  }, [fetchMatieres]);
+
+  useEffect(() => {
+    if (optimizedSearchMatiere !== undefined) {
+      fetchMatiereForSearch(optimizedSearchMatiere);
+    }
+  }, [optimizedSearchMatiere, fetchMatiereForSearch]);
 
   if (loading) return <div>Chargement...</div>;
 
@@ -122,21 +188,39 @@ const MatieresList = () => {
             <BookOpen className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Gestion des Matières</h1>
           </div>
-          <Button onClick={handleAddNew}>
-            <Palette className="mr-2 h-4 w-4" />
-            Ajouter une matière
-          </Button>
         </div>
         <Card>
-          <CardHeader>
-            <CardTitle>Liste des Matières</CardTitle>
-            <CardDescription>
-              Gérez les matières et leurs Couleurs associées.
-            </CardDescription>
+          <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Liste des Matières</CardTitle>
+              <CardDescription>
+                Gérez les matières et leurs Couleurs associées.
+                {isSearchMode &&
+                  ` - ${matieres.length} résultat(s) trouvé(s)`}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="flex items-center content-center space-x-2 relative w-[300px]">
+                  <Input
+                    type="search"
+                    className="px-[30px]"
+                    value={searchMatiere}
+                    placeholder="Rechercher une matière..."
+                    onChange={handleSearchBoxChange}
+                  />
+                  <Search className="absolute right-[10px] top-1/2 transform -translate-y-1/2" />
+                </div>
+                <div className="ms-4">
+                    <Button onClick={handleAddNew}>
+                        <Palette className="mr-2 h-4 w-4" />
+                        Ajouter une matière
+                    </Button>
+                </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0">
                 <TableRow>
                   <TableHead>Nom de la Matière</TableHead>
                   <TableHead>Couleur</TableHead>
@@ -150,7 +234,7 @@ const MatieresList = () => {
                       colSpan={3}
                       className="text-center text-gray-400"
                     >
-                      Aucune matière enregistrée.
+                      {searchMatiere ? `Aucune matière correspondant au terme "${searchMatiere}"` : "Aucune matière enregistrée."}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -212,7 +296,12 @@ const MatieresList = () => {
             />
           </div>
           <div>
-            <Label htmlFor="CouleurMat">Couleur</Label>
+            <Label htmlFor="CouleurMat">
+              Couleur{" "}
+              <span className="text-sm">
+                (pour facilement repérer la matière sur l'emploi du temps)
+              </span>
+            </Label>
             <div className="flex items-center gap-2">
               <Input
                 id="CouleurMat"

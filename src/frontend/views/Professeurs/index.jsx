@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { Modal, Form } from "../../components";
 import { Button } from "../../components/Bouton.jsx";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
-import { BookOpen, Delete, Edit, Eye } from "lucide-react";
+import { BookOpen, Delete, Edit, Eye, Search } from "lucide-react";
 import { professeurFields } from "../../utils/form-fields.js";
+import useDebounce from "../../hooks/use-debounce.js";
+import Input from "../../components/Input.jsx";
 
 import {
   ProfesseurService,
@@ -33,7 +35,11 @@ import {
 import { capitalize, electronConfirm, getAnneeScolaire } from "../../utils/";
 
 const Professeur = () => {
-  const [Professeurs, setProfesseurs] = useState([]);
+  const [professeurs, setProfesseurs] = useState([]);
+  const [searchProfesseur, setSearchProfesseur] = useState("");
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const optimizedSearchProfesseur = useDebounce(searchProfesseur, 500);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const tableHeadFields = ["Nom", "Sexe", "Matiere", "Actions"];
 
@@ -59,9 +65,9 @@ const Professeur = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openProfInfoModal, setOpenProfInfoModal] = useState(false);
 
-  const fetchProfesseurs = async () => {
+  const fetchProfesseurs = useCallback(async () => {
+    setLoading(true);
     try {
-      setProfesseur({ ...professeur });
       let results = await ProfesseurService.getAllProfesseurs();
       setProfesseurs(results);
     } catch (error) {
@@ -69,7 +75,51 @@ const Professeur = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const fetchProfesseurForSearch = useCallback(async (searchTerm) => {
+    if (!searchTerm || searchTerm.trim() === "") {
+      setIsSearchMode(false);
+      await fetchProfesseurs();
+      return;
+    }
+
+    setSearchLoading(true);
+    setIsSearchMode(true);
+
+    try {
+      const result = await ProfesseurService.searchProfesseur(searchTerm);
+      if (result.success) {
+        setProfesseurs(result.data);
+      } else {
+        toast.error("Une erreur est survenue pendant la recherche");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la recherche:", error);
+      toast.error("Une erreur est survenue pendant la recherche");
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [fetchProfesseurs]);
+
+  const clearSearch = useCallback(() => {
+    setSearchProfesseur("");
+    setIsSearchMode(false);
+    fetchProfesseurs();
+  }, [fetchProfesseurs]);
+
+  const handleSearchBoxChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchProfesseur(value);
+
+      if (value === "") {
+        setIsSearchMode(false);
+        fetchProfesseurs();
+      }
+    },
+    [fetchProfesseurs]
+  );
 
   const fetchMatieres = async () => {
     const result = await MatiereService.getAllMatieres();
@@ -85,22 +135,18 @@ const Professeur = () => {
   };
 
   const handleSubmit = async (professeur) => {
-    //formater le nom et le prenom definitivement
     professeur.NomProf = professeur.NomProf.toUpperCase();
     professeur.PrenomsProf = capitalize(professeur.PrenomsProf);
     try {
       let result;
       if (!professeur.NumProf) {
-        //creation du professeur
         result = await ProfesseurService.createProfesseur(professeur);
       } else {
         result = await ProfesseurService.updateProfesseur(professeur);
       }
 
       if (result.success) {
-        //associer les matieres aux professeurs
         if (!professeur.NumProf) {
-          //on a besoin de l'id du dernier prof inscrit afin de l'enregitrer dans la table profmatieres
           const lastProfInserted =
             await ProfesseurService.getLastInsertedProf();
           await profMatieresService.defineMatieresForProf(
@@ -118,7 +164,11 @@ const Professeur = () => {
             ? "Professeur modifiée avec succès"
             : "Professeur ajoutée avec succès"
         );
-        await fetchProfesseurs();
+        if (isSearchMode && searchProfesseur) {
+            await fetchProfesseurForSearch(searchProfesseur);
+        } else {
+            await fetchProfesseurs();
+        }
       } else {
         toast.error("Une erreur est survenue");
       }
@@ -137,15 +187,16 @@ const Professeur = () => {
     if (confirmDeletion) {
       try {
         const result = await ProfesseurService.deleteProfesseur(id);
-        //supprimer le cours enseigner par ce professeur
         const { Annee } = await getAnneeScolaire();
 
         if (result.success) {
-          //supprimer les matieres associes à ce professeur
           await profMatieresService.deleteRecordByProf(id);
           toast.success("Professeur supprimé avec succès");
-          await fetchProfesseurs();
-          //supprimer les cours correspondants
+          if (isSearchMode && searchProfesseur) {
+            await fetchProfesseurForSearch(searchProfesseur);
+          } else {
+            await fetchProfesseurs();
+          }
           await EnseignerService.deleteEnseignementByProfesseur(id, Annee);
         } else {
           toast.error("Erreur lors de la suppression");
@@ -182,11 +233,17 @@ const Professeur = () => {
   useEffect(() => {
     fetchProfesseurs();
     fetchMatieres();
-  }, []);
+  }, [fetchProfesseurs]);
 
   useEffect(() => {
     updateProfesseurFields();
   }, [matieres]);
+
+  useEffect(() => {
+    if (optimizedSearchProfesseur !== undefined) {
+      fetchProfesseurForSearch(optimizedSearchProfesseur);
+    }
+  }, [optimizedSearchProfesseur, fetchProfesseurForSearch]);
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -201,21 +258,41 @@ const Professeur = () => {
               <BookOpen className="h-8 w-8 text-primary" />
               <h1 className="text-3xl font-bold">Gestion des Professeurs</h1>
             </div>
-            <Button onClick={() => setOpenEditModal(true)}>
-              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
-              Ajouter un professeur
-            </Button>
           </div>
 
           <div className="grid gap-6">
             <Card className="m-auto w-full">
-              <CardHeader>
-                <CardTitle>Liste des Professeurs</CardTitle>
-                <CardDescription>Gérez les professeurs</CardDescription>
+              <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Liste des Professeurs</CardTitle>
+                  <CardDescription>
+                    Gérez les professeurs
+                    {isSearchMode &&
+                      ` - ${professeurs.length} résultat(s) trouvé(s)`}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center content-center space-x-2 relative w-[300px]">
+                    <Input
+                      type="search"
+                      className="px-[30px]"
+                      value={searchProfesseur}
+                      placeholder="Rechercher un professeur..."
+                      onChange={handleSearchBoxChange}
+                    />
+                    <Search className="absolute right-[10px] top-1/2 transform -translate-y-1/2" />
+                  </div>
+                  <div className="ms-4">
+                    <Button onClick={() => setOpenEditModal(true)}>
+                      <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+                      Ajouter un professeur
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="overflow-auto">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0">
                     <TableRow>
                       {tableHeadFields.map((field) => (
                         <TableHead key={field}> {field} </TableHead>
@@ -223,17 +300,19 @@ const Professeur = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Professeurs.length === 0 && (
+                    {professeurs.length === 0 && (
                       <TableRow>
                         <TableCell
                           colSpan={4}
                           className="text-gray-400 text-md text-center"
                         >
-                          Aucun professeur enregistré pour le moment
+                          {searchProfesseur
+                            ? `Aucun professeur correspondant au terme "${searchProfesseur}"`
+                            : "Aucun professeur enregistré pour le moment"}
                         </TableCell>
                       </TableRow>
                     )}
-                    {Professeurs?.map((professeur) => (
+                    {professeurs?.map((professeur) => (
                       <TableRow key={professeur.NumProf}>
                         <TableCell>
                           {" "}

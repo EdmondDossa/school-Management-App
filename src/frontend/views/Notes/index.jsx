@@ -7,7 +7,8 @@ import { useParams } from "react-router-dom";
 import ButtonBack from "../../components/ButtonBack";
 import { Card, CardContent } from "../../components/Card";
 import NoteRow from "./components/NoteRow.jsx";
-import { Highlighter} from "lucide-react";
+import { Highlighter, Search } from "lucide-react";
+import Input from "../../components/Input.jsx";
 import {
   ComposerService,
   EnseignerService,
@@ -20,7 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableCell
+  TableCell,
 } from "../../components/CTable.jsx";
 
 const trimestres = ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"];
@@ -38,23 +39,20 @@ const NotesPanel = () => {
   const [isLoading, setLoading] = useState(false);
   const [selectedPeriode, setSelectedPeriode] = useState("");
   const [etablissementPeriode, setEtablissementPeriode] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { numClass } = useParams();
 
   async function fetchAppData() {
     try {
       setLoading(true);
-      //annees scolaires
       const anneescolaire = await AnneeScolaireService.getAllAnneesScolaires();
       setAnneesScolaires(anneescolaire.data);
-      //annee en cours dans le local storage
       const anneeEnCours = await getAnneeScolaire();
       setSelectedAnneesScolaire(anneeEnCours.Annee);
       setEtablissementPeriode(anneeEnCours.Periodicite);
-      //info sur la classe actuel
       const classe = await ClasseService.getClasseByNumClass(numClass);
       setCurrentClasse(classe);
-      //les matieres de la salle
       const matieres = await EnseignerService.getEnseignements(
         anneeEnCours.Annee,
         numClass
@@ -62,7 +60,6 @@ const NotesPanel = () => {
       setClassesMatieres(matieres);
 
       if (matieres.length > 0) setSelectedMatiere(matieres[0].CodMat);
-      //periode en cours
       const periode = await window.electronAPI.store.get("periodeEncours");
       if (!periode) {
         setSelectedPeriode(
@@ -90,7 +87,6 @@ const NotesPanel = () => {
   }
 
   async function fetchEleves() {
-    //eleves by classe
     const eleves = await InscriptionService.getElevesByAnneeScolaireAndClasse(
       selectedAnneesScolaire,
       numClass
@@ -119,6 +115,12 @@ const NotesPanel = () => {
     }
   }, [selectedAnneesScolaire]);
 
+  const filteredEleves = eleves.filter((eleve) =>
+    `${eleve.Nom} ${eleve.Prenoms}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
   if (isLoading || !notes) return <div>Chargement...</div>;
 
   return (
@@ -126,37 +128,14 @@ const NotesPanel = () => {
       <ButtonBack />
       <div className="max-w-7xl mx-auto sticky bg-white -top-5  z-40 ">
         <div className="sticky bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col lg:flex-row md:items-center justify-between gap-4 ">
-            <div>
-              <div className="flex items-center space-x-4">
-                <Highlighter className="w-8 h-8 text-blue-600" />
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Gestion des notes - {currentClasse.NomClass}{" "}
-                </h1>
-              </div>
-              <div className="flex gap-x-5 items-center font-bold text-gray-500">
-                {(etablissementPeriode === "Trimestre"
-                  ? trimestres
-                  : semestres
-                ).map((periode) => (
-                  <div key={periode}>
-                    <label className="cursor-pointer" htmlFor={periode}>
-                      {" "}
-                      {periode}{" "}
-                    </label>
-                    <input
-                      id={periode}
-                      onChange={handlePeriodeChange}
-                      checked={periode === selectedPeriode}
-                      className="cursor-pointer w-5 h-3"
-                      type="radio"
-                      value={periode}
-                    />
-                  </div>
-                ))}
-              </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <Highlighter className="w-8 h-8 text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">
+                Gestion des notes - {currentClasse.NomClass}{" "}
+              </h1>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-4 ">
+            <div className="flex items-center gap-4">
               <select
                 id="anneeScolaire"
                 value={selectedAnneesScolaire}
@@ -184,6 +163,39 @@ const NotesPanel = () => {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex gap-x-5 items-center font-bold text-gray-500">
+              {(etablissementPeriode === "Trimestre"
+                ? trimestres
+                : semestres
+              ).map((periode) => (
+                <div key={periode}>
+                  <label className="cursor-pointer" htmlFor={periode}>
+                    {" "}
+                    {periode}{" "}
+                  </label>
+                  <input
+                    id={periode}
+                    onChange={handlePeriodeChange}
+                    checked={periode === selectedPeriode}
+                    className="cursor-pointer w-5 h-3"
+                    type="radio"
+                    value={periode}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="relative">
+              <Input
+                type="search"
+                placeholder="Rechercher un élève..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-3 pr-[28px] py-2 border w-[350px] border-gray-300 rounded-md"
+              />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
           </div>
         </div>
@@ -239,17 +251,19 @@ const NotesPanel = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {eleves.length === 0 ? (
+                  {filteredEleves.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={10}
                         className="text-gray-400 text-md text-center"
                       >
-                        Aucun élève inscrit dans cette classe.
+                        {searchTerm
+                          ? `Aucun élève correspondant au terme "${searchTerm}"`
+                          : "Aucun élève inscrit dans cette classe."}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    eleves.map((eleve, i) => (
+                    filteredEleves.map((eleve, i) => (
                       <NoteRow
                         index={i + 1}
                         key={eleve.NumIns}

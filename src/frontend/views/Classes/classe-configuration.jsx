@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Modal } from "../../components";
 import { DuplicateIcon } from "../../assets/icons/index.jsx";
-import { SettingsIcon, Delete, Edit } from "lucide-react";
+import { SettingsIcon, Delete, Edit, PlusCircle } from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import ButtonBack from "../../components/ButtonBack.jsx";
 
@@ -14,6 +14,7 @@ import {
   ClasseService,
   CoefficientService,
   ProfesseurService,
+  MatiereService,
 } from "../../../services/";
 
 import {
@@ -35,20 +36,10 @@ import { Tooltip } from "react-tooltip";
 
 const tableHeadFields = ["Matiere", "Professeur", "Coefficient", "Actions"];
 
-const initialValues = {
-  CodMat: "",
-  NumProf: "",
-  Coef: 1,
-};
-
 const ClasseConfiguration = () => {
   const { id: NumClass } = useParams();
 
-  const [InfoScolaire, setInfoScolaire] = useState({
-    Annee: "",
-  });
-  const ref = useRef();
-
+  const [InfoScolaire, setInfoScolaire] = useState({ Annee: "" });
   const [isLoading, setLoading] = useState(true);
   const [isLoadingComponentData, setLoadingComponentData] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -57,143 +48,141 @@ const ClasseConfiguration = () => {
   const [coefToUpdate, setCoefToUpdate] = useState(null);
 
   const [matieres, setMatieres] = useState([]);
-  const [professeurs, setProfesseurs] = useState([]);
+  const [professeursByMatiere, setProfesseursByMatiere] = useState({});
   const [classe, setClasse] = useState({});
   const [enseignements, setEnseignements] = useState([]);
-  const [cours, setCours] = useState(initialValues);
+  const [newEnseignements, setNewEnseignements] = useState([]);
 
-  async function fetchInfoScolaire() {
+  const fetchInfoScolaire = useCallback(async () => {
     const { Annee } = await getAnneeScolaire();
     setInfoScolaire({ Annee });
     setLoading(false);
-  }
+  }, []);
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setCours({ ...cours, [name]: value });
-  }
-
-  async function closeModal() {
-    setOpenModal(false);
-    setProfesseurs([]);
-    setCours(initialValues);
-
-    if (cours.id) {
-      await fetchMatieresNonAssignee();
-    }
-  }
-
-  async function fetchMatieresNonAssignee() {
-    const matieresNonAssignees =
-      await EnseignerService.getMatieresNonEncoreAssigneeAClasse(
-        InfoScolaire.Annee,
-        NumClass
-      );
-    setMatieres(matieresNonAssignees);
-  }
-
-  async function fetchCurrentClasse() {
-    const result = await ClasseService.getClasseByNumClass(NumClass);
-    setClasse(result);
-  }
-
-  async function fetchEnseignements() {
-    const result = await EnseignerService.getEnseignements(
-      InfoScolaire.Annee,
-      NumClass
-    );
-    setEnseignements(result);
-  }
-
-  async function loadData() {
-    setLoadingComponentData(true);
-    await fetchCurrentClasse();
-    await fetchMatieresNonAssignee();
-    await fetchEnseignements();
-    setLoadingComponentData(false);
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    try {
-      const enseignement = {
-        ...cours,
-        Annee: InfoScolaire.Annee,
-        NumClass,
-      };
-      const coefficient = {
-        CodMat: cours.CodMat,
-        Coef: cours.Coef,
-        NumClass,
-        Annee: InfoScolaire.Annee,
-      };
-
-      if (!cours.id) {
-        await EnseignerService.createEnseignement(enseignement);
-        await CoefficientService.createCoefficient(coefficient);
-        toast.success("Le cours a bien été ajoutee");
-      } else {
-        await EnseignerService.updateEnseignement(enseignement);
-        await CoefficientService.deleteCoefficient(
-          cours.CodMat,
+  const fetchMatieresNonAssignee = useCallback(async () => {
+    if (InfoScolaire.Annee) {
+      const matieresNonAssignees =
+        await EnseignerService.getMatieresNonEncoreAssigneeAClasse(
           InfoScolaire.Annee,
           NumClass
         );
-        await CoefficientService.createCoefficient(coefficient);
-        toast.success("Cours modifiee avec success");
-      }
+      setMatieres(matieresNonAssignees);
+    }
+  }, [InfoScolaire.Annee, NumClass]);
 
-      await fetchMatieresNonAssignee();
-      await fetchEnseignements();
+  const fetchCurrentClasse = useCallback(async () => {
+    const result = await ClasseService.getClasseByNumClass(NumClass);
+    setClasse(result);
+  }, [NumClass]);
+
+  const fetchEnseignements = useCallback(async () => {
+    if (InfoScolaire.Annee) {
+      const result = await EnseignerService.getEnseignements(
+        InfoScolaire.Annee,
+        NumClass
+      );
+      setEnseignements(result);
+    }
+  }, [InfoScolaire.Annee, NumClass]);
+
+  const loadData = useCallback(async () => {
+    setLoadingComponentData(true);
+    await Promise.all([
+      fetchCurrentClasse(),
+      fetchMatieresNonAssignee(),
+      fetchEnseignements(),
+    ]);
+    setLoadingComponentData(false);
+  }, [fetchCurrentClasse, fetchMatieresNonAssignee, fetchEnseignements]);
+
+  const addNewEnseignement = () => {
+    setNewEnseignements([
+      ...newEnseignements,
+      { CodMat: "", NumProf: "", Coef: 1, key: Date.now() },
+    ]);
+  };
+
+  const removeNewEnseignement = (key) => {
+    setNewEnseignements(newEnseignements.filter((ens) => ens.key !== key));
+  };
+
+  const handleNewEnseignementChange = (key, field, value) => {
+    const updatedEnseignements = newEnseignements.map((ens) =>
+      ens.key === key ? { ...ens, [field]: value } : ens
+    );
+    setNewEnseignements(updatedEnseignements);
+
+    if (field === "CodMat") {
+      filterProfesseurByMatiere(value, key);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const matieresSet = new Set();
+    for (const enseignement of newEnseignements) {
+      if (matieresSet.has(enseignement.CodMat)) {
+        const matiere = matieres.find((m) => m.CodMat === enseignement.CodMat);
+        toast.error(
+          `La matière "${matiere.NomMat}" est sélectionnée plusieurs fois.`
+        );
+        return;
+      }
+      matieresSet.add(enseignement.CodMat);
+    }
+
+    try {
+      const promises = newEnseignements.map((enseignement) => {
+        const enseignementData = {
+          ...enseignement,
+          Annee: InfoScolaire.Annee,
+          NumClass,
+        };
+        const coefficientData = {
+          CodMat: enseignement.CodMat,
+          Coef: enseignement.Coef,
+          NumClass,
+          Annee: InfoScolaire.Annee,
+        };
+        return Promise.all([
+          EnseignerService.createEnseignement(enseignementData),
+          CoefficientService.createCoefficient(coefficientData),
+        ]);
+      });
+
+      await Promise.all(promises);
+
+      toast.success("Les cours ont bien été ajoutés");
+      await loadData();
       closeModal();
     } catch (error) {
       toast.error("Une erreur est survenue.");
     }
-  }
+  };
 
-  async function handleDelete(enseignement) {
+  const handleDelete = async (enseignement) => {
     const confirmDelete = await electronConfirm(
       "Etes vous sûr(e) de vouloir supprimer ce cours ?"
     );
     if (confirmDelete) {
       try {
         await EnseignerService.deleteEnseignement(enseignement.id);
-        //remove the related coeff
         await CoefficientService.deleteCoefficient(
           enseignement.CodMat,
           InfoScolaire.Annee,
           NumClass
         );
-
-        await fetchMatieresNonAssignee();
-        await fetchEnseignements();
-        setCours(initialValues);
-
+        await loadData();
         toast.success("Enseignement supprimer avec succes");
       } catch (error) {
         console.log(error);
         toast.error("Une erreur est survenue lors de la suppression");
       }
     }
-  }
+  };
 
-  async function handleEdit(id) {
-    setOpenModal(true);
-    const cours = enseignements.find((enseignement) => enseignement.id === id);
-    cours.id = id;
-    setCours(cours);
-    //by default the list of matieres do not include the matiere to edit
-    //so we add it to the list of matieres to simulate the default behaviour
-    setMatieres([
-      ...matieres,
-      {
-        CodMat: cours.CodMat,
-        NomMat: cours.NomMat,
-      },
-    ]);
-  }
-
-  async function handleCoefficientUpdate(CodMat, oldCoef) {
+  const handleCoefficientUpdate = async (CodMat, oldCoef) => {
     if (!coefToUpdate) return;
     if (oldCoef === coefToUpdate) return;
     if (coefToUpdate && coefToUpdate >= 1) {
@@ -203,31 +192,38 @@ const ClasseConfiguration = () => {
         InfoScolaire.Annee,
         coefToUpdate
       );
-
       await fetchEnseignements();
       toast.success("Coefficient modifié!");
     } else {
       toast.error("Coefficient invalide");
     }
     setIsUpdatingCoef(false);
-  }
+  };
 
-  async function filterProfesseurByMatiere() {
-    const profs = await ProfesseurService.getProfesseurByCodMat(cours.CodMat);
-    setProfesseurs(profs);
-  }
+  const filterProfesseurByMatiere = async (codMat, key) => {
+    if (codMat) {
+      const profs = await ProfesseurService.getProfesseurByCodMat(codMat);
+      setProfesseursByMatiere((prev) => ({ ...prev, [key]: profs }));
+    } else {
+      setProfesseursByMatiere((prev) => ({ ...prev, [key]: [] }));
+    }
+  };
+
+  const closeModal = () => {
+    setOpenModal(false);
+    setNewEnseignements([]);
+    setProfesseursByMatiere({});
+  };
 
   useEffect(() => {
     fetchInfoScolaire();
-  }, []);
+  }, [fetchInfoScolaire]);
 
   useEffect(() => {
-    if (!isLoading) loadData();
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (cours.CodMat) filterProfesseurByMatiere();
-  }, [cours.CodMat]);
+    if (!isLoading) {
+      loadData();
+    }
+  }, [isLoading, loadData]);
 
   if (isLoadingComponentData) return <div>Chargement ...</div>;
 
@@ -245,9 +241,16 @@ const ClasseConfiguration = () => {
                 Configurer la classe de {classe.NomClass}{" "}
               </h1>
             </div>
-            <Button onClick={() => setOpenModal(true)}>
+            <Button
+              onClick={() => {
+                setNewEnseignements([
+                  { CodMat: "", NumProf: "", Coef: 1, key: Date.now() },
+                ]);
+                setOpenModal(true);
+              }}
+            >
               <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
-              Ajouter un cours
+              Ajouter des cours
             </Button>
           </div>
           <div className="grid gap-6">
@@ -261,8 +264,7 @@ const ClasseConfiguration = () => {
                     <TableRow>
                       {tableHeadFields.map((field) => (
                         <TableHead className="text-center" key={field}>
-                          {" "}
-                          {field}{" "}
+                          {field}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -282,12 +284,10 @@ const ClasseConfiguration = () => {
                       <TableRow key={index}>
                         <TableCell> {enseignement.NomMat} </TableCell>
                         <TableCell>
-                          {" "}
-                          {`${enseignement.NomProf} ${enseignement.PrenomsProf}`}{" "}
+                          {`${enseignement.NomProf} ${enseignement.PrenomsProf}`}
                         </TableCell>
-
                         <TableCell
-                          id="coefficient"
+                          id={`coefficient-${index}`}
                           spellCheck={false}
                           className="cursor-pointer"
                           onClick={() => setIsUpdatingCoef(true)}
@@ -302,18 +302,13 @@ const ClasseConfiguration = () => {
                             )
                           }
                         >
-                          <span ref={ref} spellCheck={false}>
-                            {enseignement.Coef}
-                          </span>
-                          <span contentEditable={false}>
-                            <Tooltip anchorSelect="#coefficient">
-                              {!isUpdatingCoef
-                                ? "Double cliquer pour modifier"
-                                : "Saisir la nouvelle valeur"}
-                            </Tooltip>
-                          </span>
+                          <span spellCheck={false}>{enseignement.Coef}</span>
+                          <Tooltip anchorSelect={`#coefficient-${index}`}>
+                            {!isUpdatingCoef
+                              ? "Double cliquer pour modifier"
+                              : "Saisir la nouvelle valeur"}
+                          </Tooltip>
                         </TableCell>
-
                         <TableCell className="">
                           <div className="flex gap-2">
                             <Button
@@ -324,15 +319,6 @@ const ClasseConfiguration = () => {
                               onClick={() => handleDelete(enseignement)}
                             >
                               <Delete className="h-2 w-4 mr-1" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="px-3"
-                              title="Modifier les informations"
-                              onClick={() => handleEdit(enseignement.id)}
-                            >
-                              <Edit className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -346,78 +332,107 @@ const ClasseConfiguration = () => {
         </main>
       </div>
 
-      <Modal
-        isOpen={openModal}
-        onClose={closeModal}
-        title={cours.id ? "Modification du cours" : "Nouveau cours"}
-      >
+      <Modal isOpen={openModal} onClose={closeModal} title="Nouveaux cours">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <FormLabel>Matieres</FormLabel>
-            <select
-              name="CodMat"
-              id="Matieres"
-              onChange={handleChange}
-              defaultValue={cours.CodMat}
-              className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-              required
+          {newEnseignements.map((ens, index) => (
+            <div
+              key={ens.key}
+              className="flex items-end gap-4 p-4 border rounded-md"
             >
-              <option value="">Choisir la matiere</option>
-              {matieres.map((matiere) => (
-                <option key={matiere.CodMat} value={matiere.CodMat}>
-                  {matiere.NomMat}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <FormLabel>Définir le coefficient</FormLabel>
-            <input
-              type="number"
-              min="1"
-              value={cours.Coef}
-              name="Coef"
-              onChange={handleChange}
-              className="mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <FormLabel>Professeur</FormLabel>
-            <select
-              name="NumProf"
-              id="Professeur"
-              value={cours.NumProf}
-              onChange={handleChange}
-              className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
-              required
-            >
-              <option value="">Attribuer un professeur</option>
-              {professeurs?.length === 0 ? (
-                <option value="" disabled>
-                  Aucun professeur disponible pour cette matiere
-                </option>
-              ) : (
-                professeurs?.map((prof) =>
-                  prof.NumProf ? (
-                    <option key={prof.NumProf} value={prof.NumProf}>
-                      {`${prof.NomProf} ${prof.PrenomsProf}`}
-                    </option>
-                  ) : (
-                    <option value="" disabled>
-                      Aucun professeur disponible pour cette matiere
-                    </option>
-                  )
-                )
-              )}
-            </select>
-          </div>
-
+              <div className="flex-1 space-y-2">
+                <div>
+                  <FormLabel>Matiere</FormLabel>
+                  <select
+                    name="CodMat"
+                    onChange={(e) =>
+                      handleNewEnseignementChange(
+                        ens.key,
+                        "CodMat",
+                        e.target.value
+                      )
+                    }
+                    value={ens.CodMat}
+                    className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Choisir la matiere</option>
+                    {matieres.map((matiere) => (
+                      <option key={matiere.CodMat} value={matiere.CodMat}>
+                        {matiere.NomMat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <FormLabel>Coefficient</FormLabel>
+                  <input
+                    type="number"
+                    min="1"
+                    value={ens.Coef}
+                    name="Coef"
+                    onChange={(e) =>
+                      handleNewEnseignementChange(
+                        ens.key,
+                        "Coef",
+                        e.target.value
+                      )
+                    }
+                    className="mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <FormLabel>Professeur</FormLabel>
+                  <select
+                    name="NumProf"
+                    value={ens.NumProf}
+                    onChange={(e) =>
+                      handleNewEnseignementChange(
+                        ens.key,
+                        "NumProf",
+                        e.target.value
+                      )
+                    }
+                    className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Attribuer un professeur</option>
+                    {professeursByMatiere[ens.key]?.length === 0 ? (
+                      <option value="" disabled>
+                        Aucun professeur disponible pour cette matiere
+                      </option>
+                    ) : (
+                      professeursByMatiere[ens.key]?.map((prof) =>
+                        prof.NumProf ? (
+                          <option key={prof.NumProf} value={prof.NumProf}>
+                            {`${prof.NomProf} ${prof.PrenomsProf}`}
+                          </option>
+                        ) : null
+                      )
+                    )}
+                  </select>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => removeNewEnseignement(ens.key)}
+              >
+                <Delete className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" onClick={addNewEnseignement} variant="outline">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Ajouter une matière
+          </Button>
           <div className="flex justify-end">
             <button
               type="submit"
               className="px-4 py-2 focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              disabled={newEnseignements.length === 0}
             >
-              {cours.id ? "Modifier" : "Ajouter"}
+              Enregistrer
             </button>
           </div>
         </form>
@@ -428,10 +443,7 @@ const ClasseConfiguration = () => {
 
 function FormLabel({ children }) {
   return (
-    <label
-      htmlFor={children}
-      className="block text-sm font-medium text-gray-700"
-    >
+    <label className="block text-sm font-medium text-gray-700">
       {children}
     </label>
   );

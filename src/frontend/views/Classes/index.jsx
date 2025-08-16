@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import ClasseService from "../../../services/ClasseService.js";
 import { Modal, Form } from "../../components";
@@ -11,10 +11,13 @@ import {
   Delete,
   EllipsisVertical,
   Milestone,
+  Search,
 } from "lucide-react";
 import { Button } from "../../components/Bouton.jsx";
 import { useNavigate } from "react-router-dom";
 import ExtractElevesButton from "../../components/ExtractElevesButton.jsx";
+import useDebounce from "../../hooks/use-debounce.js";
+import Input from "../../components/Input.jsx";
 
 import {
   Card,
@@ -61,6 +64,10 @@ const ClassesList = () => {
   const navigate = useNavigate();
 
   const [classes, setClasses] = useState([]);
+  const [searchClasse, setSearchClasse] = useState("");
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const optimizedSearchClasse = useDebounce(searchClasse, 500);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [effectifsParClasse, setEffectifsParClasse] = useState({});
   const [classe, setClasse] = useState({
     NumClass: null,
@@ -73,9 +80,9 @@ const ClassesList = () => {
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
+    setLoading(true);
     try {
-      setClasse({ ...classe });
       const result = await ClasseService.getAllClasses();
       setClasses(result);
     } catch (error) {
@@ -84,7 +91,54 @@ const ClassesList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const fetchClasseForSearch = useCallback(
+    async (searchTerm) => {
+      if (!searchTerm || searchTerm.trim() === "") {
+        setIsSearchMode(false);
+        await fetchClasses();
+        return;
+      }
+
+      setSearchLoading(true);
+      setIsSearchMode(true);
+
+      try {
+        const result = await ClasseService.searchClasse(searchTerm);
+        if (result.success) {
+          setClasses(result.data);
+        } else {
+          toast.error("Une erreur est survenue pendant la recherche");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la recherche:", error);
+        toast.error("Une erreur est survenue pendant la recherche");
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [fetchClasses]
+  );
+
+  const clearSearch = useCallback(() => {
+    setSearchClasse("");
+    setIsSearchMode(false);
+    fetchClasses();
+  }, [fetchClasses]);
+
+  const handleSearchBoxChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchClasse(value);
+
+      if (value === "") {
+        setIsSearchMode(false);
+        fetchClasses();
+      }
+    },
+    [fetchClasses]
+  );
 
   const fetchEffectifsParClasse = async () => {
     const { Annee } = await getAnneeScolaire();
@@ -106,7 +160,11 @@ const ClassesList = () => {
         const result = await ClasseService.deleteClasse(id);
         if (result.success) {
           toast.success("Classe supprimé avec succès");
-          await fetchClasses();
+          if (isSearchMode && searchClasse) {
+            await fetchClasseForSearch(searchClasse);
+          } else {
+            await fetchClasses();
+          }
         } else {
           toast.error("Erreur lors de la suppression");
         }
@@ -147,7 +205,11 @@ const ClassesList = () => {
             : "Classe ajoutée avec succès"
         );
         handleModalClose();
-        await fetchClasses();
+        if (isSearchMode && searchClasse) {
+            await fetchClasseForSearch(searchClasse);
+        } else {
+            await fetchClasses();
+        }
       } else {
         toast.error("Une erreur est survenue");
       }
@@ -159,9 +221,7 @@ const ClassesList = () => {
 
   const handleExtraction = async (eleves, numclass) => {
     try {
-      //récupérer le nombre d'élèves déjà enrégistrés afin de pouvoir constatés les changements
       const totalAvant = await EleveService.getTotalEleves();
-      //on enrégistre les élèves s'ils n'existaient pas
       let result = await EleveService.insertManyEleves(eleves);
       const totalApres = await EleveService.getTotalEleves();
       if (result.success) {
@@ -173,7 +233,6 @@ const ClassesList = () => {
           { duration: 5000 }
         );
 
-        //on fait l'inscription des élèves dans la classe
         const lastInsertedMatricules = eleves.map((e) => e.Matricule);
         const { Annee } = await getAnneeScolaire();
 
@@ -207,7 +266,13 @@ const ClassesList = () => {
     fetchClasses();
     fetchAllAnneesScolaires();
     fetchEffectifsParClasse();
-  }, []);
+  }, [fetchClasses]);
+
+  useEffect(() => {
+    if (optimizedSearchClasse !== undefined) {
+      fetchClasseForSearch(optimizedSearchClasse);
+    }
+  }, [optimizedSearchClasse, fetchClasseForSearch]);
 
   if (loading) {
     return <div>Chargement...</div>;
@@ -222,23 +287,41 @@ const ClassesList = () => {
               <Users className="h-8 w-8 text-primary" />
               <h1 className="text-3xl font-bold">Gestion des Classes</h1>
             </div>
-            <Button onClick={() => setOpenModal(true)}>
-              <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
-              Ajouter une classe
-            </Button>
           </div>
 
           <div className="grid gap-6">
             <Card className="m-auto w-full">
-              <CardHeader>
-                <CardTitle>Liste des Classes</CardTitle>
-                <CardDescription>
-                  Gérez les classes, les matières et les affectations
-                </CardDescription>
+              <CardHeader className="sticky -top-5 z-20 opacity-100 bg-white flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Liste des Classes</CardTitle>
+                  <CardDescription>
+                    Gérez les classes, les matières et les affectations
+                    {isSearchMode &&
+                        ` - ${classes.length} résultat(s) trouvé(s)`}
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center content-center space-x-2 relative w-[300px]">
+                        <Input
+                            type="search"
+                            className="px-[30px]"
+                            value={searchClasse}
+                            placeholder="Rechercher une classe..."
+                            onChange={handleSearchBoxChange}
+                        />
+                        <Search className="absolute right-[10px] top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    <div className="ms-4">
+                        <Button onClick={() => setOpenModal(true)}>
+                            <img src={DuplicateIcon} className="mr-2 h-4 w-4" />
+                            Ajouter une classe
+                        </Button>
+                    </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0">
                     <TableRow>
                       <TableHead>Nom de la classe</TableHead>
                       <TableHead>Promotion</TableHead>
@@ -254,8 +337,7 @@ const ClassesList = () => {
                           colSpan={5}
                           className="text-gray-400 text-md text-center p-10"
                         >
-                          {" "}
-                          Aucune classe enregistrée pour le moment{" "}
+                          {searchClasse ? `Aucune classe correspondant au terme "${searchClasse}"` : "Aucune classe enregistrée pour le moment"}
                         </TableCell>
                       </TableRow>
                     )}
