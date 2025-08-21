@@ -1,21 +1,16 @@
 // forge.config.cjs
 const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
-const path = require("path");
-
-// Changez le répertoire de sortie vers un dossier externe (pas un sous-dossier)
-const OUT_DIR = path.resolve(__dirname, "..", "electron_builds");
-// Ou utilisez un chemin absolu vers un autre disque/répertoire
-// const OUT_DIR = "D:\\electron-builds";
 
 /** @type {import('@electron-forge/shared-types').ForgeConfig} */
 module.exports = {
+  outDir: "../electons_build",
   packagerConfig: {
-    asar: true,
-    icon: "./resources/images/icons/icon",
+    out: "../electons_build/__pack",
+    asar: false,
+    icon: "./resources/images/icons/school_manager",
     tmpdir: false,
     overwrite: true,
-    out: OUT_DIR,
   },
 
   rebuildConfig: {},
@@ -25,7 +20,7 @@ module.exports = {
       name: "@electron-forge/maker-squirrel",
       config: {
         // .ico requis ici
-        setupIcon: "./resources/images/icons/icon.ico",
+        setupIcon: "./resources/images/icons/school_manager.ico",
         // Optionnel :
         // noMsi: true,
       },
@@ -38,7 +33,7 @@ module.exports = {
       name: "@electron-forge/maker-deb",
       config: {
         options: {
-          icon: "./resources/images/icons/icon.png", // Linux
+          icon: "./resources/images/icons/school_manager.png", // Linux
         },
       },
     },
@@ -46,7 +41,7 @@ module.exports = {
       name: "@electron-forge/maker-rpm",
       config: {
         options: {
-          icon: "./resources/images/icons/icon.png", // Linux
+          icon: "./resources/images/icons/school_manager.png", // Linux
         },
       },
     },
