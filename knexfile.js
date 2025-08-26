@@ -7,7 +7,7 @@ module.exports = {
   development: {
     client: "sqlite3",
     connection: {
-      filename: "./resources/db/school-management.db",
+      filename: "./resources/db/school-manager.db",
     },
     useNullAsDefault: true,
     migrations: {
@@ -18,7 +18,7 @@ module.exports = {
   production: {
     client: "sqlite3",
     connection: {
-      filename: "./resources/db/school-management.db",
+      filename: "./resources/db/school-manager.db",
     },
     useNullAsDefault: true,
     migrations: {

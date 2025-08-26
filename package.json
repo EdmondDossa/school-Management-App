@@ -1,6 +1,6 @@
 {
-  "name": "school-management",
-  "productName": "school-management",
+  "name": "school-manager",
+  "productName": "school-manager",
   "version": "1.0.0",
   "description": "App for managing schools",
   "main": ".vite/build/main.js",

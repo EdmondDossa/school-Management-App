@@ -4,7 +4,7 @@ class AnneeScolaireService {
   static async getAllAnneesScolaires() {
     const sql = "SELECT * FROM annees_scolaires";
     const result = await window.electronAPI.db.query(sql);
-        
+
     if (result.success) {
       const data = result.data.map(
         (an) =>
@@ -13,19 +13,20 @@ class AnneeScolaireService {
             an.DateDebut,
             an.DateFin,
             an.Periodicite,
-            an.id,
+            an.id
           )
       );
 
-      return { success:true, data };
+      return { success: true, data };
     }
     return [];
   }
-   
-  static async getAllOldAnneeScolaire(){
-    const sql = "SELECT * FROM annees_scolaires WHERE Statut = 'Termine' ORDER BY id DESC";
+
+  static async getAllOldAnneeScolaire() {
+    const sql =
+      "SELECT * FROM annees_scolaires WHERE Statut = 'Termine' ORDER BY id DESC";
     const result = await window.electronAPI.db.query(sql);
-    return result.data;
+    return result.data?.length ? result.data : [];
   }
 
   static async getAnneeScolaireById(id) {
@@ -51,7 +52,7 @@ class AnneeScolaireService {
       anneeScolaire.Annee,
       anneeScolaire.DateDebut,
       anneeScolaire.DateFin,
-      anneeScolaire.Periodicite
+      anneeScolaire.Periodicite,
     ]);
     return result;
   }
@@ -75,18 +76,17 @@ class AnneeScolaireService {
     return result;
   }
 
-  static async  getLastAnneeScolaire(){
+  static async getLastAnneeScolaire() {
     const sql = "SELECT * FROM annees_scolaires ORDER BY id DESC LIMIT 1";
     const result = await window.electronAPI.db.query(sql);
     return result.data[0] ?? {};
   }
-  
-  static async setAnneeScolaireAsTerminee(id){
+
+  static async setAnneeScolaireAsTerminee(id) {
     const sql = "UPDATE annees_scolaires SET Statut = 'Termine' WHERE id = ?";
-    const result = await window.electronAPI.db.query(sql,[id]);
+    const result = await window.electronAPI.db.query(sql, [id]);
     return result;
   }
-
 }
 
 export default AnneeScolaireService;

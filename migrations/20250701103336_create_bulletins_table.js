@@ -2,24 +2,26 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function (knex) {
-  return knex.schema.createTableIfNotExists(
-    "bulletins",
-    function (table) {
+exports.up = async function (knex) {
+  const exists = await knex.schema.hasTable("bulletins");
+  if (!exists) {
+    await knex.schema.createTable("bulletins", function (table) {
       table.integer("NumIns");
       table.string("Periode");
       table.string("Rang");
       table.float("Moyenne");
       table.timestamp("created_at").defaultTo(knex.fn.now());
-      table.primary(["NumIns","Periode"]);
-    }
-  );
+
+      // Clé primaire composite
+      table.primary(["NumIns", "Periode"]);
+    });
+  }
 };
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function (knex) {
-  return knex.schema.dropTable("emploi_du_temps");
+exports.down = async function (knex) {
+  await knex.schema.dropTableIfExists("bulletins");
 };

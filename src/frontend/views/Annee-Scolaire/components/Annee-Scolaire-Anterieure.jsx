@@ -12,6 +12,7 @@ const AnneeScolaireAnterieures = ({ isAnneeUpdate = false }) => {
 
   async function fetchAnneeScolairesInfo() {
     const annees = await AnneeScolaireService.getAllOldAnneeScolaire();
+
     setAnneeScolaires(annees);
   }
 
@@ -55,36 +56,36 @@ const AnneeScolaireAnterieures = ({ isAnneeUpdate = false }) => {
     fetchLocalAnneeScolaire();
   }, [isAnneeUpdate]);
 
-  if (anneesScolaires.length === 0) return <div></div>;
+  if (anneesScolaires?.length === 0) return <div></div>;
 
   return (
     <>
-      <div className='float-right m-3'>
-        <button id='btn-old-annee' onClick={() => setDisplayTooltip(true)}>
-          <TimerReset className='w-10 h-10 text-slate-500' />
+      <div className="float-right m-3">
+        <button id="btn-old-annee" onClick={() => setDisplayTooltip(true)}>
+          <TimerReset className="w-10 h-10 text-slate-500" />
 
           {!isDisplayingTooltip ? (
             <Tooltip
-              anchorSelect='#btn-old-annee'
-              content='Consulter les années scolaires antérieures'
+              anchorSelect="#btn-old-annee"
+              content="Consulter les années scolaires antérieures"
             />
           ) : (
             <Tooltip
-              anchorSelect='#btn-old-annee'
+              anchorSelect="#btn-old-annee"
               openOnClick={true}
               clickable={true}
               afterHide={() => setDisplayTooltip(false)}
-              className='w-[400px] p-0 bg-white shadow-md opacity-100 rounded-sm max-h-[350px] overflow-y-auto overflow-x-hidden'
+              className="w-[400px] p-0 bg-white shadow-md opacity-100 rounded-sm max-h-[350px] overflow-y-auto overflow-x-hidden"
             >
-              <div className='relative'>
-                <h2 className='z-10 sticky top-0 bg-blue-700 text-white text-center py-3 mb-3 w-full font-bold'>
+              <div className="relative">
+                <h2 className="z-10 sticky top-0 bg-blue-700 text-white text-center py-3 mb-3 w-full font-bold">
                   Liste des années scolaires antérieures
                 </h2>
                 <ul>
                   {anneesScolaires.map((annee) => {
                     let isConsulting = savedAnnee.id === annee.id;
                     return (
-                      <li className='flex justify-between items-center p-3 text-black'>
+                      <li className="flex justify-between items-center p-3 text-black">
                         <h4> {annee.Annee} </h4>
                         <div>
                           <button
@@ -106,8 +107,8 @@ const AnneeScolaireAnterieures = ({ isAnneeUpdate = false }) => {
               </div>
               {anneesScolaires.some((e) => e.id === savedAnnee.id) && (
                 <button
-                  type='reset'
-                  className='bg-red-400  p-2 text-center m-2 rounded-sm float-left sticky bottom-0'
+                  type="reset"
+                  className="bg-red-400  p-2 text-center m-2 rounded-sm float-left sticky bottom-0"
                   onClick={resetAnnee}
                 >
                   Annuler

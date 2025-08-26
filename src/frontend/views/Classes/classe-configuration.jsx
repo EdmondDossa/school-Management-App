@@ -352,7 +352,7 @@ const ClasseConfiguration = () => {
                       )
                     }
                     value={ens.CodMat}
-                    className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    className="h-10 p-2 mt-1 block w-full outline-none rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                     required
                   >
                     <option value="">Choisir la matiere</option>
@@ -377,7 +377,7 @@ const ClasseConfiguration = () => {
                         e.target.value
                       )
                     }
-                    className="mt-1 block h-10 p-2 w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block h-10 p-2 outline-none w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
                 <div>
@@ -392,7 +392,7 @@ const ClasseConfiguration = () => {
                         e.target.value
                       )
                     }
-                    className="h-10 p-2 mt-1 block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                    className="h-10 p-2 mt-1  outline-none block w-full rounded-md border-[2px] border-gray-300 shadow-sm focus:outline-none focus:border-blue-500 focus:ring-blue-500"
                     required
                   >
                     <option value="">Attribuer un professeur</option>
@@ -429,7 +429,7 @@ const ClasseConfiguration = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="px-4 py-2 focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 focus:ring-0 outline-none  bg-blue-600 text-white rounded-md hover:bg-blue-700"
               disabled={newEnseignements.length === 0}
             >
               Enregistrer
