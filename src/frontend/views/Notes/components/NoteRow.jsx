@@ -186,7 +186,7 @@ const NoteRow = ({ eleve, index, CodMat, NumClass, Periode, oldNotes }) => {
               onBlur={handleNoteEdit}
               id={`${field}-${eleve.NumIns}`}
               disabled={["MI", "MT"].includes(field) || !CodMat}
-              className={`group-hover:bg-gray-100 bg-inherit transition border-none outline-none focus:border-none focus:outline-none h-full w-full block `}
+              className={`group-hover:bg-gray-100 bg-inherit transition border-none outline-none outline-none focus:border-none outline-none focus:outline-none h-full w-full block `}
             />
           </TableCell>
         ))}

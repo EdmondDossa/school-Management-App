@@ -1,8 +1,7 @@
 const { app, protocol, BrowserWindow, ipcMain, dialog } = require("electron");
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { autoUpdater } from "electron-updater";
-import Store from "electron-store";
-const store = new Store();
+
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
@@ -10,6 +9,11 @@ const log = require("electron-log");
 import path from "node:path";
 import fs from "node:fs";
 import started from "electron-squirrel-startup";
+let store;
+async function initStore() {
+  const { default: Store } = await import("electron-store");
+  store = new Store();
+}
 import { db as Database, initializeDatabase } from "./database.js";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -50,9 +54,10 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await initStore();
   log.info("Ready");
-  electronApp.setAppUserModelId("com.exampapersetter");
+  electronApp.setAppUserModelId("com.squirrel.SchoolManager.SchoolManager");
 
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
@@ -288,15 +293,15 @@ ipcMain.handle("db-transaction", async (event, { operations }) => {
 // store
 
 ipcMain.handle("electron-store-get", (event, key) => {
-  return store.get(key);
+  return store?.get(key);
 });
 
 ipcMain.handle("electron-store-set", (event, key, val) => {
-  return store.set(key, val);
+  return store?.set(key, val);
 });
 
 ipcMain.handle("electron-store-delete", (event, key) => {
-  return store.delete(key);
+  return store?.delete(key);
 });
 
 // Auth handlers
@@ -319,9 +324,9 @@ ipcMain.handle("auth-verify-user", async (event, { username, password }) => {
   const lockoutUntilKey = `lockout_until_${username}`;
   const systemPasswordRequiredKey = `system_password_required_${username}`;
 
-  let failedAttempts = store.get(failedAttemptsKey, 0);
-  let lockoutUntil = store.get(lockoutUntilKey, 0);
-  let systemPasswordRequired = store.get(systemPasswordRequiredKey, false);
+  let failedAttempts = store?.get(failedAttemptsKey, 0);
+  let lockoutUntil = store?.get(lockoutUntilKey, 0);
+  let systemPasswordRequired = store?.get(systemPasswordRequiredKey, false);
 
   const now = Date.now();
 
@@ -348,24 +353,24 @@ ipcMain.handle("auth-verify-user", async (event, { username, password }) => {
 
   if (passwordMatch) {
     // Connexion réussie : réinitialiser les compteurs
-    store.set(failedAttemptsKey, 0);
-    store.set(lockoutUntilKey, 0);
+    store?.set(failedAttemptsKey, 0);
+    store?.set(lockoutUntilKey, 0);
     return { success: true };
   } else {
     // Mot de passe incorrect : incrémenter les tentatives échouées
     failedAttempts++;
-    store.set(failedAttemptsKey, failedAttempts);
+    store?.set(failedAttemptsKey, failedAttempts);
 
     if (failedAttempts >= 3) {
       // Si 3 tentatives échouées, verrouiller pour 5 minutes
       const newLockoutUntil = now + 5 * 60 * 1000; // 5 minutes en ms
-      store.set(lockoutUntilKey, newLockoutUntil);
+      store?.set(lockoutUntilKey, newLockoutUntil);
       // Réinitialiser les tentatives après un verrouillage pour le prochain cycle
-      store.set(failedAttemptsKey, 0);
+      store?.set(failedAttemptsKey, 0);
 
       // Si c'est le 3ème verrouillage (3 * 3 = 9 tentatives échouées au total)
       if (failedAttempts % 3 === 0 && failedAttempts / 3 >= 3) {
-        store.set(systemPasswordRequiredKey, true);
+        store?.set(systemPasswordRequiredKey, true);
         return {
           success: false,
           systemPasswordRequired: true,
@@ -430,7 +435,7 @@ process.on("uncaughtException", (error) => {
 
 app.on("before-quit", () => {
   // Effacer le statut de connexion avant de quitter
-  store.delete("loggedIn");
+  store?.delete("loggedIn");
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

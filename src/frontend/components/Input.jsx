@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Input = ({
   type,
@@ -13,6 +14,7 @@ const Input = ({
   autofocus = false,
 }) => {
   const [preview, setPreview] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     setPreview(previewFile);
@@ -21,14 +23,11 @@ const Input = ({
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Créer un aperçu de l'image
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
       reader.readAsDataURL(file);
-
-      // Appeler la fonction onChange parente si elle existe
       if (onChange) {
         onChange(e);
       }
@@ -58,7 +57,7 @@ const Input = ({
             className="hidden"
             id="fileInput"
             required={required}
-            accept="image/*" // Limite aux fichiers images
+            accept="image/*"
           />
           <label
             htmlFor="fileInput"
@@ -67,8 +66,6 @@ const Input = ({
             {preview ? "Changer de fichier" : "Choisir un fichier..."}
           </label>
         </div>
-
-        {/* Nom du fichier */}
         {preview && (
           <p className="text-sm text-gray-500 truncate">
             Fichier sélectionné:{" "}
@@ -79,6 +76,31 @@ const Input = ({
       </div>
     );
   }
+
+  if (type === "password") {
+    return (
+      <div className="relative w-full">
+        <input
+          type={showPassword ? "text" : "password"}
+          name={name}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          readOnly={readOnly}
+          required={required}
+          autoFocus={autofocus}
+          className={`h-[50px] w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm outline-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${className}`}
+        />
+        <div
+          className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <input
       type={type}
@@ -89,7 +111,7 @@ const Input = ({
       readOnly={readOnly}
       required={required}
       autoFocus={autofocus}
-      className={`h-[50px] w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${className}`}
+      className={`h-[50px] w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm outline-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${className}`}
     />
   );
 };

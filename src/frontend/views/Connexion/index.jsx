@@ -1,3 +1,4 @@
+import Input from "../../components/Input";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "../../../services";
@@ -85,7 +86,7 @@ function Connexion() {
               >
                 Mot de passe
               </label>
-              <input
+              <Input
                 id="password"
                 type="password"
                 value={password}
@@ -105,7 +106,7 @@ function Connexion() {
             )}
             <button
               type="submit"
-              className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 outline-none focus:outline-none outline-none focus:ring-2 outline-none focus:ring-offset-2 outline-none focus:ring-indigo-500"
               disabled={isLockedOut || systemPasswordRequired}
             >
               Se connecter

@@ -11,7 +11,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           <h2 className="text-lg font-semibold">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="text-gray-500 hover:text-gray-700 outline-none focus:outline-none"
           >
             <img src={CloseIcon} className="w-6 h-6" alt="Close" />
           </button>

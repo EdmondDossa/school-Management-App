@@ -61,7 +61,7 @@ const Form = ({
                 required={field.required}
                 readOnly={field.readOnly}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm outline-none  focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm outline-none  outline-none focus:outline-none outline-none focus:border-blue-500 outline-none focus:ring-blue-500"
                 rows={4}
               />
             ) : field.type === "select" ? (
@@ -73,7 +73,7 @@ const Form = ({
                 disabled={field.disabled}
                 options={field.options}
                 onChange={(op) => handleChangeSelect(field.name, op.value)}
-                triggerClassName="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm outline-none  focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                triggerClassName="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm outline-none  outline-none focus:outline-none outline-none focus:ring-indigo-500 outline-none focus:border-indigo-500"
               />
             ) : field.type === "checkbox" ? (
               <div className="mt-1 flex items-center">
@@ -84,7 +84,7 @@ const Form = ({
                   checked={formData[field.name] || false}
                   disabled={field.disabled}
                   onChange={handleChange}
-                  className="h-4 w-4 focus:outline-none text-blue-600 border-gray-300 rounded outline-none  focus:ring-blue-500"
+                  className="h-4 w-4 outline-none focus:outline-none text-blue-600 border-gray-300 rounded outline-none  outline-none focus:ring-blue-500"
                 />
                 <label
                   htmlFor={field.name}
@@ -119,7 +119,7 @@ const Form = ({
                       checked={formData[field.name] === option.value}
                       disabled={field.disabled}
                       onChange={handleChange}
-                      className="h-4 w-4 focus:outline-none text-blue-600 border-gray-300 outline-none  focus:ring-blue-500"
+                      className="h-4 w-4 outline-none focus:outline-none text-blue-600 border-gray-300 outline-none  outline-none focus:ring-blue-500"
                     />
                     <label
                       htmlFor={`${field.name}-${option.value}`}
@@ -148,7 +148,7 @@ const Form = ({
       <div className="flex justify-end pt-3 sticky bottom-0">
         <button
           type="submit"
-          className="px-4 py-2 outline-none focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="px-4 py-2 outline-none outline-none focus:ring-0 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
           {submitLabel}
         </button>

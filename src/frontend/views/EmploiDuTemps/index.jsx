@@ -72,9 +72,8 @@ const EmploiDuTemps = () => {
   useEffect(() => {
     if (selectedSchoolYear) {
       const fetchClasses = async () => {
-        const fetchedClasses = await ClasseService.getClassesByAnneeScolaire(
-          selectedSchoolYear
-        );
+        const fetchedClasses =
+          await ClasseService.getClassesByAnneeScolaire(selectedSchoolYear);
         setClasses(fetchedClasses);
         if (fetchedClasses.length > 0) {
           setSelectedClass(fetchedClasses[0].NumClass);
@@ -274,7 +273,7 @@ const EmploiDuTemps = () => {
                 id="schoolYear"
                 value={selectedSchoolYear}
                 onChange={(e) => setSelectedSchoolYear(e.target.value)}
-                className="block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 outline-none focus:border-blue-500 outline-none focus:ring-blue-500 sm:text-sm"
               >
                 {schoolYears.map((year) => (
                   <option key={year.Annee} value={year.Annee}>
@@ -286,7 +285,7 @@ const EmploiDuTemps = () => {
                 id="classSelect"
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 outline-none focus:border-blue-500 outline-none focus:ring-blue-500 sm:text-sm"
               >
                 {classes.map((cls) => (
                   <option key={cls.NumClass} value={cls.NumClass}>

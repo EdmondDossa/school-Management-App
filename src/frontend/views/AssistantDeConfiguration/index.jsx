@@ -94,8 +94,8 @@ const Onboarding = ({ onComplete }) => {
           ))}
         </div>
       </div>
-       <p className="text-center text-xs text-gray-500 mt-4">
-        School Management App © 2025
+      <p className="text-center text-xs text-gray-500 mt-4">
+        School Manager App © 2025
       </p>
     </div>
   );

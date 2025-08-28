@@ -35,13 +35,13 @@ const Select = ({
   // Styles selon la variante
   const variantStyles = {
     default:
-      "bg-white border-gray-300 hover:border-gray-400 outline-none  focus:border-blue-500 focus:ring-blue-500",
+      "bg-white border-gray-300 hover:border-gray-400 outline-none  outline-none focus:border-blue-500 outline-none focus:ring-blue-500",
     primary:
-      "bg-blue-50 border-blue-300 hover:border-blue-400 outline-none  focus:border-blue-600 focus:ring-blue-600",
+      "bg-blue-50 border-blue-300 hover:border-blue-400 outline-none  outline-none focus:border-blue-600 outline-none focus:ring-blue-600",
     success:
-      "bg-green-50 border-green-300 hover:border-green-400 outline-none  focus:border-green-600 focus:ring-green-600",
+      "bg-green-50 border-green-300 hover:border-green-400 outline-none  outline-none focus:border-green-600 outline-none focus:ring-green-600",
     danger:
-      "bg-red-50 border-red-300 hover:border-red-400  outline-none focus:border-red-600 focus:ring-red-600",
+      "bg-red-50 border-red-300 hover:border-red-400  outline-none outline-none focus:border-red-600 outline-none focus:ring-red-600",
   };
 
   // Filtrer les options si recherche activée
@@ -129,7 +129,7 @@ const Select = ({
           ${variantStyles[variant]}
           ${
             error
-              ? "border-red-500 outline-none focus:border-red-500 focus:ring-red-500"
+              ? "border-red-500 outline-none outline-none focus:border-red-500 outline-none focus:ring-red-500"
               : ""
           }
           ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50" : ""}
@@ -187,7 +187,7 @@ const Select = ({
                   placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-2 py-1 text-sm outline-none border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1 text-sm outline-none border border-gray-300 rounded outline-none focus:outline-none outline-none focus:border-blue-500"
                   onClick={(e) => e.stopPropagation()}
                 />
               </div>

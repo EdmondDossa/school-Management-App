@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Input from "../../components/Input";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "../../../services";
 import Logo from "../../assets/icons/school-manager-logo.svg";
@@ -37,18 +38,18 @@ function Inscription() {
               >
                 Mot de passe
               </label>
-              <input
+              <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm outline-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
             <button
               type="submit"
-              className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 outline-none focus:outline-none outline-none focus:ring-2 outline-none focus:ring-offset-2 outline-none focus:ring-indigo-500"
             >
               S'inscrire
             </button>

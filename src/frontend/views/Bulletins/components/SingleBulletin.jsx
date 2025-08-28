@@ -11,7 +11,7 @@ import {
 import BulletinRecapitulatif from "../../../../models/BulletinRecapitulatif";
 import BulletinRecapitulatifService from "../../../../services/BulletinRecapitulatifService";
 import BulletinPeriodeRecapitulatif from "./BulletinPeriodeRecapitulatif";
-
+import BeninFlag from "../../../assets/images/benin_flag.png";
 const tableHeadFields = [
   "DISCIPLINES",
   "Coef",
@@ -184,7 +184,7 @@ const SingleBulletin = ({
               <span className="block w-5 h-4 benin-flag relative">
                 <img
                   className="w-full h-full"
-                  src="app://resources/images/default/benin_flag.png"
+                  src={BeninFlag}
                   alt="Benin flag"
                 />
               </span>
@@ -194,7 +194,7 @@ const SingleBulletin = ({
               <span className="block w-5 h-4 benin-flag relative">
                 <img
                   className="w-full h-full"
-                  src="app://resources/images/default/benin_flag.png"
+                  src={BeninFlag}
                   alt="Benin flag"
                 />
               </span>

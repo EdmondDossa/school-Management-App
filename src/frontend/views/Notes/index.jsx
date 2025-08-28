@@ -140,7 +140,7 @@ const NotesPanel = () => {
                 id="anneeScolaire"
                 value={selectedAnneesScolaire}
                 onChange={(e) => setSelectedAnneesScolaire(e.target.value)}
-                className="block order-2 rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block order-2 rounded-md border-gray-300 shadow-sm py-2 px-3 outline-none focus:border-blue-500 outline-none focus:ring-blue-500 sm:text-sm"
               >
                 {anneesScolaires.map((annee) => (
                   <option key={annee.Annee} value={annee.Annee}>
@@ -152,7 +152,7 @@ const NotesPanel = () => {
                 id="matieres"
                 value={selectedMatiere}
                 onChange={(e) => setSelectedMatiere(e.target.value)}
-                className="block rounded-md border-gray-300 shadow-sm py-2 px-3 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block rounded-md border-gray-300 shadow-sm py-2 px-3 outline-none focus:border-blue-500 outline-none focus:ring-blue-500 sm:text-sm"
               >
                 {classesMatieres.length === 0 && (
                   <option value="">Matière:Aucune assignée</option>

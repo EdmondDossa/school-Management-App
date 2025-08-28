@@ -51,7 +51,7 @@ const SideBar = () => {
             to={item.path}
             title={isNavbarHidden ? item.label : ""}
             className={`
-                    flex px-6 py-3 focus:outline-none hover:text-[#2871FA] font-bold hover:bg-[#FFFFFF] 
+                    flex px-6 py-3 outline-none focus:outline-none hover:text-[#2871FA] font-bold hover:bg-[#FFFFFF] 
                     ${
                       location.pathname === item.path ||
                       (item.path.length > 1 &&
